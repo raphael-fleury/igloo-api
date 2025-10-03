@@ -1,7 +1,6 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { env } from "../env";
-import { User } from "./entities/user";
 
 export const appDataSource = new DataSource({
     type: "postgres",
@@ -10,13 +9,14 @@ export const appDataSource = new DataSource({
     database: env.POSTGRES_DB,
     username: env.POSTGRES_USER,
     password: env.POSTGRES_PASSWORD,
-    entities: [User],
+    entities: ["src/database/entities/*.ts"],
     synchronize: true,
     logging: true,
 });
 
 try {
     await appDataSource.initialize();
+    console.log("✅ Database connected successfully");
 } catch (error) {
-    console.log(error);
+    console.error("❌ Database connection failed:", error);
 }
