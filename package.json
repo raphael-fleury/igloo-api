@@ -8,6 +8,8 @@
   "dependencies": {
     "@elysiajs/openapi": "^1.4.11",
     "elysia": "latest",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.27",
     "zod": "^4.1.11"
   },
   "devDependencies": {
