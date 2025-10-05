@@ -1,9 +1,9 @@
 import Elysia from "elysia";
-import { appDataSource } from "../database/data-source";
-import { User } from "../database/entities/user";
-import { Profile } from "../database/entities/profile";
-import { createUserDto, updateUserDto, userDto } from "../dtos/user.dtos";
-import { profileDto } from "../dtos/profile.dtos";
+import { appDataSource } from "@/database/data-source";
+import { User } from "@/database/entities/user";
+import { Profile } from "@/database/entities/profile";
+import { createUserDto, updateUserDto, userDto } from "@/app/dtos/user.dtos";
+import { profileDto } from "@/app/dtos/profile.dtos";
 
 export const userController = new Elysia({ prefix: "/users" })
     .decorate("repository", appDataSource.getRepository(User))

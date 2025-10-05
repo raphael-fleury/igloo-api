@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 import { openapi } from "@elysiajs/openapi";
-import { userController } from "./controllers/user.controller";
-import { profileController } from "./controllers/profile.controller";
+import { userController } from "@/http/controllers/user.controller";
+import { profileController } from "@/http/controllers/profile.controller";
 
 const app = new Elysia()
   .use(openapi())

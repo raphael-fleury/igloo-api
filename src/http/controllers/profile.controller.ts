@@ -1,7 +1,7 @@
 import Elysia from "elysia";
-import { appDataSource } from "../database/data-source";
-import { Profile } from "../database/entities/profile";
-import { profileDto, updateProfileDto } from "../dtos/profile.dtos";
+import { appDataSource } from "@/database/data-source";
+import { Profile } from "@/database/entities/profile";
+import { profileDto, updateProfileDto } from "@/app/dtos/profile.dtos";
 
 export const profileController = new Elysia({ prefix: "/profiles" })
     .decorate("profileRepository", appDataSource.getRepository(Profile))

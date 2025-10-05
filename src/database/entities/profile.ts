@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
-import { DISPLAYNAME_MAX_LENGTH, USERNAME_MAX_LENGTH } from "../../dtos/profile.dtos";
+import { DISPLAYNAME_MAX_LENGTH, USERNAME_MAX_LENGTH } from "@/app/dtos/profile.dtos";
 
 @Entity("profiles")
 export class Profile {
