@@ -2,9 +2,14 @@ import { Elysia } from "elysia";
 import { openapi } from "@elysiajs/openapi";
 import { userController } from "@/http/controllers/user.controller";
 import { profileController } from "@/http/controllers/profile.controller";
+import z from "zod";
 
 const app = new Elysia()
-  .use(openapi())
+  .use(openapi({
+    mapJsonSchema: {
+      zod: z.toJSONSchema
+    }
+  }))
   .use(userController)
   .use(profileController)
   .listen(3000);
