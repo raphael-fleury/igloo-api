@@ -1,19 +1,19 @@
 {
   "name": "igloo-api",
   "version": "1.0.50",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "bun run --watch src/index.ts"
-  },
+  "module": "src/index.js",
   "dependencies": {
     "@elysiajs/openapi": "^1.4.11",
-    "elysia": "latest",
+    "elysia": "^1.4.9",
     "reflect-metadata": "^0.2.2",
     "typeorm": "^0.3.27",
     "zod": "^4.1.11"
   },
-  "devDependencies": {
-    "bun-types": "latest"
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "bun run --watch src/index.ts"
   },
-  "module": "src/index.js"
+  "devDependencies": {
+    "bun-types": "^1.2.23"
+  }
 }
