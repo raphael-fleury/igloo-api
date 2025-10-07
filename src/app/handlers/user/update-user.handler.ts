@@ -1,5 +1,6 @@
 import { UpdateUserDto, userDto } from "@/app/dtos/user.dtos";
 import { User } from "@/database/entities/user";
+import { AlreadyExistsError, NotFoundError } from "@/app/errors";
 import { Repository } from "typeorm";
 
 export class UpdateUserHandler {
@@ -9,7 +10,7 @@ export class UpdateUserHandler {
         const user = await this.userRepository.findOneBy({ id });
 
         if (!user) {
-            return null;
+            throw new NotFoundError(`User with id ${id} not found`);
         }
 
         if (data.email && data.email !== user.email) {
@@ -18,7 +19,7 @@ export class UpdateUserHandler {
             });
 
             if (existingUser) {
-                return { error: 'Email already in use' };
+                throw new AlreadyExistsError(`Email ${data.email} already exists`);
             }
         }
 
@@ -28,7 +29,7 @@ export class UpdateUserHandler {
             });
 
             if (existingUser) {
-                return { error: 'Phone number already in use' };
+                throw new AlreadyExistsError(`Phone number ${data.phone} already exists`);
             }
         }
 

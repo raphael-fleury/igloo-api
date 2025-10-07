@@ -1,3 +1,4 @@
+import z from "zod";
 import Elysia from "elysia";
 import { appDataSource } from "@/database/data-source";
 import { User } from "@/database/entities/user";
@@ -14,43 +15,29 @@ export const userController = new Elysia({ prefix: "/users" })
         const handler = new GetUsersHandler(repository);
         return await handler.handle();
     })
-    .get('/:id', async ({ repository, params, set }) => {
+    .get('/:id', async ({ repository, params }) => {
         const handler = new GetUserByIdHandler(repository);
-        const user = await handler.handle(params.id);
-
-        if (!user) {
-            set.status = 404;
-            return { error: 'User not found' };
-        }
-
-        return user;
+        return await handler.handle(params.id);
+    }, {
+        params: z.object({
+            id: z.uuid()
+        })
     })
     .post('/', async ({ dataSource, body, set }) => {
         const handler = new CreateUserHandler(dataSource);
         const userWithProfile = await handler.handle(body);
-        
-        if (!userWithProfile) {
-            set.status = 500;
-            return { error: 'Error creating user' };
-        }
 
         set.status = 201;
         return userWithProfile;
     }, {
         body: createUserDto
     })
-    .patch('/:id', async ({ repository, params, body, set }) => {
+    .patch('/:id', async ({ repository, params, body }) => {
         const handler = new UpdateUserHandler(repository);
-        const user = await handler.handle(params.id, body);
-
-        if (!user) {
-            set.status = 404;
-            return 'User not found'
-        }
-        if ('error' in user) {
-            set.status = 409;
-            return user.error;
-        }
+        return await handler.handle(params.id, body);
     }, {
+        params: z.object({
+            id: z.uuid()
+        }),
         body: updateUserDto
     });
