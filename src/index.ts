@@ -3,7 +3,7 @@ import { Elysia } from "elysia";
 import { openapi } from "@elysiajs/openapi";
 import { userController } from "@/http/controllers/user.controller";
 import { profileController } from "@/http/controllers/profile.controller";
-import { AlreadyExistsError, NotFoundError } from "./app/errors";
+import { onErrorMiddleware } from "./http/middlewares/on-error.middleware";
 
 const app = new Elysia()
   .use(openapi({
@@ -11,37 +11,7 @@ const app = new Elysia()
       zod: z.toJSONSchema
     }
   }))
-  .error({ AlreadyExistsError, NotFoundError })
-  .onError(({ code, error, set }) => {
-    switch (code) {
-      case 'AlreadyExistsError':
-        set.status = 409;
-        break;
-      case 'NOT_FOUND':
-      case 'NotFoundError':
-        set.status = 404;
-        break;
-      case 'PARSE':
-      case 'VALIDATION':
-        set.status = 422;
-        set.headers["content-type"] = "application/json";
-        return error.message;
-      case 'INVALID_COOKIE_SIGNATURE':
-      case 'INVALID_FILE_TYPE':
-        set.status = 400;
-        break;
-      case 'UNKNOWN':
-      case 'INTERNAL_SERVER_ERROR':
-        set.status = 500;
-        break;
-      default:
-        set.status = 500;
-        return { message: 'Internal Server Error' }
-    }
-
-    const { message } = error;
-    return { message };
-  })
+  .use(onErrorMiddleware)
   .use(userController)
   .use(profileController)
   .listen(3000);
