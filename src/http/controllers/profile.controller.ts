@@ -2,14 +2,23 @@ import z from "zod";
 import Elysia from "elysia";
 import { appDataSource } from "@/database/data-source";
 import { Profile } from "@/database/entities/profile";
-import { profileDto, updateProfileDto } from "@/app/dtos/profile.dtos";
-import { NotFoundError, AlreadyExistsError } from "@/app/errors";
+import { updateProfileDto } from "@/app/dtos/profile.dtos";
+import { GetProfilesHandler } from "@/app/handlers/profile/get-profiles.handler";
+import { GetProfileByIdHandler } from "@/app/handlers/profile/get-profile-by-id.handler";
+import { UpdateProfileHandler } from "@/app/handlers/profile/update-profile.handler";
+
+export const createProfileControllerHandlers = (dataSource = appDataSource) => ({
+    getProfilesHandler: () => new GetProfilesHandler(dataSource.getRepository(Profile)),
+    getProfileByIdHandler: () => new GetProfileByIdHandler(dataSource.getRepository(Profile)),
+    updateProfileHandler: () => new UpdateProfileHandler(dataSource.getRepository(Profile)),
+});
 
 export const profileController = new Elysia({ prefix: "/profiles" })
-    .decorate("profileRepository", appDataSource.getRepository(Profile))
+    .decorate("handlers", createProfileControllerHandlers())
 
-    .get('/', async ({ profileRepository }) => {
-        return (await profileRepository.find()).map(p => profileDto.parse(p));
+    .get('/', async ({ handlers }) => {
+        const handler = handlers.getProfilesHandler();
+        return await handler.handle();
     }, {
         detail: {
             tags: ['Profiles'],
@@ -17,16 +26,9 @@ export const profileController = new Elysia({ prefix: "/profiles" })
         }
     })
 
-    .get('/:id', async ({ profileRepository, params }) => {
-        const profile = await profileRepository.findOne({
-            where: { id: params.id }
-        });
-
-        if (!profile) {
-            throw new NotFoundError(`Profile with id ${params.id} not found`);
-        }
-
-        return profileDto.parse(profile);
+    .get('/:id', async ({ handlers, params }) => {
+        const handler = handlers.getProfileByIdHandler();
+        return await handler.handle(params.id);
     }, {
         params: z.object({
             id: z.uuid()
@@ -37,29 +39,9 @@ export const profileController = new Elysia({ prefix: "/profiles" })
         }
     })
 
-    .patch('/:id', async ({ profileRepository, params, body }) => {
-        const profile = await profileRepository.findOne({
-            where: { id: params.id }
-        });
-
-        if (!profile) {
-            throw new NotFoundError(`Profile with id ${params.id} not found`);
-        }
-
-        if (body.username && body.username !== profile.username) {
-            const existingProfile = await profileRepository.findOne({
-                where: { username: body.username }
-            });
-
-            if (existingProfile) {
-                throw new AlreadyExistsError('Username já está em uso');
-            }
-        }
-
-        Object.assign(profile, body);
-        const updatedProfile = await profileRepository.save(profile);
-
-        return profileDto.parse(updatedProfile);
+    .patch('/:id', async ({ handlers, params, body }) => {
+        const handler = handlers.updateProfileHandler();
+        return await handler.handle(params.id, body);
     }, {
         params: z.object({
             id: z.uuid()
