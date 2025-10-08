@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
-import { GetUsersHandler } from "../get-users.handler";
 import { Repository } from "typeorm";
+import { zocker } from "zocker";
+import { GetUsersHandler } from "../get-users.handler";
 import { User } from "@/database/entities/user";
+import { userDto } from "@/app/dtos/user.dtos";
 
 describe("GetUsersHandler", () => {
     let handler: GetUsersHandler;
@@ -28,26 +30,9 @@ describe("GetUsersHandler", () => {
 
     it("should return array of users when users exist", async () => {
         // Arrange
-        const mockUsers = [
-            {
-                id: "123e4567-e89b-12d3-a456-426614174000",
-                email: "test1@example.com",
-                phone: "+5511999999999",
-                passwordHash: "hashedpassword1",
-                isActive: true,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            },
-            {
-                id: "123e4567-e89b-12d3-a456-426614174001",
-                email: "test2@example.com",
-                phone: "+5511999999998",
-                passwordHash: "hashedpassword2",
-                isActive: true,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            },
-        ] as User[];
+        const mockUser1 = zocker(userDto).generate();
+        const mockUser2 = zocker(userDto).generate();
+        const mockUsers = [mockUser1, mockUser2] as User[];
         mockRepository.find = mock(() => Promise.resolve(mockUsers));
 
         // Act
@@ -56,12 +41,12 @@ describe("GetUsersHandler", () => {
         // Assert
         expect(result).toHaveLength(2);
         expect(result[0]).toEqual({
-            id: "123e4567-e89b-12d3-a456-426614174000",
-            email: "test1@example.com",
-            phone: "+5511999999999",
-            isActive: true,
-            createdAt: mockUsers[0].createdAt,
-            updatedAt: mockUsers[0].updatedAt,
+            id: mockUser1.id,
+            email: mockUser1.email,
+            phone: mockUser1.phone,
+            isActive: mockUser1.isActive,
+            createdAt: mockUser1.createdAt,
+            updatedAt: mockUser1.updatedAt,
         });
         expect(mockRepository.find).toHaveBeenCalledTimes(1);
     });

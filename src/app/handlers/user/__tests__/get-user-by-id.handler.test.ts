@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
-import { GetUserByIdHandler } from "../get-user-by-id.handler";
 import { Repository } from "typeorm";
+import { zocker } from "zocker";
+import { GetUserByIdHandler } from "../get-user-by-id.handler";
 import { User } from "@/database/entities/user";
 import { NotFoundError } from "@/app/errors";
+import { userDto } from "@/app/dtos/user.dtos";
 
 describe("GetUserByIdHandler", () => {
     let handler: GetUserByIdHandler;
@@ -17,16 +19,12 @@ describe("GetUserByIdHandler", () => {
 
     it("should return user when user exists", async () => {
         // Arrange
-        const userId = "123e4567-e89b-12d3-a456-426614174000";
+        const mockUserData = zocker(userDto).generate();
         const mockUser = {
-            id: userId,
-            email: "test@example.com",
-            phone: "+5511999999999",
+            ...mockUserData,
             passwordHash: "hashedpassword",
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
         } as User;
+        const userId = mockUser.id;
         
         mockRepository.findOneBy = mock(() => Promise.resolve(mockUser));
 
@@ -35,12 +33,12 @@ describe("GetUserByIdHandler", () => {
 
         // Assert
         expect(result).toEqual({
-            id: userId,
-            email: "test@example.com",
-            phone: "+5511999999999",
-            isActive: true,
-            createdAt: mockUser.createdAt,
-            updatedAt: mockUser.updatedAt,
+            id: mockUserData.id,
+            email: mockUserData.email,
+            phone: mockUserData.phone,
+            isActive: mockUserData.isActive,
+            createdAt: mockUserData.createdAt,
+            updatedAt: mockUserData.updatedAt,
         });
         expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: userId });
     });

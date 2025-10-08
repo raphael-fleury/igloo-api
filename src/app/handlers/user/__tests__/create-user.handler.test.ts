@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
-import { CreateUserHandler } from "../create-user.handler";
 import { DataSource } from "typeorm";
+import { zocker } from "zocker";
+import { CreateUserHandler } from "../create-user.handler";
 import { User } from "@/database/entities/user";
 import { Profile } from "@/database/entities/profile";
 import { AlreadyExistsError } from "@/app/errors";
-import { CreateUserDto } from "@/app/dtos/user.dtos";
+import { createUserDto } from "@/app/dtos/user.dtos";
 
 describe("CreateUserHandler", () => {
     let handler: CreateUserHandler;
@@ -27,22 +28,13 @@ describe("CreateUserHandler", () => {
 
     it("should create user with profile successfully", async () => {
         // Arrange
-        const createUserData: CreateUserDto = {
-            email: "test@example.com",
-            phone: "+5511999999999",
-            password: "password123",
-            profile: {
-                username: "testuser",
-                displayName: "Test User",
-                bio: "Test bio",
-            },
-        };
+        const createUserData = zocker(createUserDto).generate();
 
         const createdUser = {
             id: "123e4567-e89b-12d3-a456-426614174000",
-            email: "test@example.com",
-            phone: "+5511999999999",
-            passwordHash: "password123",
+            email: createUserData.email,
+            phone: createUserData.phone,
+            passwordHash: createUserData.password,
             isActive: true,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -50,9 +42,9 @@ describe("CreateUserHandler", () => {
 
         const createdProfile = {
             id: "123e4567-e89b-12d3-a456-426614174001",
-            username: "testuser",
-            displayName: "Test User",
-            bio: "Test bio",
+            username: createUserData.profile.username,
+            displayName: createUserData.profile.displayName,
+            bio: createUserData.profile.bio,
             userId: "123e4567-e89b-12d3-a456-426614174000",
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -68,14 +60,14 @@ describe("CreateUserHandler", () => {
         
         // Mock create to return the object that will be created
         const userToCreate = {
-            email: "test@example.com",
-            phone: "+5511999999999",
-            passwordHash: "password123",
+            email: createUserData.email,
+            phone: createUserData.phone,
+            passwordHash: createUserData.password,
         };
         const profileToCreate = {
-            username: "testuser",
-            displayName: "Test User",
-            bio: "Test bio",
+            username: createUserData.profile.username,
+            displayName: createUserData.profile.displayName,
+            bio: createUserData.profile.bio,
             userId: "123e4567-e89b-12d3-a456-426614174000",
         };
         
@@ -90,8 +82,8 @@ describe("CreateUserHandler", () => {
         const result = await handler.handle(createUserData);
 
         // Assert
-        expect(result.email).toBe("test@example.com");
-        expect(result.profile.username).toBe("testuser");
+        expect(result.email).toBe(createUserData.email);
+        expect(result.profile.username).toBe(createUserData.profile.username);
         expect(mockDataSource.transaction).toHaveBeenCalled();
         expect(mockEntityManager.findOne).toHaveBeenCalledTimes(3); // Check email, phone, username
         expect(mockEntityManager.create).toHaveBeenCalledTimes(2); // User and Profile
@@ -100,20 +92,11 @@ describe("CreateUserHandler", () => {
 
     it("should throw AlreadyExistsError when email already exists", async () => {
         // Arrange
-        const createUserData: CreateUserDto = {
-            email: "existing@example.com",
-            phone: "+5511999999999",
-            password: "password123",
-            profile: {
-                username: "testuser",
-                displayName: "Test User",
-                bio: "Test bio",
-            },
-        };
+        const createUserData = zocker(createUserDto).generate();
 
         const existingUser = {
             id: "existing-id",
-            email: "existing@example.com",
+            email: createUserData.email,
             passwordHash: "hashedpassword",
             isActive: true,
             createdAt: new Date(),
@@ -128,25 +111,16 @@ describe("CreateUserHandler", () => {
 
         // Act & Assert
         expect(handler.handle(createUserData)).rejects.toThrow(AlreadyExistsError);
-        expect(handler.handle(createUserData)).rejects.toThrow("Email existing@example.com already exists");
+        expect(handler.handle(createUserData)).rejects.toThrow(`Email ${createUserData.email} already exists`);
     });
 
     it("should throw AlreadyExistsError when phone already exists", async () => {
         // Arrange
-        const createUserData: CreateUserDto = {
-            email: "test@example.com",
-            phone: "+5511999999999",
-            password: "password123",
-            profile: {
-                username: "testuser",
-                displayName: "Test User",
-                bio: "Test bio",
-            },
-        };
+        const createUserData = zocker(createUserDto).generate();
 
         const existingUser = {
             id: "existing-id",
-            phone: "+5511999999999",
+            phone: createUserData.phone,
             passwordHash: "hashedpassword",
             isActive: true,
             createdAt: new Date(),
@@ -167,20 +141,11 @@ describe("CreateUserHandler", () => {
 
     it("should throw AlreadyExistsError when username already exists", async () => {
         // Arrange
-        const createUserData: CreateUserDto = {
-            email: "test@example.com",
-            phone: "+5511999999999",
-            password: "password123",
-            profile: {
-                username: "existinguser",
-                displayName: "Test User",
-                bio: "Test bio",
-            },
-        };
+        const createUserData = zocker(createUserDto).generate();
 
         const existingProfile = {
             id: "existing-profile-id",
-            username: "existinguser",
+            username: createUserData.profile.username,
             displayName: "Existing User",
             userId: "existing-user-id",
             createdAt: new Date(),
