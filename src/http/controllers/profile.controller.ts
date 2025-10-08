@@ -7,9 +7,16 @@ import { NotFoundError, AlreadyExistsError } from "@/app/errors";
 
 export const profileController = new Elysia({ prefix: "/profiles" })
     .decorate("profileRepository", appDataSource.getRepository(Profile))
+
     .get('/', async ({ profileRepository }) => {
         return (await profileRepository.find()).map(p => profileDto.parse(p));
+    }, {
+        detail: {
+            tags: ['Profiles'],
+            summary: "Get all profiles"
+        }
     })
+
     .get('/:id', async ({ profileRepository, params }) => {
         const profile = await profileRepository.findOne({
             where: { id: params.id }
@@ -23,8 +30,13 @@ export const profileController = new Elysia({ prefix: "/profiles" })
     }, {
         params: z.object({
             id: z.uuid()
-        })
+        }),
+        detail: {
+            tags: ['Profiles'],
+            summary: "Get profile by ID"
+        }
     })
+
     .patch('/:id', async ({ profileRepository, params, body }) => {
         const profile = await profileRepository.findOne({
             where: { id: params.id }
@@ -52,5 +64,9 @@ export const profileController = new Elysia({ prefix: "/profiles" })
         params: z.object({
             id: z.uuid()
         }),
-        body: updateProfileDto
+        body: updateProfileDto,
+        detail: {
+            tags: ['Profiles'],
+            summary: "Update profile by ID"
+        }
     });
