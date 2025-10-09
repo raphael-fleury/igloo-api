@@ -1,8 +1,6 @@
 import z from "zod";
 import Elysia, { status } from "elysia";
-import { appDataSource } from "@/database/data-source";
-import { User } from "@/database/entities/user";
-import { createUserDto, updateUserDto } from "@/app/dtos/user.dtos";
+import { createUserDto, updateUserDto, userDto } from "@/app/dtos/user.dtos";
 import { GetUsersHandler } from "@/app/handlers/user/get-users.handler";
 import { GetUserByIdHandler } from "@/app/handlers/user/get-user-by-id.handler";
 import { CreateUserHandler } from "@/app/handlers/user/create-user.handler";
@@ -23,6 +21,9 @@ export const userController = (
         detail: {
             tags: ['Users'],
             summary: "Get all users"
+        },
+        response: {
+            200: z.array(userDto)
         }
     })
 
@@ -35,6 +36,12 @@ export const userController = (
         detail: {
             tags: ['Users'],
             summary: "Get user by ID"
+        },
+        response: {
+            200: userDto,
+            404: z.object({
+                message: z.string()
+            })
         }
     })
 
@@ -46,6 +53,12 @@ export const userController = (
         detail: {
             tags: ['Users'],
             summary: "Create a new user"
+        },
+        response: {
+            201: userDto,
+            422: z.object({
+                message: z.string()
+            })
         }
     })
     
@@ -59,5 +72,14 @@ export const userController = (
         detail: {
             tags: ['Users'],
             summary: "Update user by ID"
+        },
+        response: {
+            200: userDto,
+            404: z.object({
+                message: z.string()
+            }),
+            422: z.object({
+                message: z.string()
+            })
         }
     });
