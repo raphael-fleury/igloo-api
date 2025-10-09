@@ -6,6 +6,7 @@ import { updateProfileDto } from "@/app/dtos/profile.dtos";
 import { GetProfilesHandler } from "@/app/handlers/profile/get-profiles.handler";
 import { GetProfileByIdHandler } from "@/app/handlers/profile/get-profile-by-id.handler";
 import { UpdateProfileHandler } from "@/app/handlers/profile/update-profile.handler";
+import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 
 export const createProfileControllerHandlers = (dataSource = appDataSource) => ({
     getProfilesHandler: () => new GetProfilesHandler(dataSource.getRepository(Profile)),
@@ -15,6 +16,7 @@ export const createProfileControllerHandlers = (dataSource = appDataSource) => (
 
 export const profileController = new Elysia({ prefix: "/profiles" })
     .decorate("handlers", createProfileControllerHandlers())
+    .use(onErrorMiddleware)
 
     .get('/', async ({ handlers }) => {
         const handler = handlers.getProfilesHandler();

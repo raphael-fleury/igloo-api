@@ -7,12 +7,15 @@ import { GetUsersHandler } from "@/app/handlers/user/get-users.handler";
 import { GetUserByIdHandler } from "@/app/handlers/user/get-user-by-id.handler";
 import { CreateUserHandler } from "@/app/handlers/user/create-user.handler";
 import { UpdateUserHandler } from "@/app/handlers/user/update-user.handler";
+import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 
-export const userController = new Elysia({ prefix: "/users" })
-    .decorate("dataSource", appDataSource)
-    .decorate("repository", appDataSource.getRepository(User))
+export const userController = (
+    dataSource = appDataSource,
+    repository = appDataSource.getRepository(User)
+) => new Elysia({ prefix: "/users" })
+    .use(onErrorMiddleware)
 
-    .get('/', async ({ repository }) => {
+    .get('/', async () => {
         const handler = new GetUsersHandler(repository);
         return await handler.handle();
     }, {
@@ -22,7 +25,7 @@ export const userController = new Elysia({ prefix: "/users" })
         }
     })
 
-    .get('/:id', async ({ repository, params }) => {
+    .get('/:id', async ({ params }) => {
         const handler = new GetUserByIdHandler(repository);
         return await handler.handle(params.id);
     }, {
@@ -35,7 +38,7 @@ export const userController = new Elysia({ prefix: "/users" })
         }
     })
 
-    .post('/', async ({ dataSource, body, set }) => {
+    .post('/', async ({ body, set }) => {
         const handler = new CreateUserHandler(dataSource);
         const userWithProfile = await handler.handle(body);
 
@@ -49,7 +52,7 @@ export const userController = new Elysia({ prefix: "/users" })
         }
     })
     
-    .patch('/:id', async ({ repository, params, body }) => {
+    .patch('/:id', async ({ params, body }) => {
         const handler = new UpdateUserHandler(repository);
         return await handler.handle(params.id, body);
     }, {

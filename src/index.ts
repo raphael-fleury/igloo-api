@@ -3,7 +3,6 @@ import { Elysia } from "elysia";
 import { openapi } from "@elysiajs/openapi";
 import { userController } from "@/http/controllers/user.controller";
 import { profileController } from "@/http/controllers/profile.controller";
-import { onErrorMiddleware } from "./http/middlewares/on-error.middleware";
 
 const app = new Elysia()
   .use(openapi({
@@ -11,8 +10,7 @@ const app = new Elysia()
       zod: z.toJSONSchema
     }
   }))
-  .use(onErrorMiddleware)
-  .use(userController)
+  .use(userController())
   .use(profileController)
   .listen(3000);
 
