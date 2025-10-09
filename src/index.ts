@@ -11,7 +11,7 @@ const app = new Elysia()
     }
   }))
   .use(userController())
-  .use(profileController)
+  .use(profileController())
   .listen(3000);
 
 console.log(

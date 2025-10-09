@@ -1,10 +1,13 @@
-import { UpdateUserDto, userDto } from "@/app/dtos/user.dtos";
-import { User } from "@/database/entities/user";
-import { AlreadyExistsError, NotFoundError } from "@/app/errors";
 import { Repository } from "typeorm";
+import { UpdateUserDto, userDto } from "@/app/dtos/user.dtos";
+import { AlreadyExistsError, NotFoundError } from "@/app/errors";
+import { User } from "@/database/entities/user";
+import { appDataSource } from "@/database/data-source";
 
 export class UpdateUserHandler {
     constructor(private readonly userRepository: Repository<User>) { }
+
+    static readonly default = new UpdateUserHandler(appDataSource.getRepository(User));
 
     async handle(id: string, data: UpdateUserDto) {
         const user = await this.userRepository.findOneBy({ id });

@@ -1,5 +1,5 @@
 import z from "zod";
-import Elysia from "elysia";
+import Elysia, { status } from "elysia";
 import { appDataSource } from "@/database/data-source";
 import { User } from "@/database/entities/user";
 import { createUserDto, updateUserDto } from "@/app/dtos/user.dtos";
@@ -10,14 +10,15 @@ import { UpdateUserHandler } from "@/app/handlers/user/update-user.handler";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 
 export const userController = (
-    dataSource = appDataSource,
-    repository = appDataSource.getRepository(User)
+    createUserHandler = CreateUserHandler.default,
+    getUsersHandler = GetUsersHandler.default,
+    getUserByIdHandler = GetUserByIdHandler.default,
+    updateUserHandler = UpdateUserHandler.default,
 ) => new Elysia({ prefix: "/users" })
     .use(onErrorMiddleware)
 
     .get('/', async () => {
-        const handler = new GetUsersHandler(repository);
-        return await handler.handle();
+        return await getUsersHandler.handle();
     }, {
         detail: {
             tags: ['Users'],
@@ -26,8 +27,7 @@ export const userController = (
     })
 
     .get('/:id', async ({ params }) => {
-        const handler = new GetUserByIdHandler(repository);
-        return await handler.handle(params.id);
+        return await getUserByIdHandler.handle(params.id);
     }, {
         params: z.object({
             id: z.uuid()
@@ -39,11 +39,8 @@ export const userController = (
     })
 
     .post('/', async ({ body, set }) => {
-        const handler = new CreateUserHandler(dataSource);
-        const userWithProfile = await handler.handle(body);
-
-        set.status = 201;
-        return userWithProfile;
+        const userWithProfile = await createUserHandler.handle(body);
+        return status(201, userWithProfile);
     }, {
         body: createUserDto,
         detail: {
@@ -53,8 +50,7 @@ export const userController = (
     })
     
     .patch('/:id', async ({ params, body }) => {
-        const handler = new UpdateUserHandler(repository);
-        return await handler.handle(params.id, body);
+        return await updateUserHandler.handle(params.id, body);
     }, {
         params: z.object({
             id: z.uuid()

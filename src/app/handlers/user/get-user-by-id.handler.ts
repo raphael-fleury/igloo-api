@@ -1,10 +1,13 @@
-import { userDto } from "@/app/dtos/user.dtos";
-import { User } from "@/database/entities/user";
-import { NotFoundError } from "@/app/errors";
 import { Repository } from "typeorm";
+import { User } from "@/database/entities/user";
+import { appDataSource } from "@/database/data-source";
+import { NotFoundError } from "@/app/errors";
+import { userDto } from "@/app/dtos/user.dtos";
 
 export class GetUserByIdHandler {
     constructor(private readonly userRepository: Repository<User>) { }
+
+    static readonly default = new GetUserByIdHandler(appDataSource.getRepository(User));
 
     async handle(id: string) {
         const user = await this.userRepository.findOneBy({ id });

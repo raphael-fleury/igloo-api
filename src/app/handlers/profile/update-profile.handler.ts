@@ -1,10 +1,13 @@
+import { Repository } from "typeorm";
 import { profileDto, UpdateProfileDto } from "@/app/dtos/profile.dtos";
 import { AlreadyExistsError, NotFoundError } from "@/app/errors";
+import { appDataSource } from "@/database/data-source";
 import { Profile } from "@/database/entities/profile";
-import { Repository } from "typeorm";
 
 export class UpdateProfileHandler {
     constructor(private readonly profileRepository: Repository<Profile>) { }
+
+    static readonly default = new UpdateProfileHandler(appDataSource.getRepository(Profile));
 
     async handle(id: string, updateData: UpdateProfileDto) {
         const profile = await this.profileRepository.findOneBy({ id });

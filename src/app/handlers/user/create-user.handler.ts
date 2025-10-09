@@ -1,12 +1,15 @@
+import { DataSource } from "typeorm";
 import { profileDto } from "@/app/dtos/profile.dtos";
 import { CreateUserDto, userDto } from "@/app/dtos/user.dtos";
+import { AlreadyExistsError } from "@/app/errors";
 import { Profile } from "@/database/entities/profile";
 import { User } from "@/database/entities/user";
-import { AlreadyExistsError } from "@/app/errors";
-import { DataSource } from "typeorm";
+import { appDataSource } from "@/database/data-source";
 
 export class CreateUserHandler {
     constructor(private readonly dataSource: DataSource) { }
+
+    static readonly default = new CreateUserHandler(appDataSource);
 
     async handle(data: CreateUserDto) {
         return await this.dataSource.transaction(async (transactionalEntityManager) => {

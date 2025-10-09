@@ -1,26 +1,20 @@
 import z from "zod";
 import Elysia from "elysia";
-import { appDataSource } from "@/database/data-source";
-import { Profile } from "@/database/entities/profile";
 import { updateProfileDto } from "@/app/dtos/profile.dtos";
 import { GetProfilesHandler } from "@/app/handlers/profile/get-profiles.handler";
 import { GetProfileByIdHandler } from "@/app/handlers/profile/get-profile-by-id.handler";
 import { UpdateProfileHandler } from "@/app/handlers/profile/update-profile.handler";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 
-export const createProfileControllerHandlers = (dataSource = appDataSource) => ({
-    getProfilesHandler: () => new GetProfilesHandler(dataSource.getRepository(Profile)),
-    getProfileByIdHandler: () => new GetProfileByIdHandler(dataSource.getRepository(Profile)),
-    updateProfileHandler: () => new UpdateProfileHandler(dataSource.getRepository(Profile)),
-});
-
-export const profileController = new Elysia({ prefix: "/profiles" })
-    .decorate("handlers", createProfileControllerHandlers())
+export const profileController = (
+    getProfilesHandler = GetProfilesHandler.default,
+    getProfileByIdHandler = GetProfileByIdHandler.default,
+    updateProfileHandler = UpdateProfileHandler.default,
+) => new Elysia({ prefix: "/profiles" })
     .use(onErrorMiddleware)
 
-    .get('/', async ({ handlers }) => {
-        const handler = handlers.getProfilesHandler();
-        return await handler.handle();
+    .get('/', async () => {
+        return await getProfilesHandler.handle();
     }, {
         detail: {
             tags: ['Profiles'],
@@ -28,9 +22,8 @@ export const profileController = new Elysia({ prefix: "/profiles" })
         }
     })
 
-    .get('/:id', async ({ handlers, params }) => {
-        const handler = handlers.getProfileByIdHandler();
-        return await handler.handle(params.id);
+    .get('/:id', async ({ params }) => {
+        return await getProfileByIdHandler.handle(params.id);
     }, {
         params: z.object({
             id: z.uuid()
@@ -41,9 +34,8 @@ export const profileController = new Elysia({ prefix: "/profiles" })
         }
     })
 
-    .patch('/:id', async ({ handlers, params, body }) => {
-        const handler = handlers.updateProfileHandler();
-        return await handler.handle(params.id, body);
+    .patch('/:id', async ({ params, body }) => {
+        return await updateProfileHandler.handle(params.id, body);
     }, {
         params: z.object({
             id: z.uuid()
