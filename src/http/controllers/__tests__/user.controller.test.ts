@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
+import { treaty } from "@elysiajs/eden";
 import { userController } from "../user.controller";
 import { NotFoundError } from "@/app/errors";
 
@@ -8,6 +9,7 @@ describe("UserController", () => {
     let mockGetUserByIdHandler: any;
     let mockUpdateUserHandler: any;
     let app: any;
+    let api: any;
 
     beforeEach(() => {
         // Create mock handlers
@@ -34,6 +36,9 @@ describe("UserController", () => {
             mockGetUserByIdHandler,
             mockUpdateUserHandler
         );
+
+        // Create Eden Treaty client
+        api = treaty(app);
     });
 
     describe("GET /users", () => {
@@ -61,13 +66,12 @@ describe("UserController", () => {
             mockGetUsersHandler.handle.mockResolvedValue(mockUsers);
 
             // Act
-            const response = await app.handle(new Request("http://localhost/users"));
+            const response = await api.users.get();
 
             // Assert
             expect(response.status).toBe(200);
-            const responseBody = await response.json();
-            expect(responseBody).toHaveLength(2);
-            expect(responseBody[0].email).toBe("user1@example.com");
+            expect(response.data).toHaveLength(2);
+            expect(response.data[0].email).toBe("user1@example.com");
             expect(mockGetUsersHandler.handle).toHaveBeenCalledTimes(1);
         });
 
@@ -76,12 +80,11 @@ describe("UserController", () => {
             mockGetUsersHandler.handle.mockResolvedValue([]);
 
             // Act
-            const response = await app.handle(new Request("http://localhost/users"));
+            const response = await api.users.get();
 
             // Assert
             expect(response.status).toBe(200);
-            const responseBody = await response.json();
-            expect(responseBody).toEqual([]);
+            expect(response.data).toEqual([]);
             expect(mockGetUsersHandler.handle).toHaveBeenCalledTimes(1);
         });
     });
@@ -102,15 +105,12 @@ describe("UserController", () => {
             mockGetUserByIdHandler.handle.mockResolvedValue(mockUser);
 
             // Act
-            const response = await app.handle(
-                new Request(`http://localhost/users/${userId}`)
-            );
+            const response = await api.users({ id: userId }).get();
 
             // Assert
             expect(response.status).toBe(200);
-            const responseBody = await response.json();
-            expect(responseBody.id).toBe(userId);
-            expect(responseBody.email).toBe("user@example.com");
+            expect(response.data.id).toBe(userId);
+            expect(response.data.email).toBe("user@example.com");
             expect(mockGetUserByIdHandler.handle).toHaveBeenCalledWith(userId);
         });
 
@@ -122,14 +122,11 @@ describe("UserController", () => {
             );
 
             // Act
-            const response = await app.handle(
-                new Request(`http://localhost/users/${userId}`)
-            );
+            const response = await api.users({ id: userId }).get();
 
             // Assert
             expect(response.status).toBe(404);
-            const responseBody = await response.json();
-            expect(responseBody).toEqual({
+            expect(response.error.value).toEqual({
                 message: `User with id ${userId} not found`,
             });
             expect(mockGetUserByIdHandler.handle).toHaveBeenCalledWith(userId);
@@ -140,9 +137,7 @@ describe("UserController", () => {
             const invalidId = "invalid-uuid";
 
             // Act
-            const response = await app.handle(
-                new Request(`http://localhost/users/${invalidId}`)
-            );
+            const response = await api.users({ id: invalidId }).get();
 
             // Assert
             expect(response.status).toBe(422);
@@ -175,20 +170,11 @@ describe("UserController", () => {
             mockCreateUserHandler.handle.mockResolvedValue(mockCreatedUser);
 
             // Act
-            const response = await app.handle(
-                new Request("http://localhost/users", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(createUserData),
-                })
-            );
+            const response = await api.users.post(createUserData);
 
             // Assert
             expect(response.status).toBe(201);
-            const responseBody = await response.json();
-            expect(responseBody.email).toBe(createUserData.email);
+            expect(response.data.email).toBe(createUserData.email);
             expect(mockCreateUserHandler.handle).toHaveBeenCalledWith(createUserData);
         });
 
@@ -200,15 +186,7 @@ describe("UserController", () => {
             };
 
             // Act
-            const response = await app.handle(
-                new Request("http://localhost/users", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(invalidUserData),
-                })
-            );
+            const response = await api.users.post(invalidUserData);
 
             // Assert
             expect(response.status).toBe(422);
@@ -229,15 +207,7 @@ describe("UserController", () => {
             };
 
             // Act
-            const response = await app.handle(
-                new Request("http://localhost/users", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(invalidUserData),
-                })
-            );
+            const response = await api.users.post(invalidUserData);
 
             // Assert
             expect(response.status).toBe(422);
@@ -258,15 +228,7 @@ describe("UserController", () => {
             };
 
             // Act
-            const response = await app.handle(
-                new Request("http://localhost/users", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(invalidUserData),
-                })
-            );
+            const response = await api.users.post(invalidUserData);
 
             // Assert
             expect(response.status).toBe(422);
@@ -287,15 +249,7 @@ describe("UserController", () => {
             };
 
             // Act
-            const response = await app.handle(
-                new Request("http://localhost/users", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(invalidUserData),
-                })
-            );
+            const response = await api.users.post(invalidUserData);
 
             // Assert
             expect(response.status).toBe(422);
@@ -323,20 +277,11 @@ describe("UserController", () => {
             mockUpdateUserHandler.handle.mockResolvedValue(mockUpdatedUser);
 
             // Act
-            const response = await app.handle(
-                new Request(`http://localhost/users/${userId}`, {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(updateData),
-                })
-            );
+            const response = await api.users({ id: userId }).patch(updateData);
 
             // Assert
             expect(response.status).toBe(200);
-            const responseBody = await response.json();
-            expect(responseBody.email).toBe(updateData.email);
+            expect(response.data.email).toBe(updateData.email);
             expect(mockUpdateUserHandler.handle).toHaveBeenCalledWith(userId, updateData);
         });
 
@@ -359,20 +304,11 @@ describe("UserController", () => {
             mockUpdateUserHandler.handle.mockResolvedValue(mockUpdatedUser);
 
             // Act
-            const response = await app.handle(
-                new Request(`http://localhost/users/${userId}`, {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(updateData),
-                })
-            );
+            const response = await api.users({ id: userId }).patch(updateData);
 
             // Assert
             expect(response.status).toBe(200);
-            const responseBody = await response.json();
-            expect(responseBody.email).toBe(updateData.email);
+            expect(response.data.email).toBe(updateData.email);
             expect(mockUpdateUserHandler.handle).toHaveBeenCalledWith(userId, updateData);
         });
 
@@ -388,20 +324,11 @@ describe("UserController", () => {
             );
 
             // Act
-            const response = await app.handle(
-                new Request(`http://localhost/users/${userId}`, {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(updateData),
-                })
-            );
+            const response = await api.users({ id: userId }).patch(updateData);
 
             // Assert
             expect(response.status).toBe(404);
-            const responseBody = await response.json();
-            expect(responseBody).toEqual({
+            expect(response.error.value).toEqual({
                 message: `User with id ${userId} not found`,
             });
             expect(mockUpdateUserHandler.handle).toHaveBeenCalledWith(userId, updateData);
@@ -415,15 +342,7 @@ describe("UserController", () => {
             };
 
             // Act
-            const response = await app.handle(
-                new Request(`http://localhost/users/${invalidId}`, {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(updateData),
-                })
-            );
+            const response = await api.users({ id: invalidId }).patch(updateData);
 
             // Assert
             expect(response.status).toBe(422);
@@ -438,15 +357,7 @@ describe("UserController", () => {
             };
 
             // Act
-            const response = await app.handle(
-                new Request(`http://localhost/users/${userId}`, {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(invalidUpdateData),
-                })
-            );
+            const response = await api.users({ id: userId }).patch(invalidUpdateData);
 
             // Assert
             expect(response.status).toBe(422);
@@ -461,15 +372,7 @@ describe("UserController", () => {
             };
 
             // Act
-            const response = await app.handle(
-                new Request(`http://localhost/users/${userId}`, {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(invalidUpdateData),
-                })
-            );
+            const response = await api.users({ id: userId }).patch(invalidUpdateData);
 
             // Assert
             expect(response.status).toBe(422);
@@ -492,20 +395,11 @@ describe("UserController", () => {
             mockUpdateUserHandler.handle.mockResolvedValue(mockUpdatedUser);
 
             // Act
-            const response = await app.handle(
-                new Request(`http://localhost/users/${userId}`, {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(updateData),
-                })
-            );
+            const response = await api.users({ id: userId }).patch(updateData);
 
             // Assert
             expect(response.status).toBe(200);
-            const responseBody = await response.json();
-            expect(responseBody.email).toBe("user@example.com");
+            expect(response.data.email).toBe("user@example.com");
             expect(mockUpdateUserHandler.handle).toHaveBeenCalledWith(userId, updateData);
         });
     });
