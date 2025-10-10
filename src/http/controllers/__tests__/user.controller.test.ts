@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { treaty } from "@elysiajs/eden";
+import { zocker } from "zocker";
 import { userController } from "../user.controller";
+import { userDto, createUserDto } from "@/app/dtos/user.dtos";
 import { NotFoundError } from "@/app/errors";
 
 describe("UserController", () => {
@@ -45,22 +47,8 @@ describe("UserController", () => {
         it("should return all users successfully", async () => {
             // Arrange
             const mockUsers = [
-                {
-                    id: "123e4567-e89b-12d3-a456-426614174000",
-                    email: "user1@example.com",
-                    phone: "+1234567890",
-                    isActive: true,
-                    createdAt: new Date("2025-10-08T12:00:00.000Z"),
-                    updatedAt: new Date("2025-10-08T12:00:00.000Z"),
-                },
-                {
-                    id: "123e4567-e89b-12d3-a456-426614174001",
-                    email: "user2@example.com",
-                    phone: "+1234567891",
-                    isActive: true,
-                    createdAt: new Date("2025-10-08T12:00:00.000Z"),
-                    updatedAt: new Date("2025-10-08T12:00:00.000Z"),
-                },
+                zocker(userDto).generate(),
+                zocker(userDto).generate(),
             ];
 
             mockGetUsersHandler.handle.mockResolvedValue(mockUsers);
@@ -71,7 +59,8 @@ describe("UserController", () => {
             // Assert
             expect(response.status).toBe(200);
             expect(response.data).toHaveLength(2);
-            expect(response.data[0].email).toBe("user1@example.com");
+            expect(response.data[0]).toEqual(mockUsers[0]);
+            expect(response.data[1]).toEqual(mockUsers[1]);
             expect(mockGetUsersHandler.handle).toHaveBeenCalledTimes(1);
         });
 
@@ -92,15 +81,8 @@ describe("UserController", () => {
     describe("GET /users/:id", () => {
         it("should return user by ID successfully", async () => {
             // Arrange
-            const userId = "123e4567-e89b-12d3-a456-426614174000";
-            const mockUser = {
-                id: userId,
-                email: "user@example.com",
-                phone: "+1234567890",
-                isActive: true,
-                createdAt: new Date("2025-10-08T12:00:00.000Z"),
-                updatedAt: new Date("2025-10-08T12:00:00.000Z"),
-            };
+            const mockUser = zocker(userDto).generate();
+            const userId = mockUser.id;
 
             mockGetUserByIdHandler.handle.mockResolvedValue(mockUser);
 
@@ -109,8 +91,7 @@ describe("UserController", () => {
 
             // Assert
             expect(response.status).toBe(200);
-            expect(response.data.id).toBe(userId);
-            expect(response.data.email).toBe("user@example.com");
+            expect(response.data).toEqual(mockUser);
             expect(mockGetUserByIdHandler.handle).toHaveBeenCalledWith(userId);
         });
 
@@ -148,24 +129,8 @@ describe("UserController", () => {
     describe("POST /users", () => {
         it("should create user successfully", async () => {
             // Arrange
-            const createUserData = {
-                email: "test@example.com",
-                phone: "+1234567890",
-                password: "password123",
-                profile: {
-                    username: "testuser",
-                    displayName: "Test User",
-                    bio: "Test bio",
-                },
-            };
-            const mockCreatedUser = {
-                id: "123e4567-e89b-12d3-a456-426614174000",
-                email: createUserData.email,
-                phone: createUserData.phone,
-                isActive: true,
-                createdAt: new Date("2025-10-08T12:00:00.000Z"),
-                updatedAt: new Date("2025-10-08T12:00:00.000Z"),
-            };
+            const createUserData = zocker(createUserDto).generate();
+            const mockCreatedUser = zocker(userDto).generate();
 
             mockCreateUserHandler.handle.mockResolvedValue(mockCreatedUser);
 
@@ -174,7 +139,7 @@ describe("UserController", () => {
 
             // Assert
             expect(response.status).toBe(201);
-            expect(response.data.email).toBe(createUserData.email);
+            expect(response.data).toEqual(mockCreatedUser);
             expect(mockCreateUserHandler.handle).toHaveBeenCalledWith(createUserData);
         });
 
@@ -260,18 +225,16 @@ describe("UserController", () => {
     describe("PATCH /users/:id", () => {
         it("should update user successfully", async () => {
             // Arrange
-            const userId = "123e4567-e89b-12d3-a456-426614174000";
+            const mockUser = zocker(userDto).generate();
+            const userId = mockUser.id;
             const updateData = {
                 email: "updated@example.com",
                 phone: "+9876543210",
             };
             const mockUpdatedUser = {
-                id: userId,
+                ...mockUser,
                 email: updateData.email,
                 phone: updateData.phone,
-                isActive: true,
-                createdAt: new Date("2025-10-08T12:00:00.000Z"),
-                updatedAt: new Date("2025-10-08T12:00:00.000Z"),
             };
 
             mockUpdateUserHandler.handle.mockResolvedValue(mockUpdatedUser);
@@ -281,24 +244,21 @@ describe("UserController", () => {
 
             // Assert
             expect(response.status).toBe(200);
-            expect(response.data.email).toBe(updateData.email);
+            expect(response.data).toEqual(mockUpdatedUser);
             expect(mockUpdateUserHandler.handle).toHaveBeenCalledWith(userId, updateData);
         });
 
         it("should update user with partial data", async () => {
             // Arrange
-            const userId = "123e4567-e89b-12d3-a456-426614174000";
+            const mockUser = zocker(userDto).generate();
+            const userId = mockUser.id;
             const updateData = {
                 email: "updated@example.com",
                 // Only updating email, phone remains the same
             };
             const mockUpdatedUser = {
-                id: userId,
+                ...mockUser,
                 email: updateData.email,
-                phone: "+1234567890", // Original phone
-                isActive: true,
-                createdAt: new Date("2025-10-08T12:00:00.000Z"),
-                updatedAt: new Date("2025-10-08T12:00:00.000Z"),
             };
 
             mockUpdateUserHandler.handle.mockResolvedValue(mockUpdatedUser);
@@ -308,7 +268,7 @@ describe("UserController", () => {
 
             // Assert
             expect(response.status).toBe(200);
-            expect(response.data.email).toBe(updateData.email);
+            expect(response.data).toEqual(mockUpdatedUser);
             expect(mockUpdateUserHandler.handle).toHaveBeenCalledWith(userId, updateData);
         });
 
@@ -381,25 +341,18 @@ describe("UserController", () => {
 
         it("should allow empty update data", async () => {
             // Arrange
-            const userId = "123e4567-e89b-12d3-a456-426614174000";
+            const mockUser = zocker(userDto).generate();
+            const userId = mockUser.id;
             const updateData = {};
-            const mockUpdatedUser = {
-                id: userId,
-                email: "user@example.com",
-                phone: "+1234567890",
-                isActive: true,
-                createdAt: new Date("2025-10-08T12:00:00.000Z"),
-                updatedAt: new Date("2025-10-08T12:00:00.000Z"),
-            };
 
-            mockUpdateUserHandler.handle.mockResolvedValue(mockUpdatedUser);
+            mockUpdateUserHandler.handle.mockResolvedValue(mockUser);
 
             // Act
             const response = await api.users({ id: userId }).patch(updateData);
 
             // Assert
             expect(response.status).toBe(200);
-            expect(response.data.email).toBe("user@example.com");
+            expect(response.data).toEqual(mockUser);
             expect(mockUpdateUserHandler.handle).toHaveBeenCalledWith(userId, updateData);
         });
     });
