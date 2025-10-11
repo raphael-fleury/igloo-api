@@ -12,37 +12,31 @@ export const profileController = (
     updateProfileHandler = UpdateProfileHandler.default,
 ) => new Elysia({ prefix: "/profiles" })
     .use(onErrorMiddleware)
+    .guard({
+        detail: { tags: ['Profiles'] }
+    })
 
     .get('/', async () => {
         return await getProfilesHandler.handle();
     }, {
-        detail: {
-            tags: ['Profiles'],
-            summary: "Get all profiles"
-        }
+        detail: { summary: "Get all profiles" }
     })
 
     .get('/:id', async ({ params }) => {
         return await getProfileByIdHandler.handle(params.id);
     }, {
+        detail: { summary: "Get profile by ID" },
         params: z.object({
             id: z.uuid()
         }),
-        detail: {
-            tags: ['Profiles'],
-            summary: "Get profile by ID"
-        }
     })
 
     .patch('/:id', async ({ params, body }) => {
         return await updateProfileHandler.handle(params.id, body);
     }, {
+        detail: { summary: "Update profile by ID" },
         params: z.object({
             id: z.uuid()
         }),
-        body: updateProfileDto,
-        detail: {
-            tags: ['Profiles'],
-            summary: "Update profile by ID"
-        }
+        body: updateProfileDto
     });

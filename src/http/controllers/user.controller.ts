@@ -14,14 +14,14 @@ export const userController = (
     updateUserHandler = UpdateUserHandler.default,
 ) => new Elysia({ prefix: "/users" })
     .use(onErrorMiddleware)
+    .guard({
+        detail: { tags: ['Users'] }
+    })
 
     .get('/', async () => {
         return await getUsersHandler.handle();
     }, {
-        detail: {
-            tags: ['Users'],
-            summary: "Get all users"
-        },
+        detail: { summary: "Get all users" },
         response: {
             200: z.array(userDto)
         }
@@ -30,13 +30,10 @@ export const userController = (
     .get('/:id', async ({ params }) => {
         return await getUserByIdHandler.handle(params.id);
     }, {
+        detail: { summary: "Get user by ID" },
         params: z.object({
             id: z.uuid()
         }),
-        detail: {
-            tags: ['Users'],
-            summary: "Get user by ID"
-        },
         response: {
             200: userDto,
             404: z.object({
@@ -49,11 +46,8 @@ export const userController = (
         const userWithProfile = await createUserHandler.handle(body);
         return status(201, userWithProfile);
     }, {
+        detail: { summary: "Create a new user" },
         body: createUserDto,
-        detail: {
-            tags: ['Users'],
-            summary: "Create a new user"
-        },
         response: {
             201: userDto,
             422: z.object({
@@ -65,14 +59,11 @@ export const userController = (
     .patch('/:id', async ({ params, body }) => {
         return await updateUserHandler.handle(params.id, body);
     }, {
+        detail: { summary: "Update user by ID" },
         params: z.object({
             id: z.uuid()
         }),
         body: updateUserDto,
-        detail: {
-            tags: ['Users'],
-            summary: "Update user by ID"
-        },
         response: {
             200: userDto,
             404: z.object({
