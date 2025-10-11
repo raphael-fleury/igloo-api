@@ -10,7 +10,10 @@ export class GetUserByIdHandler {
     static readonly default = new GetUserByIdHandler(appDataSource.getRepository(User));
 
     async handle(id: string) {
-        const user = await this.userRepository.findOneBy({ id });
+        const user = await this.userRepository.findOne({
+            where: { id },
+            relations: ['profiles']
+        });
         
         if (!user) {
             throw new NotFoundError(`User with id ${id} not found`);

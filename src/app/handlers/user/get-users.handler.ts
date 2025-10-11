@@ -9,7 +9,9 @@ export class GetUsersHandler {
     static readonly default = new GetUsersHandler(appDataSource.getRepository(User));
 
     async handle() {
-        const users = await this.userRepository.find();
+        const users = await this.userRepository.find({
+            relations: ['profiles']
+        });
         return users.map(u => userDto.parse(u));
     }
 }

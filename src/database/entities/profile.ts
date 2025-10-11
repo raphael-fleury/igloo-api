@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { DISPLAYNAME_MAX_LENGTH, USERNAME_MAX_LENGTH } from "@/app/dtos/profile.dtos";
+import { User } from "./user";
 
 @Entity("profiles")
 export class Profile {
@@ -21,10 +22,6 @@ export class Profile {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @OneToOne("User", "profile")
-  @JoinColumn()
-  user!: any;
-
-  @Column("uuid")
-  userId!: string;
+  @ManyToMany(() => User, user => user.profiles)
+  users?: User[];
 }

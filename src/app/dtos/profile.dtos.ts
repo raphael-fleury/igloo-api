@@ -14,7 +14,6 @@ export const updateProfileDto = createProfileDto.partial();
 
 export const profileDto = createProfileDto.extend({
     id: z.string(),
-    userId: z.string(),
     createdAt: z.date(),
     updatedAt: z.date(),
 });
