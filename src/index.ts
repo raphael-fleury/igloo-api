@@ -3,6 +3,7 @@ import { Elysia } from "elysia";
 import { openapi } from "@elysiajs/openapi";
 import { userController } from "@/http/controllers/user.controller";
 import { profileController } from "@/http/controllers/profile.controller";
+import { blockController } from "@/http/controllers/block.controller";
 
 const app = new Elysia()
   .use(openapi({
@@ -12,6 +13,7 @@ const app = new Elysia()
   }))
   .use(userController())
   .use(profileController())
+  .use(blockController())
   .listen(3000);
 
 console.log(
