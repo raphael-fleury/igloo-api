@@ -12,7 +12,7 @@ describe("GetUserByIdHandler", () => {
 
     beforeEach(() => {
         mockRepository = {
-            findOneBy: mock(() => Promise.resolve(null)),
+            findOne: mock(() => Promise.resolve(null))
         } as any;
         handler = new GetUserByIdHandler(mockRepository);
     });
@@ -26,7 +26,7 @@ describe("GetUserByIdHandler", () => {
         } as User;
         const userId = mockUser.id;
         
-        mockRepository.findOneBy = mock(() => Promise.resolve(mockUser));
+        mockRepository.findOne = mock(() => Promise.resolve(mockUser));
 
         // Act
         const result = await handler.handle(userId);
@@ -40,25 +40,31 @@ describe("GetUserByIdHandler", () => {
             createdAt: mockUserData.createdAt,
             updatedAt: mockUserData.updatedAt,
         });
-        expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: userId });
+        expect(mockRepository.findOne).toHaveBeenCalledWith({
+            where: { id: userId },
+            relations: ['profiles']
+        });
     });
 
     it("should throw NotFoundError when user does not exist", async () => {
         // Arrange
         const userId = "123e4567-e89b-12d3-a456-426614174000";
-        mockRepository.findOneBy = mock(() => Promise.resolve(null));
+        mockRepository.findOne = mock(() => Promise.resolve(null));
 
         // Act & Assert
         expect(handler.handle(userId)).rejects.toThrow(NotFoundError);
         expect(handler.handle(userId)).rejects.toThrow(`User with id ${userId} not found`);
-        expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: userId });
+        expect(mockRepository.findOne).toHaveBeenCalledWith({
+            where: { id: userId },
+            relations: ['profiles']
+        });
     });
 
     it("should handle repository errors", async () => {
         // Arrange
         const userId = "123e4567-e89b-12d3-a456-426614174000";
         const error = new Error("Database connection failed");
-        mockRepository.findOneBy = mock(() => Promise.reject(error));
+        mockRepository.findOne = mock(() => Promise.reject(error));
 
         // Act & Assert
         expect(handler.handle(userId)).rejects.toThrow("Database connection failed");

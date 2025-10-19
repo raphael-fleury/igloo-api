@@ -16,8 +16,7 @@ export const userDto = baseUserDto.extend({
     id: z.uuid(),
     isActive: z.boolean(),
     createdAt: z.date(),
-    updatedAt: z.date(),
-    profiles: z.array(profileDto)
+    updatedAt: z.date()
 });
 
 export const createUserDto = baseUserDto.extend({
