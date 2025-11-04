@@ -4,6 +4,7 @@ import { zocker } from "zocker";
 import { CreateUserHandler } from "../create-user.handler";
 import { User } from "@/database/entities/user";
 import { Profile } from "@/database/entities/profile";
+import { UserProfile } from "@/database/entities/user-profile";
 import { AlreadyExistsError } from "@/app/errors";
 import { createUserDto } from "@/app/dtos/user.dtos";
 
@@ -45,10 +46,17 @@ describe("CreateUserHandler", () => {
             username: createUserData.profile.username,
             displayName: createUserData.profile.displayName,
             bio: createUserData.profile.bio,
-            userId: "123e4567-e89b-12d3-a456-426614174000",
             createdAt: new Date(),
             updatedAt: new Date(),
         } as Profile;
+
+        const createdUserProfile = {
+            id: "123e4567-e89b-12d3-a456-426614174002",
+            user: createdUser,
+            profile: createdProfile,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        } as UserProfile;
 
         // Mock the transaction to call the callback with our mock entity manager
         mockDataSource.transaction.mockImplementation(async (callback: any) => {
@@ -68,15 +76,21 @@ describe("CreateUserHandler", () => {
             username: createUserData.profile.username,
             displayName: createUserData.profile.displayName,
             bio: createUserData.profile.bio,
-            userId: "123e4567-e89b-12d3-a456-426614174000",
+        };
+
+        const userProfileToCreate = {
+            user: createdUser,
+            profile: createdProfile,
         };
         
         mockEntityManager.create
-            .mockReturnValueOnce(userToCreate) // User creation
-            .mockReturnValueOnce(profileToCreate); // Profile creation
+            .mockReturnValueOnce(userToCreate)
+            .mockReturnValueOnce(profileToCreate)
+            .mockReturnValueOnce(userProfileToCreate);
         mockEntityManager.save
-            .mockReturnValueOnce(Promise.resolve(createdUser)) // User save
-            .mockReturnValueOnce(Promise.resolve(createdProfile)); // Profile save
+            .mockReturnValueOnce(Promise.resolve(createdUser))
+            .mockReturnValueOnce(Promise.resolve(createdProfile))
+            .mockReturnValueOnce(Promise.resolve(createdUserProfile));
 
         // Act
         const result = await handler.handle(createUserData);
@@ -86,8 +100,8 @@ describe("CreateUserHandler", () => {
         expect(result.profile.username).toBe(createUserData.profile.username);
         expect(mockDataSource.transaction).toHaveBeenCalled();
         expect(mockEntityManager.findOne).toHaveBeenCalledTimes(3); // Check email, phone, username
-        expect(mockEntityManager.create).toHaveBeenCalledTimes(2); // User and Profile
-        expect(mockEntityManager.save).toHaveBeenCalledTimes(2); // User and Profile
+        expect(mockEntityManager.create).toHaveBeenCalledTimes(3); // User, Profile, and UserProfile
+        expect(mockEntityManager.save).toHaveBeenCalledTimes(3); // User, Profile, and UserProfile
     });
 
     it("should throw AlreadyExistsError when email already exists", async () => {
@@ -147,7 +161,6 @@ describe("CreateUserHandler", () => {
             id: "existing-profile-id",
             username: createUserData.profile.username,
             displayName: "Existing User",
-            userId: "existing-user-id",
             createdAt: new Date(),
             updatedAt: new Date(),
         } as Profile;

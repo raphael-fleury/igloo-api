@@ -12,7 +12,7 @@ export class GetUserByIdHandler {
     async handle(id: string) {
         const user = await this.userRepository.findOne({
             where: { id },
-            relations: ['profiles']
+            relations: ['userProfiles', 'userProfiles.profile']
         });
         
         if (!user) {

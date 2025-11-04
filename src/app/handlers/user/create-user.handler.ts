@@ -4,6 +4,7 @@ import { CreateUserDto, userDto } from "@/app/dtos/user.dtos";
 import { AlreadyExistsError } from "@/app/errors";
 import { Profile } from "@/database/entities/profile";
 import { User } from "@/database/entities/user";
+import { UserProfile } from "@/database/entities/user-profile";
 import { appDataSource } from "@/database/data-source";
 
 export class CreateUserHandler {
@@ -46,10 +47,15 @@ export class CreateUserHandler {
             const profile = transactionalEntityManager.create(Profile, {
                 username: data.profile.username,
                 displayName: data.profile.displayName,
-                bio: data.profile.bio,
-                userId: savedUser.id
+                bio: data.profile.bio
             });
             const savedProfile = await transactionalEntityManager.save(profile);
+
+            const userProfile = transactionalEntityManager.create(UserProfile, {
+                user: savedUser,
+                profile: savedProfile
+            });
+            await transactionalEntityManager.save(userProfile);
 
             return {
                 ...userDto.parse(savedUser),

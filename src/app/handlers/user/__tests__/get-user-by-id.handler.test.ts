@@ -42,7 +42,7 @@ describe("GetUserByIdHandler", () => {
         });
         expect(mockRepository.findOne).toHaveBeenCalledWith({
             where: { id: userId },
-            relations: ['profiles']
+            relations: ['userProfiles', 'userProfiles.profile']
         });
     });
 
@@ -56,7 +56,7 @@ describe("GetUserByIdHandler", () => {
         expect(handler.handle(userId)).rejects.toThrow(`User with id ${userId} not found`);
         expect(mockRepository.findOne).toHaveBeenCalledWith({
             where: { id: userId },
-            relations: ['profiles']
+            relations: ['userProfiles', 'userProfiles.profile']
         });
     });
 

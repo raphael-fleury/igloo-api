@@ -10,7 +10,7 @@ export class GetUsersHandler {
 
     async handle() {
         const users = await this.userRepository.find({
-            relations: ['profiles']
+            relations: ['userProfiles', 'userProfiles.profile']
         });
         return users.map(u => userDto.parse(u));
     }
