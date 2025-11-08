@@ -4,6 +4,7 @@ import { openapi } from "@elysiajs/openapi";
 import { userController } from "@/http/controllers/user.controller";
 import { profileController } from "@/http/controllers/profile.controller";
 import { blockController } from "@/http/controllers/block.controller";
+import { meController } from "./http/controllers/me.controller";
 
 const app = new Elysia()
   .use(openapi({
@@ -11,6 +12,7 @@ const app = new Elysia()
       zod: z.toJSONSchema
     }
   }))
+  .use(meController())
   .use(userController())
   .use(profileController())
   .use(blockController())
