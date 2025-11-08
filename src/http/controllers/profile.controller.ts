@@ -5,6 +5,7 @@ import { GetProfilesHandler } from "@/app/handlers/profile/get-profiles.handler"
 import { GetProfileByIdHandler } from "@/app/handlers/profile/get-profile-by-id.handler";
 import { UpdateProfileHandler } from "@/app/handlers/profile/update-profile.handler";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
+import { authMiddleware } from "../middlewares/auth.middleware";
 
 export const profileController = (
     getProfilesHandler = GetProfilesHandler.default,
@@ -12,6 +13,7 @@ export const profileController = (
     updateProfileHandler = UpdateProfileHandler.default,
 ) => new Elysia({ prefix: "/profiles" })
     .use(onErrorMiddleware)
+    .use(authMiddleware)
     .guard({
         detail: { tags: ['Profiles'] }
     })

@@ -6,6 +6,7 @@ import { GetUserByIdHandler } from "@/app/handlers/user/get-user-by-id.handler";
 import { CreateUserHandler } from "@/app/handlers/user/create-user.handler";
 import { UpdateUserHandler } from "@/app/handlers/user/update-user.handler";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
+import { authMiddleware } from "../middlewares/auth.middleware";
 
 export const userController = (
     createUserHandler = CreateUserHandler.default,
@@ -14,6 +15,7 @@ export const userController = (
     updateUserHandler = UpdateUserHandler.default,
 ) => new Elysia({ prefix: "/users" })
     .use(onErrorMiddleware)
+    .use(authMiddleware)
     .guard({
         detail: { tags: ['Users'] }
     })
