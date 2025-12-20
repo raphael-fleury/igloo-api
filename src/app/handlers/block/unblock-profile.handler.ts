@@ -6,7 +6,9 @@ import { Block } from "@/database/entities/block";
 export class UnblockProfileHandler {
     constructor(private readonly blockRepository: Repository<Block>) { }
 
-    static readonly default = new UnblockProfileHandler(appDataSource.getRepository(Block));
+    static get default() {
+        return new UnblockProfileHandler(appDataSource.getRepository(Block));
+    }
 
     async handle(blockerProfileId: string, blockedProfileId: string) {
         // Find the existing block

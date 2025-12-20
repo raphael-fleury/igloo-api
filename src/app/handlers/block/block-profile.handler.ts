@@ -10,10 +10,12 @@ export class BlockProfileHandler {
         private readonly profileRepository: Repository<Profile>
     ) { }
 
-    static readonly default = new BlockProfileHandler(
-        appDataSource.getRepository(Block),
-        appDataSource.getRepository(Profile)
-    );
+    static get default() {
+        return new BlockProfileHandler(
+            appDataSource.getRepository(Block),
+            appDataSource.getRepository(Profile)
+        );
+    }
 
     async handle(blockerProfileId: string, blockedProfileId: string) {
         // Validations

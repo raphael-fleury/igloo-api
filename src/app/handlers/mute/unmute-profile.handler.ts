@@ -6,7 +6,9 @@ import { Mute } from "@/database/entities/mute";
 export class UnmuteProfileHandler {
     constructor(private readonly muteRepository: Repository<Mute>) { }
 
-    static readonly default = new UnmuteProfileHandler(appDataSource.getRepository(Mute));
+    static get default() {
+        return new UnmuteProfileHandler(appDataSource.getRepository(Mute));
+    }
 
     async handle(muterProfileId: string, mutedProfileId: string) {
         // Find the existing mute

@@ -7,7 +7,9 @@ import { appDataSource } from "@/database/data-source";
 export class UpdateUserHandler {
     constructor(private readonly userRepository: Repository<User>) { }
 
-    static readonly default = new UpdateUserHandler(appDataSource.getRepository(User));
+    static get default() {
+        return new UpdateUserHandler(appDataSource.getRepository(User));
+    }
 
     async handle(id: string, data: UpdateUserDto) {
         const user = await this.userRepository.findOneBy({ id });

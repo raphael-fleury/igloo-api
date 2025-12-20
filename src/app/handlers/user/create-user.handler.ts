@@ -10,7 +10,9 @@ import { appDataSource } from "@/database/data-source";
 export class CreateUserHandler {
     constructor(private readonly dataSource: DataSource) { }
 
-    static readonly default = new CreateUserHandler(appDataSource);
+    static get default() {
+        return new CreateUserHandler(appDataSource);
+    }
 
     async handle(data: CreateUserDto) {
         return await this.dataSource.transaction(async (transactionalEntityManager) => {

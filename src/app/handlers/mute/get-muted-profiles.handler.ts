@@ -6,7 +6,9 @@ import { profileDto } from "@/app/dtos/profile.dtos";
 export class GetMutedProfilesHandler {
     constructor(private readonly muteRepository: Repository<Mute>) { }
 
-    static readonly default = new GetMutedProfilesHandler(appDataSource.getRepository(Mute));
+    static get default() {
+        return new GetMutedProfilesHandler(appDataSource.getRepository(Mute));
+    }
 
     async handle(muterProfileId: string) {
         const mutes = await this.muteRepository.find({

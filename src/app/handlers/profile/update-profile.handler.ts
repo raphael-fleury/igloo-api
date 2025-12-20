@@ -7,7 +7,9 @@ import { Profile } from "@/database/entities/profile";
 export class UpdateProfileHandler {
     constructor(private readonly profileRepository: Repository<Profile>) { }
 
-    static readonly default = new UpdateProfileHandler(appDataSource.getRepository(Profile));
+    static get default() {
+        return new UpdateProfileHandler(appDataSource.getRepository(Profile));
+    }
 
     async handle(id: string, updateData: UpdateProfileDto) {
         const profile = await this.profileRepository.findOneBy({ id });

@@ -10,10 +10,12 @@ export class MuteProfileHandler {
         private readonly profileRepository: Repository<Profile>
     ) { }
 
-    static readonly default = new MuteProfileHandler(
-        appDataSource.getRepository(Mute),
-        appDataSource.getRepository(Profile)
-    );
+    static get default() {
+        return new MuteProfileHandler(
+            appDataSource.getRepository(Mute),
+            appDataSource.getRepository(Profile)
+        );
+    }
 
     async handle(muterProfileId: string, mutedProfileId: string) {
         // Validations

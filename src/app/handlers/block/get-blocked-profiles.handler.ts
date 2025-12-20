@@ -6,7 +6,9 @@ import { profileDto } from "@/app/dtos/profile.dtos";
 export class GetBlockedProfilesHandler {
     constructor(private readonly blockRepository: Repository<Block>) { }
 
-    static readonly default = new GetBlockedProfilesHandler(appDataSource.getRepository(Block));
+    static get default() {
+        return new GetBlockedProfilesHandler(appDataSource.getRepository(Block));
+    }
 
     async handle(blockerProfileId: string) {
         const blocks = await this.blockRepository.find({

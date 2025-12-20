@@ -6,7 +6,9 @@ import { User } from "@/database/entities/user";
 export class GetUsersHandler {
     constructor(private readonly userRepository: Repository<User>) { }
 
-    static readonly default = new GetUsersHandler(appDataSource.getRepository(User));
+    static get default() {
+        return new GetUsersHandler(appDataSource.getRepository(User));
+    }
 
     async handle() {
         const users = await this.userRepository.find({

@@ -7,7 +7,9 @@ import { userDto } from "@/app/dtos/user.dtos";
 export class GetUserByIdHandler {
     constructor(private readonly userRepository: Repository<User>) { }
 
-    static readonly default = new GetUserByIdHandler(appDataSource.getRepository(User));
+    static get default() {
+        return new GetUserByIdHandler(appDataSource.getRepository(User));
+    }
 
     async handle(id: string) {
         const user = await this.userRepository.findOne({

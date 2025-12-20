@@ -7,7 +7,9 @@ import { Profile } from "@/database/entities/profile";
 export class GetProfileByIdHandler {
     constructor(private readonly profileRepository: Repository<Profile>) { }
 
-    static readonly default = new GetProfileByIdHandler(appDataSource.getRepository(Profile));
+    static get default() {
+        return new GetProfileByIdHandler(appDataSource.getRepository(Profile));
+    }
 
     async handle(id: string) {
         const profile = await this.profileRepository.findOneBy({ id });

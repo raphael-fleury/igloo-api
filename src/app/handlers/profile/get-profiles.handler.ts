@@ -6,7 +6,9 @@ import { Profile } from "@/database/entities/profile";
 export class GetProfilesHandler {
     constructor(private readonly profileRepository: Repository<Profile>) { }
 
-    static readonly default = new GetProfilesHandler(appDataSource.getRepository(Profile));
+    static get default() {
+        return new GetProfilesHandler(appDataSource.getRepository(Profile));
+    }
 
     async handle() {
         const profiles = await this.profileRepository.find();
