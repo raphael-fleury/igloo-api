@@ -10,11 +10,11 @@ export class UserProfile {
 
     @ManyToOne(() => User, "userProfiles", { onDelete: "CASCADE" })
     @JoinColumn({ name: "userId" })
-    user!: User;
+    user!: any;
 
     @ManyToOne(() => Profile, "userProfiles", { onDelete: "CASCADE" })
     @JoinColumn({ name: "profileId" })
-    profile!: Profile;
+    profile!: any;
 
     @CreateDateColumn()
     createdAt!: Date;
