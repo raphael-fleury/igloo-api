@@ -1,4 +1,3 @@
-import z from "zod";
 import Elysia from "elysia";
 import { blockCheckDto, blockDto } from "@/app/dtos/block.dtos";
 import { BlockProfileHandler } from "@/app/handlers/block/block-profile.handler";

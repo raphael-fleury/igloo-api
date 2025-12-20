@@ -3,7 +3,7 @@ import { appDataSource } from "@/database/data-source";
 import { User } from "@/database/entities/user";
 import { Profile } from "@/database/entities/profile";
 
-export const authMiddleware = async (app: Elysia) => app
+export const authMiddleware = (app: Elysia) => app
     .derive(async () => {
         const user = await appDataSource
             .getRepository(User)
