@@ -18,3 +18,10 @@ export class SelfInteractionError extends Error {
         this.name = 'SelfInteractionError';
     }
 }
+
+export class BlockedError extends Error {
+    constructor(public message: string) {
+        super(message);
+        this.name = 'BlockedError';
+    }
+}
