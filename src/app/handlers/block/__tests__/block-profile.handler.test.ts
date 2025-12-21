@@ -3,12 +3,14 @@ import { Repository } from "typeorm";
 import { BlockProfileHandler } from "../block-profile.handler";
 import { Block } from "@/database/entities/block";
 import { Profile } from "@/database/entities/profile";
+import { Follow } from "@/database/entities/follow";
 import { NotFoundError } from "@/app/errors";
 
 describe("BlockProfileHandler", () => {
     let handler: BlockProfileHandler;
     let mockBlockRepository: Repository<Block>;
     let mockProfileRepository: Repository<Profile>;
+    let mockFollowRepository: Repository<Follow>;
 
     beforeEach(() => {
         mockBlockRepository = {
@@ -21,7 +23,12 @@ describe("BlockProfileHandler", () => {
             findOneBy: mock(() => Promise.resolve(null))
         } as any;
 
-        handler = new BlockProfileHandler(mockBlockRepository, mockProfileRepository);
+        mockFollowRepository = {
+            findOne: mock(() => Promise.resolve(null)),
+            remove: mock((data) => Promise.resolve(data))
+        } as any;
+
+        handler = new BlockProfileHandler(mockBlockRepository, mockProfileRepository, mockFollowRepository);
     });
 
     it("should block profile successfully when both profiles exist", async () => {
@@ -48,6 +55,39 @@ describe("BlockProfileHandler", () => {
             blockedProfile: mockBlockedProfile
         });
         expect(mockBlockRepository.save).toHaveBeenCalled();
+    });
+
+    it("should remove follows in both directions when blocking a profile", async () => {
+        // Arrange
+        const blockerProfileId = "blocker-id";
+        const blockedProfileId = "blocked-id";
+        
+        const mockBlockerProfile = { id: blockerProfileId, username: "blocker" } as Profile;
+        const mockBlockedProfile = { id: blockedProfileId, username: "blocked" } as Profile;
+        const mockFollowFromBlocker = { id: "follow-1", followerProfile: mockBlockerProfile, followedProfile: mockBlockedProfile } as Follow;
+        const mockFollowFromBlocked = { id: "follow-2", followerProfile: mockBlockedProfile, followedProfile: mockBlockerProfile } as Follow;
+
+        mockProfileRepository.findOneBy = mock((criteria: any) => {
+            if (criteria.id === blockerProfileId) return Promise.resolve(mockBlockerProfile);
+            if (criteria.id === blockedProfileId) return Promise.resolve(mockBlockedProfile);
+            return Promise.resolve(null);
+        });
+
+        let followFindOneCall = 0;
+        mockFollowRepository.findOne = mock(() => {
+            followFindOneCall++;
+            if (followFindOneCall === 1) return Promise.resolve(mockFollowFromBlocker);
+            if (followFindOneCall === 2) return Promise.resolve(mockFollowFromBlocked);
+            return Promise.resolve(null);
+        });
+
+        // Act
+        const result = await handler.handle(blockerProfileId, blockedProfileId);
+
+        // Assert
+        expect(result.message).toBe("Profile blocked successfully");
+        expect(mockFollowRepository.findOne).toHaveBeenCalledTimes(2);
+        expect(mockFollowRepository.remove).toHaveBeenCalledTimes(2);
     });
 
     it("should throw NotFoundError when blocker profile does not exist", async () => {
