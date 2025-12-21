@@ -11,3 +11,10 @@ export class NotFoundError extends Error {
         this.name = 'NotFoundError';
     }
 }
+
+export class SelfInteractionError extends Error {
+    constructor(public message: string) {
+        super(message);
+        this.name = 'SelfInteractionError';
+    }
+}

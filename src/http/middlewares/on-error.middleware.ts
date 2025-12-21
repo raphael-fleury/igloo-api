@@ -1,13 +1,16 @@
 import { Elysia } from "elysia";
-import { AlreadyExistsError, NotFoundError } from "@/app/errors";
+import { AlreadyExistsError, NotFoundError, SelfInteractionError } from "@/app/errors";
 
 export const onErrorMiddleware = (app: Elysia) => app
-    .error({ AlreadyExistsError, NotFoundError })
+    .error({ AlreadyExistsError, NotFoundError, SelfInteractionError })
     .onError(({ code, error, set }) => {
         console.log('error middleware')
         switch (code) {
             case 'AlreadyExistsError':
                 set.status = 409;
+                break;
+            case 'SelfInteractionError':
+                set.status = 400;
                 break;
             case 'NOT_FOUND':
             case 'NotFoundError':

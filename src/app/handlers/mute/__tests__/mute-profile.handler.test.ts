@@ -4,7 +4,7 @@ import { zocker } from "zocker";
 import { MuteProfileHandler } from "../mute-profile.handler";
 import { Mute } from "@/database/entities/mute";
 import { Profile } from "@/database/entities/profile";
-import { NotFoundError } from "@/app/errors";
+import { NotFoundError, SelfInteractionError } from "@/app/errors";
 import { profileDto } from "@/app/dtos/profile.dtos";
 
 describe("MuteProfileHandler", () => {
@@ -121,5 +121,17 @@ describe("MuteProfileHandler", () => {
         expect(result.message).toBe("Profile is already muted");
         expect(result.mutedAt).toEqual(existingMute.createdAt);
         expect(mockMuteRepository.save).not.toHaveBeenCalled();
+    });
+
+    it("should throw SelfInteractionError when trying to mute the same profile", async () => {
+        // Arrange
+        const profileId = "123e4567-e89b-12d3-a456-426614174000";
+
+        // Act & Assert
+        expect(handler.handle(profileId, profileId)).rejects.toThrow(SelfInteractionError);
+        expect(handler.handle(profileId, profileId)).rejects.toThrow(
+            "A profile cannot mute itself"
+        );
+        expect(mockProfileRepository.findOneBy).not.toHaveBeenCalled();
     });
 });

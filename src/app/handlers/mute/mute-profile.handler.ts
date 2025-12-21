@@ -1,5 +1,5 @@
 import { Repository } from "typeorm";
-import { NotFoundError } from "@/app/errors";
+import { NotFoundError, SelfInteractionError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { Mute } from "@/database/entities/mute";
 import { Profile } from "@/database/entities/profile";
@@ -19,6 +19,10 @@ export class MuteProfileHandler {
 
     async handle(muterProfileId: string, mutedProfileId: string) {
         // Validations
+        if (muterProfileId === mutedProfileId) {
+            throw new SelfInteractionError("A profile cannot mute itself");
+        }
+
         const muterProfile = await this.profileRepository.findOneBy({ id: muterProfileId });
         if (!muterProfile) {
             throw new NotFoundError(`Muter profile with id ${muterProfileId} not found`);
