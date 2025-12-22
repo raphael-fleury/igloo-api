@@ -2,6 +2,7 @@ import { Elysia, status } from "elysia";
 import { appDataSource } from "@/database/data-source";
 import { User } from "@/database/entities/user";
 import { Profile } from "@/database/entities/profile";
+import { UserProfile } from "@/database/entities/user-profile";
 
 export const authMiddleware = (app: Elysia) => app
     .derive(async () => {
@@ -15,7 +16,16 @@ export const authMiddleware = (app: Elysia) => app
 
         return { user: user!, profile: profile! };
     })
-    .onBeforeHandle(({ user }) => {
+    .onBeforeHandle(async ({ user, profile }) => {
         if (!user)
             return status(401, { message: "User not authenticated" });
+        if (profile) {
+            const userProfile = await appDataSource
+                .getRepository(UserProfile)
+                .findOneBy({ user: { id: user.id }, profile: { id: profile.id } });
+
+            if (!userProfile) {
+                return status(403, { message: "User does not have access to this profile" });
+            }
+        }
     });

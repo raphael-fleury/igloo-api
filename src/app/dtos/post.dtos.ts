@@ -14,8 +14,6 @@ export const postDto = basePostDto.extend({
 });
 
 export const createPostDto = basePostDto.extend({
-    userId: z.uuid(),
-    profileId: z.uuid(),
     replyToPostId: z.uuid().nullable().optional()
 });
 

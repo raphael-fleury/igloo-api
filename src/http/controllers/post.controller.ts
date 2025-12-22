@@ -18,8 +18,8 @@ export const postController = (
         detail: { tags: ['Posts'] }
     })
 
-    .post('/', async ({ body, set }) => {
-        const post = await createPostHandler.handle(body);
+    .post('/', async ({ body, user, profile }) => {
+        const post = await createPostHandler.handle(body, user, profile);
         return status(201, post);
     }, {
         detail: { summary: "Create a new post" },

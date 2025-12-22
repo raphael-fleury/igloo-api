@@ -8,31 +8,15 @@ import { Profile } from "@/database/entities/profile";
 
 export class CreatePostHandler {
     constructor(
-        private readonly postRepository: Repository<Post>,
-        private readonly userRepository: Repository<User>,
-        private readonly profileRepository: Repository<Profile>
+        private readonly postRepository: Repository<Post>
     ) { }
 
     static get default() {
-        return new CreatePostHandler(
-            appDataSource.getRepository(Post),
-            appDataSource.getRepository(User),
-            appDataSource.getRepository(Profile)
-        );
+        return new CreatePostHandler(appDataSource.getRepository(Post));
     }
 
-    async handle(data: CreatePostDto) {
+    async handle(data: CreatePostDto, user: User, profile: Profile) {
         // Validations
-        const user = await this.userRepository.findOneBy({ id: data.userId });
-        if (!user) {
-            throw new NotFoundError(`User with id ${data.userId} not found`);
-        }
-
-        const profile = await this.profileRepository.findOneBy({ id: data.profileId });
-        if (!profile) {
-            throw new NotFoundError(`Profile with id ${data.profileId} not found`);
-        }
-
         let replyToPost = null;
         if (data.replyToPostId) {
             replyToPost = await this.postRepository.findOneBy({ id: data.replyToPostId });
@@ -51,6 +35,14 @@ export class CreatePostHandler {
 
         const savedPost = await this.postRepository.save(post);
 
-        return postDto.parse(savedPost);
+        return postDto.parse({
+            id: savedPost.id,
+            userId: savedPost.user.id,
+            profileId: savedPost.profile.id,
+            content: savedPost.content,
+            replyToPostId: savedPost.replyToPost?.id,
+            createdAt: savedPost.createdAt,
+            updatedAt: savedPost.updatedAt
+        });
     }
 }
