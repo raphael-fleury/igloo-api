@@ -1,44 +1,81 @@
 import z from "zod";
 import Elysia from "elysia";
-import { updateProfileDto } from "@/app/dtos/profile.dtos";
-import { GetProfilesHandler } from "@/app/handlers/profile/get-profiles.handler";
 import { GetProfileByIdHandler } from "@/app/handlers/profile/get-profile-by-id.handler";
-import { UpdateProfileHandler } from "@/app/handlers/profile/update-profile.handler";
+import { BlockProfileHandler } from "@/app/handlers/block/block-profile.handler";
+import { UnblockProfileHandler } from "@/app/handlers/block/unblock-profile.handler";
+import { MuteProfileHandler } from "@/app/handlers/mute/mute-profile.handler";
+import { UnmuteProfileHandler } from "@/app/handlers/mute/unmute-profile.handler";
+import { FollowProfileHandler } from "@/app/handlers/follow/follow-profile.handler";
+import { UnfollowProfileHandler } from "@/app/handlers/follow/unfollow-profile.handler";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { authMiddleware } from "../middlewares/auth.middleware";
 
+const profileIdParam = z.object({
+    id: z.uuid()
+});
+
 export const profileController = (
-    getProfilesHandler = GetProfilesHandler.default,
     getProfileByIdHandler = GetProfileByIdHandler.default,
-    updateProfileHandler = UpdateProfileHandler.default,
+    blockProfileHandler = BlockProfileHandler.default,
+    unblockProfileHandler = UnblockProfileHandler.default,
+    muteProfileHandler = MuteProfileHandler.default,
+    unmuteProfileHandler = UnmuteProfileHandler.default,
+    followProfileHandler = FollowProfileHandler.default,
+    unfollowProfileHandler = UnfollowProfileHandler.default,
 ) => new Elysia({ prefix: "/profiles" })
     .use(onErrorMiddleware)
-    .use(authMiddleware)
     .guard({
         detail: { tags: ['Profiles'] }
-    })
-
-    .get('/', async () => {
-        return await getProfilesHandler.handle();
-    }, {
-        detail: { summary: "Get all profiles" }
     })
 
     .get('/:id', async ({ params }) => {
         return await getProfileByIdHandler.handle(params.id);
     }, {
-        detail: { summary: "Get profile by ID" },
-        params: z.object({
-            id: z.uuid()
-        }),
+        detail: { summary: "Get profile by ID (public)" },
+        params: profileIdParam
     })
 
-    .patch('/:id', async ({ params, body }) => {
-        return await updateProfileHandler.handle(params.id, body);
-    }, {
-        detail: { summary: "Update profile by ID" },
-        params: z.object({
-            id: z.uuid()
-        }),
-        body: updateProfileDto
-    });
+    .group('/:id', (app) => app
+        .use(authMiddleware)
+        .post('/block', async ({ profile, params }) => {
+            return await blockProfileHandler.handle(profile.id, params.id);
+        }, {
+            detail: { summary: "Block a profile" },
+            params: profileIdParam
+        })
+
+        .delete('/block', async ({ profile, params }) => {
+            return await unblockProfileHandler.handle(profile.id, params.id);
+        }, {
+            detail: { summary: "Unblock a profile" },
+            params: profileIdParam
+        })
+
+        .post('/mute', async ({ profile, params }) => {
+            return await muteProfileHandler.handle(profile.id, params.id);
+        }, {
+            detail: { summary: "Mute a profile" },
+            params: profileIdParam
+        })
+
+        .delete('/mute', async ({ profile, params }) => {
+            return await unmuteProfileHandler.handle(profile.id, params.id);
+        }, {
+            detail: { summary: "Unmute a profile" },
+            params: profileIdParam
+        })
+
+        .post('/follow', async ({ profile, params }) => {
+            return await followProfileHandler.handle(profile.id, params.id);
+        }, {
+            detail: { summary: "Follow a profile" },
+            params: profileIdParam
+        })
+
+        .delete('/follow', async ({ profile, params }) => {
+            return await unfollowProfileHandler.handle(profile.id, params.id);
+        }, {
+            detail: { summary: "Unfollow a profile" },
+            params: profileIdParam
+        })
+    );

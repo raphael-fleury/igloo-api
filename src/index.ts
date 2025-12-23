@@ -1,11 +1,10 @@
 import z from "zod";
 import { Elysia } from "elysia";
 import { openapi } from "@elysiajs/openapi";
-import { userController } from "@/http/controllers/user.controller";
+import { authController } from "@/http/controllers/auth.controller";
+import { meController } from "@/http/controllers/me.controller";
 import { profileController } from "@/http/controllers/profile.controller";
-import { blockController } from "@/http/controllers/block.controller";
-import { repostController } from "@/http/controllers/repost.controller";
-import { meController } from "./http/controllers/me.controller";
+import { postController } from "@/http/controllers/post.controller";
 
 const app = new Elysia()
   .use(openapi({
@@ -13,11 +12,10 @@ const app = new Elysia()
       zod: z.toJSONSchema
     }
   }))
+  .use(authController())
   .use(meController())
-  .use(userController())
   .use(profileController())
-  .use(blockController())
-  .use(repostController())
+  .use(postController())
   .listen(3000);
 
 console.log(
