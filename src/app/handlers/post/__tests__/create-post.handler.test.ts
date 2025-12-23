@@ -1,14 +1,16 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
 import { CreatePostHandler } from "../create-post.handler";
-import { NotFoundError } from "@/app/errors";
+import { BlockedError, NotFoundError } from "@/app/errors";
 import { Post } from "@/database/entities/post";
 import { User } from "@/database/entities/user";
 import { Profile } from "@/database/entities/profile";
+import { Block } from "@/database/entities/block";
 
 describe("CreatePostHandler", () => {
     let handler: CreatePostHandler;
     let mockPostRepository: Repository<Post>;
+    let mockBlockRepository: Repository<Block>;
 
     beforeEach(() => {
         mockPostRepository = {
@@ -17,7 +19,11 @@ describe("CreatePostHandler", () => {
             save: mock((data) => Promise.resolve({ ...data, id: "post-id", createdAt: new Date(), updatedAt: new Date() }))
         } as any;
 
-        handler = new CreatePostHandler(mockPostRepository);
+        mockBlockRepository = {
+            findOne: mock(() => Promise.resolve(null))
+        } as any;
+
+        handler = new CreatePostHandler(mockPostRepository, mockBlockRepository);
     });
 
     it("should create post successfully when user and profile exist", async () => {
@@ -72,5 +78,63 @@ describe("CreatePostHandler", () => {
         expect(async () => {
             await handler.handle(createPostData, { id: userId } as User, { id: profileId } as Profile);
         }).toThrow(NotFoundError);
+    });
+
+    it("should throw BlockedError when user has blocked the author of the replied post", async () => {
+        // Arrange
+        const userId = "b316b948-8f6c-4284-8b38-a68ca4d3dee0";
+        const profileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
+        const repliedPostAuthorProfileId = "profile-of-replied-post-author";
+
+        const createPostData = {
+            userId,
+            profileId,
+            content: "This is a reply",
+            replyToPostId: "replied-post-id"
+        };
+
+        mockPostRepository.findOneBy = mock(() => Promise.resolve({
+            id: "replied-post-id",
+            profile: { id: repliedPostAuthorProfileId }
+        } as any));
+
+        mockBlockRepository.findOne = mock(() => Promise.resolve({
+            id: "block-id",
+            blockerProfile: { id: profileId },
+            blockedProfile: { id: repliedPostAuthorProfileId }
+        } as any));
+
+        // Act & Assert
+        expect(async () => {
+            await handler.handle(createPostData, { id: userId } as User, { id: profileId } as Profile);
+        }).toThrowError(BlockedError);
+    });
+
+    it("should throw BlockedError when author of the replied post has blocked the user", async () => {
+        // Arrange
+        const userId = "b316b948-8f6c-4284-8b38-a68ca4d3dee0";
+        const profileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
+        const repliedPostAuthorProfileId = "profile-of-replied-post-author";
+        const createPostData = {
+            userId,
+            profileId,
+            content: "This is a reply",
+            replyToPostId: "replied-post-id"
+        };
+        mockPostRepository.findOneBy = mock(() => Promise.resolve({
+            id: "replied-post-id",
+            profile: { id: repliedPostAuthorProfileId }
+        } as any));
+
+        mockBlockRepository.findOne = mock(() => Promise.resolve({
+            id: "block-id",
+            blockerProfile: { id: repliedPostAuthorProfileId },
+            blockedProfile: { id: profileId }
+        } as any));
+
+        // Act & Assert
+        expect(async () => {
+            await handler.handle(createPostData, { id: userId } as User, { id: profileId } as Profile);
+        }).toThrowError(BlockedError);
     });
 });
