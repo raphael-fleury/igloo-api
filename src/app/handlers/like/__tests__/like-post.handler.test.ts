@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
 import { LikePostHandler } from "../like-post.handler";
-import { Like } from "@/database/entities/like";
+import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
 import { Post } from "@/database/entities/post";
 import { Block } from "@/database/entities/block";
 import { User } from "@/database/entities/user";
@@ -10,12 +10,12 @@ import { NotFoundError, BlockedError } from "@/app/errors";
 
 describe("LikePostHandler", () => {
     let handler: LikePostHandler;
-    let mockLikeRepository: Repository<Like>;
+    let mockPostInteractionRepository: Repository<PostInteraction>;
     let mockPostRepository: Repository<Post>;
     let mockBlockRepository: Repository<Block>;
 
     beforeEach(() => {
-        mockLikeRepository = {
+        mockPostInteractionRepository = {
             findOne: mock(() => Promise.resolve(null)),
             create: mock(data => data),
             save: mock(data => Promise.resolve({ ...data, id: "like-id", createdAt: new Date(), updatedAt: new Date() }))
@@ -29,7 +29,7 @@ describe("LikePostHandler", () => {
             findOne: mock(() => Promise.resolve(null))
         } as any;
 
-        handler = new LikePostHandler(mockLikeRepository, mockPostRepository, mockBlockRepository);
+        handler = new LikePostHandler(mockPostInteractionRepository, mockPostRepository, mockBlockRepository);
     });
 
     it("should like post successfully when post exists and no blocks", async () => {
@@ -52,14 +52,15 @@ describe("LikePostHandler", () => {
             user,
             profile,
             post: mockPost,
+            interactionType: InteractionType.Like,
             createdAt: new Date(),
             updatedAt: new Date()
-        } as Like;
+        } as PostInteraction;
 
         mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
         mockBlockRepository.findOne = mock(() => Promise.resolve(null));
-        mockLikeRepository.findOne = mock(() => Promise.resolve(null));
-        mockLikeRepository.save = mock(() => Promise.resolve(createdLike)) as any;
+        mockPostInteractionRepository.findOne = mock(() => Promise.resolve(null));
+        mockPostInteractionRepository.save = mock(() => Promise.resolve(createdLike)) as any;
 
         // Act
         const result = await handler.handle(postId, user, profile);
@@ -71,8 +72,10 @@ describe("LikePostHandler", () => {
             where: { id: postId },
             relations: ['profile']
         });
-        expect(mockLikeRepository.save).toHaveBeenCalled();
-        expect(mockLikeRepository.create).toHaveBeenCalledWith({ user, profile, post: mockPost });
+        expect(mockPostInteractionRepository.save).toHaveBeenCalled();
+        expect(mockPostInteractionRepository.create).toHaveBeenCalledWith({
+            user, profile, post: mockPost, interactionType: InteractionType.Like
+        });
     });
 
     it("should throw NotFoundError when post does not exist", async () => {
@@ -119,7 +122,7 @@ describe("LikePostHandler", () => {
         // Act & Assert
         expect(handler.handle(postId, user, profile))
             .rejects.toThrow(BlockedError);
-        expect(mockLikeRepository.save).not.toHaveBeenCalled();
+        expect(mockPostInteractionRepository.save).not.toHaveBeenCalled();
     });
 
     it("should throw BlockedError when author of the post has blocked the user", async () => {
@@ -153,7 +156,7 @@ describe("LikePostHandler", () => {
         // Act & Assert
         expect(handler.handle(postId, user, profile))
             .rejects.toThrow(BlockedError);
-        expect(mockLikeRepository.save).not.toHaveBeenCalled();
+        expect(mockPostInteractionRepository.save).not.toHaveBeenCalled();
     });
 
     it("should return existing like when post is already liked", async () => {
@@ -176,13 +179,14 @@ describe("LikePostHandler", () => {
             user,
             profile,
             post: mockPost,
+            interactionType: InteractionType.Like,
             createdAt: new Date("2024-01-01"),
             updatedAt: new Date("2024-01-01")
-        } as Like;
+        } as PostInteraction;
 
         mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
         mockBlockRepository.findOne = mock(() => Promise.resolve(null));
-        mockLikeRepository.findOne = mock(() => Promise.resolve(existingLike));
+        mockPostInteractionRepository.findOne = mock(() => Promise.resolve(existingLike));
 
         // Act
         const result = await handler.handle(postId, user, profile);
@@ -190,7 +194,7 @@ describe("LikePostHandler", () => {
         // Assert
         expect(result.message).toBe("Post is already liked");
         expect(result.likedAt).toEqual(existingLike.createdAt);
-        expect(mockLikeRepository.save).not.toHaveBeenCalled();
+        expect(mockPostInteractionRepository.save).not.toHaveBeenCalled();
     });
 });
 

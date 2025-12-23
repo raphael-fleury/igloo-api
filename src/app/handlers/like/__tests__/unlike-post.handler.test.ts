@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
 import { UnlikePostHandler } from "../unlike-post.handler";
-import { Like } from "@/database/entities/like";
+import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
 import { NotFoundError } from "@/app/errors";
 import { User } from "@/database/entities/user";
 import { Profile } from "@/database/entities/profile";
@@ -9,15 +9,15 @@ import { Post } from "@/database/entities/post";
 
 describe("UnlikePostHandler", () => {
     let handler: UnlikePostHandler;
-    let mockLikeRepository: Repository<Like>;
+    let mockPostInteractionRepository: Repository<PostInteraction>;
 
     beforeEach(() => {
-        mockLikeRepository = {
+        mockPostInteractionRepository = {
             findOne: mock(() => Promise.resolve(null)),
             remove: mock(data => Promise.resolve(data))
         } as any;
 
-        handler = new UnlikePostHandler(mockLikeRepository);
+        handler = new UnlikePostHandler(mockPostInteractionRepository);
     });
 
     it("should unlike post successfully when like exists", async () => {
@@ -34,11 +34,12 @@ describe("UnlikePostHandler", () => {
             user,
             profile,
             post,
+            interactionType: InteractionType.Like,
             createdAt: new Date(),
             updatedAt: new Date()
-        } as Like;
+        } as PostInteraction;
 
-        mockLikeRepository.findOne = mock(() => Promise.resolve(existingLike));
+        mockPostInteractionRepository.findOne = mock(() => Promise.resolve(existingLike));
 
         // Act
         const result = await handler.handle(profileId, postId);
@@ -46,13 +47,14 @@ describe("UnlikePostHandler", () => {
         // Assert
         expect(result.message).toBe("Post unliked successfully");
         expect(result.unlikedAt).toBeDefined();
-        expect(mockLikeRepository.findOne).toHaveBeenCalledWith({
+        expect(mockPostInteractionRepository.findOne).toHaveBeenCalledWith({
             where: {
                 profile: { id: profileId },
-                post: { id: postId }
+                post: { id: postId },
+                interactionType: InteractionType.Like
             }
         });
-        expect(mockLikeRepository.remove).toHaveBeenCalledWith(existingLike);
+        expect(mockPostInteractionRepository.remove).toHaveBeenCalledWith(existingLike);
     });
 
     it("should throw NotFoundError when like does not exist", async () => {
@@ -60,14 +62,14 @@ describe("UnlikePostHandler", () => {
         const profileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
         const postId = "99e85e01-ec24-4c44-bfc7-1d0ba895f51e";
 
-        mockLikeRepository.findOne = mock(() => Promise.resolve(null));
+        mockPostInteractionRepository.findOne = mock(() => Promise.resolve(null));
 
         // Act & Assert
         expect(handler.handle(profileId, postId))
             .rejects.toThrow(NotFoundError);
         expect(handler.handle(profileId, postId))
             .rejects.toThrow("Like for this post not found");
-        expect(mockLikeRepository.remove).not.toHaveBeenCalled();
+        expect(mockPostInteractionRepository.remove).not.toHaveBeenCalled();
     });
 });
 

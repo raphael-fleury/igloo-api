@@ -1,7 +1,7 @@
 import { Repository } from "typeorm";
 import { NotFoundError, BlockedError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
-import { Like } from "@/database/entities/like";
+import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
 import { Post } from "@/database/entities/post";
 import { Block } from "@/database/entities/block";
 import { User } from "@/database/entities/user";
@@ -9,14 +9,14 @@ import { Profile } from "@/database/entities/profile";
 
 export class LikePostHandler {
     constructor(
-        private readonly likeRepository: Repository<Like>,
+        private readonly postInteractionRepository: Repository<PostInteraction>,
         private readonly postRepository: Repository<Post>,
         private readonly blockRepository: Repository<Block>
     ) { }
 
     static get default() {
         return new LikePostHandler(
-            appDataSource.getRepository(Like),
+            appDataSource.getRepository(PostInteraction),
             appDataSource.getRepository(Post),
             appDataSource.getRepository(Block)
         );
@@ -58,7 +58,7 @@ export class LikePostHandler {
         }
 
         // Check if already liked
-        const existingLike = await this.likeRepository.findOne({
+        const existingLike = await this.postInteractionRepository.findOne({
             where: {
                 profile: { id: profile.id },
                 post: { id: postId }
@@ -73,8 +73,10 @@ export class LikePostHandler {
         }
 
         // Creation
-        const like = this.likeRepository.create({ user, profile, post });
-        const savedLike = await this.likeRepository.save(like);
+        const like = this.postInteractionRepository.create({
+            user, profile, post, interactionType: InteractionType.Like
+        });
+        const savedLike = await this.postInteractionRepository.save(like);
 
         return {
             message: "Post liked successfully",

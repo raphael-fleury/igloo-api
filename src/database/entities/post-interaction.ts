@@ -1,11 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, Index } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, Index, Column } from "typeorm";
 import { Profile } from "./profile";
 import { Post } from "./post";
 import { User } from "./user";
 
-@Entity("likes")
-@Index(["profile", "post"], { unique: true })
-export class Like {
+export enum InteractionType {
+    Like = "like",
+    Repost = "repost"
+}
+
+@Entity("post_interactions")
+@Index(["profile", "post", "interactionType"], { unique: true })
+export class PostInteraction {
     @PrimaryGeneratedColumn("uuid")
     id!: string;
 
@@ -20,6 +25,12 @@ export class Like {
     @ManyToOne("Post", { eager: true })
     @JoinColumn({ name: "postId" })
     post!: Post;
+
+    @Column({
+        type: "enum",
+        enum: InteractionType,
+    })
+    interactionType!: InteractionType;
 
     @CreateDateColumn()
     createdAt!: Date;
