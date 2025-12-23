@@ -1,22 +1,19 @@
 import { Repository } from "typeorm";
 import { NotFoundError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
-import { Block } from "@/database/entities/block";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { Profile } from "@/database/entities/profile";
-import { Follow } from "@/database/entities/follow";
 
 export class BlockProfileHandler {
     constructor(
-        private readonly blockRepository: Repository<Block>,
-        private readonly profileRepository: Repository<Profile>,
-        private readonly followRepository: Repository<Follow>
+        private readonly profileInteractionRepository: Repository<ProfileInteraction>,
+        private readonly profileRepository: Repository<Profile>
     ) { }
 
     static get default() {
         return new BlockProfileHandler(
-            appDataSource.getRepository(Block),
-            appDataSource.getRepository(Profile),
-            appDataSource.getRepository(Follow)
+            appDataSource.getRepository(ProfileInteraction),
+            appDataSource.getRepository(Profile)
         );
     }
 
@@ -32,10 +29,11 @@ export class BlockProfileHandler {
             throw new NotFoundError(`Blocked profile with id ${blockedProfileId} not found`);
         }
 
-        const existingBlock = await this.blockRepository.findOne({
+        const existingBlock = await this.profileInteractionRepository.findOne({
             where: {
-                blockerProfile: { id: blockerProfileId },
-                blockedProfile: { id: blockedProfileId }
+                sourceProfile: { id: blockerProfileId },
+                targetProfile: { id: blockedProfileId },
+                interactionType: ProfileInteractionType.Block
             }
         });
 
@@ -44,35 +42,38 @@ export class BlockProfileHandler {
         }
 
         // Remove follows in both directions
-        const followerFollow = await this.followRepository.findOne({
+        const followerFollow = await this.profileInteractionRepository.findOne({
             where: {
-                followerProfile: { id: blockerProfileId },
-                followedProfile: { id: blockedProfileId }
+                sourceProfile: { id: blockerProfileId },
+                targetProfile: { id: blockedProfileId },
+                interactionType: ProfileInteractionType.Follow
             }
         });
 
         if (followerFollow) {
-            await this.followRepository.remove(followerFollow);
+            await this.profileInteractionRepository.remove(followerFollow);
         }
 
-        const followedByFollow = await this.followRepository.findOne({
+        const followedByFollow = await this.profileInteractionRepository.findOne({
             where: {
-                followerProfile: { id: blockedProfileId },
-                followedProfile: { id: blockerProfileId }
+                sourceProfile: { id: blockedProfileId },
+                targetProfile: { id: blockerProfileId },
+                interactionType: ProfileInteractionType.Follow
             }
         });
 
         if (followedByFollow) {
-            await this.followRepository.remove(followedByFollow);
+            await this.profileInteractionRepository.remove(followedByFollow);
         }
 
         // Creation
-        const block = this.blockRepository.create({
-            blockerProfile,
-            blockedProfile
+        const block = this.profileInteractionRepository.create({
+            sourceProfile: blockerProfile,
+            targetProfile: blockedProfile,
+            interactionType: ProfileInteractionType.Block
         });
 
-        const savedBlock = await this.blockRepository.save(block);
+        const savedBlock = await this.profileInteractionRepository.save(block);
 
         return {
             message: "Profile blocked successfully",

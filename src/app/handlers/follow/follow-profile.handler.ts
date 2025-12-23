@@ -1,22 +1,19 @@
 import { Repository } from "typeorm";
 import { NotFoundError, SelfInteractionError, BlockedError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
-import { Follow } from "@/database/entities/follow";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { Profile } from "@/database/entities/profile";
-import { Block } from "@/database/entities/block";
 
 export class FollowProfileHandler {
     constructor(
-        private readonly followRepository: Repository<Follow>,
-        private readonly profileRepository: Repository<Profile>,
-        private readonly blockRepository: Repository<Block>
+        private readonly profileInteractionRepository: Repository<ProfileInteraction>,
+        private readonly profileRepository: Repository<Profile>
     ) { }
 
     static get default() {
         return new FollowProfileHandler(
-            appDataSource.getRepository(Follow),
-            appDataSource.getRepository(Profile),
-            appDataSource.getRepository(Block)
+            appDataSource.getRepository(ProfileInteraction),
+            appDataSource.getRepository(Profile)
         );
     }
 
@@ -37,10 +34,11 @@ export class FollowProfileHandler {
         }
 
         // Check if follower blocked the followed profile
-        const followerBlockedFollowed = await this.blockRepository.findOne({
+        const followerBlockedFollowed = await this.profileInteractionRepository.findOne({
             where: {
-                blockerProfile: { id: followerProfileId },
-                blockedProfile: { id: followedProfileId }
+                sourceProfile: { id: followerProfileId },
+                targetProfile: { id: followedProfileId },
+                interactionType: ProfileInteractionType.Block
             }
         });
 
@@ -49,10 +47,11 @@ export class FollowProfileHandler {
         }
 
         // Check if followed profile blocked the follower
-        const followedBlockedFollower = await this.blockRepository.findOne({
+        const followedBlockedFollower = await this.profileInteractionRepository.findOne({
             where: {
-                blockerProfile: { id: followedProfileId },
-                blockedProfile: { id: followerProfileId }
+                sourceProfile: { id: followedProfileId },
+                targetProfile: { id: followerProfileId },
+                interactionType: ProfileInteractionType.Block
             }
         });
 
@@ -60,10 +59,11 @@ export class FollowProfileHandler {
             throw new BlockedError("You cannot follow a profile that has blocked you");
         }
 
-        const existingFollow = await this.followRepository.findOne({
+        const existingFollow = await this.profileInteractionRepository.findOne({
             where: {
-                followerProfile: { id: followerProfileId },
-                followedProfile: { id: followedProfileId }
+                sourceProfile: { id: followerProfileId },
+                targetProfile: { id: followedProfileId },
+                interactionType: ProfileInteractionType.Follow
             }
         });
 
@@ -72,12 +72,13 @@ export class FollowProfileHandler {
         }
 
         // Creation
-        const follow = this.followRepository.create({
-            followerProfile,
-            followedProfile
+        const follow = this.profileInteractionRepository.create({
+            sourceProfile: followerProfile,
+            targetProfile: followedProfile,
+            interactionType: ProfileInteractionType.Follow
         });
 
-        const savedFollow = await this.followRepository.save(follow);
+        const savedFollow = await this.profileInteractionRepository.save(follow);
 
         return {
             message: "Profile followed successfully",

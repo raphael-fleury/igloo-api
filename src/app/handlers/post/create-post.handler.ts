@@ -5,18 +5,18 @@ import { appDataSource } from "@/database/data-source";
 import { Post } from "@/database/entities/post";
 import { User } from "@/database/entities/user";
 import { Profile } from "@/database/entities/profile";
-import { Block } from "@/database/entities/block";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 
 export class CreatePostHandler {
     constructor(
         private readonly postRepository: Repository<Post>,
-        private readonly blockRepository: Repository<Block>
+        private readonly profileInteractionRepository: Repository<ProfileInteraction>
     ) { }
 
     static get default() {
         return new CreatePostHandler(
             appDataSource.getRepository(Post),
-            appDataSource.getRepository(Block)
+            appDataSource.getRepository(ProfileInteraction)
         );
     }
 
@@ -30,10 +30,11 @@ export class CreatePostHandler {
             }
 
             // Check if the user has blocked the author of the replied post
-            const blocked = await this.blockRepository.findOne({
+            const blocked = await this.profileInteractionRepository.findOne({
                 where: {
-                    blockerProfile: { id: profile.id },
-                    blockedProfile: { id: replyToPost.profile.id }
+                    sourceProfile: { id: profile.id },
+                    targetProfile: { id: replyToPost.profile.id },
+                    interactionType: ProfileInteractionType.Block
                 }
             });
 
@@ -42,10 +43,11 @@ export class CreatePostHandler {
             }
 
             // Check if the author of the replyToPost has blocked the user
-            const block = await this.blockRepository.findOne({
+            const block = await this.profileInteractionRepository.findOne({
                 where: {
-                    blockerProfile: { id: replyToPost.profile.id },
-                    blockedProfile: { id: profile.id }
+                    sourceProfile: { id: replyToPost.profile.id },
+                    targetProfile: { id: profile.id },
+                    interactionType: ProfileInteractionType.Block
                 }
             });
 
@@ -62,10 +64,11 @@ export class CreatePostHandler {
             }
 
             // Check if the user has blocked the author of the quoted post
-            const blocked = await this.blockRepository.findOne({
+            const blocked = await this.profileInteractionRepository.findOne({
                 where: {
-                    blockerProfile: { id: profile.id },
-                    blockedProfile: { id: quoteToPost.profile.id }
+                    sourceProfile: { id: profile.id },
+                    targetProfile: { id: quoteToPost.profile.id },
+                    interactionType: ProfileInteractionType.Block
                 }
             });
 
@@ -74,10 +77,11 @@ export class CreatePostHandler {
             }
 
             // Check if the author of the quoteToPost has blocked the user
-            const block = await this.blockRepository.findOne({
+            const block = await this.profileInteractionRepository.findOne({
                 where: {
-                    blockerProfile: { id: quoteToPost.profile.id },
-                    blockedProfile: { id: profile.id }
+                    sourceProfile: { id: quoteToPost.profile.id },
+                    targetProfile: { id: profile.id },
+                    interactionType: ProfileInteractionType.Block
                 }
             });
 

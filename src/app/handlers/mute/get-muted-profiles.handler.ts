@@ -1,21 +1,22 @@
 import { Repository } from "typeorm";
 import { appDataSource } from "@/database/data-source";
-import { Mute } from "@/database/entities/mute";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { profileDto } from "@/app/dtos/profile.dtos";
 
 export class GetMutedProfilesHandler {
-    constructor(private readonly muteRepository: Repository<Mute>) { }
+    constructor(private readonly profileInteractionRepository: Repository<ProfileInteraction>) { }
 
     static get default() {
-        return new GetMutedProfilesHandler(appDataSource.getRepository(Mute));
+        return new GetMutedProfilesHandler(appDataSource.getRepository(ProfileInteraction));
     }
 
     async handle(muterProfileId: string) {
-        const mutes = await this.muteRepository.find({
+        const mutes = await this.profileInteractionRepository.find({
             where: {
-                muterProfile: { id: muterProfileId }
+                sourceProfile: { id: muterProfileId },
+                interactionType: ProfileInteractionType.Mute
             },
-            relations: ["mutedProfile"],
+            relations: ["targetProfile"],
             order: {
                 createdAt: "DESC"
             }
@@ -23,7 +24,7 @@ export class GetMutedProfilesHandler {
 
         return {
             profiles: mutes.map(mute => ({
-                ...profileDto.parse(mute.mutedProfile),
+                ...profileDto.parse(mute.targetProfile),
                 mutedAt: mute.createdAt
             })),
             total: mutes.length

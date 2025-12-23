@@ -1,21 +1,22 @@
 import { Repository } from "typeorm";
 import { NotFoundError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
-import { Mute } from "@/database/entities/mute";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 
 export class UnmuteProfileHandler {
-    constructor(private readonly muteRepository: Repository<Mute>) { }
+    constructor(private readonly profileInteractionRepository: Repository<ProfileInteraction>) { }
 
     static get default() {
-        return new UnmuteProfileHandler(appDataSource.getRepository(Mute));
+        return new UnmuteProfileHandler(appDataSource.getRepository(ProfileInteraction));
     }
 
     async handle(muterProfileId: string, mutedProfileId: string) {
         // Find the existing mute
-        const mute = await this.muteRepository.findOne({
+        const mute = await this.profileInteractionRepository.findOne({
             where: {
-                muterProfile: { id: muterProfileId },
-                mutedProfile: { id: mutedProfileId }
+                sourceProfile: { id: muterProfileId },
+                targetProfile: { id: mutedProfileId },
+                interactionType: ProfileInteractionType.Mute
             }
         });
 
@@ -24,7 +25,7 @@ export class UnmuteProfileHandler {
         }
 
         // Remove the mute
-        await this.muteRepository.remove(mute);
+        await this.profileInteractionRepository.remove(mute);
 
         return {
             message: "Profile unmuted successfully",

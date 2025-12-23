@@ -1,21 +1,22 @@
 import { Repository } from "typeorm";
 import { appDataSource } from "@/database/data-source";
-import { Block } from "@/database/entities/block";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { profileDto } from "@/app/dtos/profile.dtos";
 
 export class GetBlockedProfilesHandler {
-    constructor(private readonly blockRepository: Repository<Block>) { }
+    constructor(private readonly profileInteractionRepository: Repository<ProfileInteraction>) { }
 
     static get default() {
-        return new GetBlockedProfilesHandler(appDataSource.getRepository(Block));
+        return new GetBlockedProfilesHandler(appDataSource.getRepository(ProfileInteraction));
     }
 
     async handle(blockerProfileId: string) {
-        const blocks = await this.blockRepository.find({
+        const blocks = await this.profileInteractionRepository.find({
             where: {
-                blockerProfile: { id: blockerProfileId }
+                sourceProfile: { id: blockerProfileId },
+                interactionType: ProfileInteractionType.Block
             },
-            relations: ["blockedProfile"],
+            relations: ["targetProfile"],
             order: {
                 createdAt: "DESC"
             }
@@ -23,7 +24,7 @@ export class GetBlockedProfilesHandler {
 
         return {
             profiles: blocks.map(block => ({
-                ...profileDto.parse(block.blockedProfile),
+                ...profileDto.parse(block.targetProfile),
                 blockedAt: block.createdAt
             })),
             total: blocks.length

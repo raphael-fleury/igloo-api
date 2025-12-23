@@ -1,21 +1,22 @@
 import { Repository } from "typeorm";
 import { appDataSource } from "@/database/data-source";
-import { Follow } from "@/database/entities/follow";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { profileDto } from "@/app/dtos/profile.dtos";
 
 export class GetFollowersHandler {
-    constructor(private readonly followRepository: Repository<Follow>) { }
+    constructor(private readonly profileInteractionRepository: Repository<ProfileInteraction>) { }
 
     static get default() {
-        return new GetFollowersHandler(appDataSource.getRepository(Follow));
+        return new GetFollowersHandler(appDataSource.getRepository(ProfileInteraction));
     }
 
     async handle(followedProfileId: string) {
-        const follows = await this.followRepository.find({
+        const follows = await this.profileInteractionRepository.find({
             where: {
-                followedProfile: { id: followedProfileId }
+                targetProfile: { id: followedProfileId },
+                interactionType: ProfileInteractionType.Follow
             },
-            relations: ["followerProfile"],
+            relations: ["sourceProfile"],
             order: {
                 createdAt: "DESC"
             }
@@ -23,7 +24,7 @@ export class GetFollowersHandler {
 
         return {
             profiles: follows.map(follow => ({
-                ...profileDto.parse(follow.followerProfile),
+                ...profileDto.parse(follow.sourceProfile),
                 followedAt: follow.createdAt
             })),
             total: follows.length

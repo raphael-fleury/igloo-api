@@ -1,21 +1,22 @@
 import { Repository } from "typeorm";
 import { NotFoundError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
-import { Block } from "@/database/entities/block";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 
 export class UnblockProfileHandler {
-    constructor(private readonly blockRepository: Repository<Block>) { }
+    constructor(private readonly profileInteractionRepository: Repository<ProfileInteraction>) { }
 
     static get default() {
-        return new UnblockProfileHandler(appDataSource.getRepository(Block));
+        return new UnblockProfileHandler(appDataSource.getRepository(ProfileInteraction));
     }
 
     async handle(blockerProfileId: string, blockedProfileId: string) {
         // Find the existing block
-        const block = await this.blockRepository.findOne({
+        const block = await this.profileInteractionRepository.findOne({
             where: {
-                blockerProfile: { id: blockerProfileId },
-                blockedProfile: { id: blockedProfileId }
+                sourceProfile: { id: blockerProfileId },
+                targetProfile: { id: blockedProfileId },
+                interactionType: ProfileInteractionType.Block
             }
         });
 
@@ -24,7 +25,7 @@ export class UnblockProfileHandler {
         }
 
         // Remove the block
-        await this.blockRepository.remove(block);
+        await this.profileInteractionRepository.remove(block);
 
         return {
             message: "Profile unblocked successfully",

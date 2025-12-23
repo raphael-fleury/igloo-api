@@ -2,8 +2,8 @@ import { Repository } from "typeorm";
 import { NotFoundError, BlockedError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { Post } from "@/database/entities/post";
-import { Block } from "@/database/entities/block";
 import { User } from "@/database/entities/user";
 import { Profile } from "@/database/entities/profile";
 
@@ -11,14 +11,14 @@ export class LikePostHandler {
     constructor(
         private readonly postInteractionRepository: Repository<PostInteraction>,
         private readonly postRepository: Repository<Post>,
-        private readonly blockRepository: Repository<Block>
+        private readonly profileInteractionRepository: Repository<ProfileInteraction>
     ) { }
 
     static get default() {
         return new LikePostHandler(
             appDataSource.getRepository(PostInteraction),
             appDataSource.getRepository(Post),
-            appDataSource.getRepository(Block)
+            appDataSource.getRepository(ProfileInteraction)
         );
     }
 
@@ -34,10 +34,11 @@ export class LikePostHandler {
         }
 
         // Check if the user has blocked the author of the post
-        const blocked = await this.blockRepository.findOne({
+        const blocked = await this.profileInteractionRepository.findOne({
             where: {
-                blockerProfile: { id: profile.id },
-                blockedProfile: { id: post.profile.id }
+                sourceProfile: { id: profile.id },
+                targetProfile: { id: post.profile.id },
+                interactionType: ProfileInteractionType.Block
             }
         });
 
@@ -46,10 +47,11 @@ export class LikePostHandler {
         }
 
         // Check if the author of the post has blocked the user
-        const block = await this.blockRepository.findOne({
+        const block = await this.profileInteractionRepository.findOne({
             where: {
-                blockerProfile: { id: post.profile.id },
-                blockedProfile: { id: profile.id }
+                sourceProfile: { id: post.profile.id },
+                targetProfile: { id: profile.id },
+                interactionType: ProfileInteractionType.Block
             }
         });
 

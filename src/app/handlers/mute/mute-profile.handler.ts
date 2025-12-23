@@ -1,18 +1,18 @@
 import { Repository } from "typeorm";
 import { NotFoundError, SelfInteractionError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
-import { Mute } from "@/database/entities/mute";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { Profile } from "@/database/entities/profile";
 
 export class MuteProfileHandler {
     constructor(
-        private readonly muteRepository: Repository<Mute>,
+        private readonly profileInteractionRepository: Repository<ProfileInteraction>,
         private readonly profileRepository: Repository<Profile>
     ) { }
 
     static get default() {
         return new MuteProfileHandler(
-            appDataSource.getRepository(Mute),
+            appDataSource.getRepository(ProfileInteraction),
             appDataSource.getRepository(Profile)
         );
     }
@@ -33,10 +33,11 @@ export class MuteProfileHandler {
             throw new NotFoundError(`Muted profile with id ${mutedProfileId} not found`);
         }
 
-        const existingMute = await this.muteRepository.findOne({
+        const existingMute = await this.profileInteractionRepository.findOne({
             where: {
-                muterProfile: { id: muterProfileId },
-                mutedProfile: { id: mutedProfileId }
+                sourceProfile: { id: muterProfileId },
+                targetProfile: { id: mutedProfileId },
+                interactionType: ProfileInteractionType.Mute
             }
         });
 
@@ -45,12 +46,13 @@ export class MuteProfileHandler {
         }
 
         // Creation
-        const mute = this.muteRepository.create({
-            muterProfile,
-            mutedProfile
+        const mute = this.profileInteractionRepository.create({
+            sourceProfile: muterProfile,
+            targetProfile: mutedProfile,
+            interactionType: ProfileInteractionType.Mute
         });
 
-        const savedMute = await this.muteRepository.save(mute);
+        const savedMute = await this.profileInteractionRepository.save(mute);
 
         return {
             message: "Profile muted successfully",

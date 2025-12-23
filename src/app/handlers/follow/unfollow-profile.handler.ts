@@ -1,21 +1,22 @@
 import { Repository } from "typeorm";
 import { NotFoundError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
-import { Follow } from "@/database/entities/follow";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 
 export class UnfollowProfileHandler {
-    constructor(private readonly followRepository: Repository<Follow>) { }
+    constructor(private readonly profileInteractionRepository: Repository<ProfileInteraction>) { }
 
     static get default() {
-        return new UnfollowProfileHandler(appDataSource.getRepository(Follow));
+        return new UnfollowProfileHandler(appDataSource.getRepository(ProfileInteraction));
     }
 
     async handle(followerProfileId: string, followedProfileId: string) {
         // Find the existing follow
-        const follow = await this.followRepository.findOne({
+        const follow = await this.profileInteractionRepository.findOne({
             where: {
-                followerProfile: { id: followerProfileId },
-                followedProfile: { id: followedProfileId }
+                sourceProfile: { id: followerProfileId },
+                targetProfile: { id: followedProfileId },
+                interactionType: ProfileInteractionType.Follow
             }
         });
 
@@ -24,7 +25,7 @@ export class UnfollowProfileHandler {
         }
 
         // Remove the follow
-        await this.followRepository.remove(follow);
+        await this.profileInteractionRepository.remove(follow);
 
         return {
             message: "Profile unfollowed successfully",

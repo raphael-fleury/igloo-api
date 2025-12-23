@@ -1,19 +1,20 @@
 import { Repository } from "typeorm";
 import { appDataSource } from "@/database/data-source";
-import { Block } from "@/database/entities/block";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 
 export class CheckBlockStatusHandler {
-    constructor(private readonly blockRepository: Repository<Block>) { }
+    constructor(private readonly profileInteractionRepository: Repository<ProfileInteraction>) { }
 
     static get default() {
-        return new CheckBlockStatusHandler(appDataSource.getRepository(Block));
+        return new CheckBlockStatusHandler(appDataSource.getRepository(ProfileInteraction));
     }
 
     async handle(blockerProfileId: string, blockedProfileId: string) {
-        const block = await this.blockRepository.findOne({
+        const block = await this.profileInteractionRepository.findOne({
             where: {
-                blockerProfile: { id: blockerProfileId },
-                blockedProfile: { id: blockedProfileId }
+                sourceProfile: { id: blockerProfileId },
+                targetProfile: { id: blockedProfileId },
+                interactionType: ProfileInteractionType.Block
             }
         });
 
