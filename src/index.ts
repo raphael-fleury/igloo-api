@@ -4,6 +4,7 @@ import { openapi } from "@elysiajs/openapi";
 import { userController } from "@/http/controllers/user.controller";
 import { profileController } from "@/http/controllers/profile.controller";
 import { blockController } from "@/http/controllers/block.controller";
+import { repostController } from "@/http/controllers/repost.controller";
 import { meController } from "./http/controllers/me.controller";
 
 const app = new Elysia()
@@ -16,6 +17,7 @@ const app = new Elysia()
   .use(userController())
   .use(profileController())
   .use(blockController())
+  .use(repostController())
   .listen(3000);
 
 console.log(
