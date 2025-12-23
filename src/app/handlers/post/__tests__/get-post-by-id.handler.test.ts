@@ -10,7 +10,7 @@ describe("GetPostByIdHandler", () => {
 
     beforeEach(() => {
         mockPostRepository = {
-            findOneBy: mock(() => Promise.resolve(null))
+            findOne: mock(() => Promise.resolve(null))
         } as any;
 
         handler = new GetPostByIdHandler(mockPostRepository);
@@ -23,14 +23,16 @@ describe("GetPostByIdHandler", () => {
         const profileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
         const mockPost = {
             id: postId,
-            userId: userId,
-            profileId: profileId,
+            user: { id: userId },
+            profile: { id: profileId },
             content: "Test post",
+            replyToPost: null,
+            quoteToPost: null,
             createdAt: new Date(),
             updatedAt: new Date()
         } as any;
 
-        mockPostRepository.findOneBy = mock(() => Promise.resolve(mockPost));
+        mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
 
         // Act
         const result = await handler.handle(postId);
@@ -38,7 +40,10 @@ describe("GetPostByIdHandler", () => {
         // Assert
         expect(result.id).toBe(postId);
         expect(result.content).toBe("Test post");
-        expect(mockPostRepository.findOneBy).toHaveBeenCalledWith({ id: postId });
+        expect(mockPostRepository.findOne).toHaveBeenCalledWith({
+            where: { id: postId },
+            relations: ['quoteToPost']
+        });
     });
 
     it("should throw NotFoundError when post does not exist", async () => {

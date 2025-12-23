@@ -54,12 +54,45 @@ export class CreatePostHandler {
             }
         }
 
+        let quoteToPost = null;
+        if (data.quoteToPostId) {
+            quoteToPost = await this.postRepository.findOneBy({ id: data.quoteToPostId });
+            if (!quoteToPost) {
+                throw new NotFoundError(`Post with id ${data.quoteToPostId} not found`);
+            }
+
+            // Check if the user has blocked the author of the quoted post
+            const blocked = await this.blockRepository.findOne({
+                where: {
+                    blockerProfile: { id: profile.id },
+                    blockedProfile: { id: quoteToPost.profile.id }
+                }
+            });
+
+            if (blocked) {
+                throw new BlockedError(`You cannot quote a post from a profile that you have blocked`);
+            }
+
+            // Check if the author of the quoteToPost has blocked the user
+            const block = await this.blockRepository.findOne({
+                where: {
+                    blockerProfile: { id: quoteToPost.profile.id },
+                    blockedProfile: { id: profile.id }
+                }
+            });
+
+            if (block) {
+                throw new BlockedError(`You cannot quote a post from a profile that has blocked you`);
+            }
+        }
+
         // Creation
         const post = this.postRepository.create({
             user,
             profile,
             content: data.content,
-            replyToPost: replyToPost || undefined
+            replyToPost: replyToPost || undefined,
+            quoteToPost: quoteToPost || undefined
         });
 
         const savedPost = await this.postRepository.save(post);
@@ -70,6 +103,7 @@ export class CreatePostHandler {
             profileId: savedPost.profile.id,
             content: savedPost.content,
             replyToPostId: savedPost.replyToPost?.id,
+            quoteToPostId: savedPost.quoteToPost?.id,
             createdAt: savedPost.createdAt,
             updatedAt: savedPost.updatedAt
         });

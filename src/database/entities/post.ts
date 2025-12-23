@@ -27,6 +27,15 @@ export class Post {
     @OneToMany(() => Post, post => post.replyToPost)
     replies!: Post[];
 
+    @ManyToOne(() => Post, post => post.quotes, {
+        nullable: true,
+    })
+    @JoinColumn({ name: "quoteToPostId" })
+    quoteToPost?: Post;
+
+    @OneToMany(() => Post, post => post.quoteToPost)
+    quotes!: Post[];
+
     @CreateDateColumn()
     createdAt!: Date;
 

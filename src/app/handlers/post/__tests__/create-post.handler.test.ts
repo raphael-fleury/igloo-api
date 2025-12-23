@@ -57,7 +57,8 @@ describe("CreatePostHandler", () => {
             user: { id: user.id },
             profile: { id: profile.id },
             content: "This is a test post",
-            replyToPost: undefined
+            replyToPost: undefined,
+            quoteToPost: undefined
         });
         expect(mockPostRepository.save).toHaveBeenCalled();
     });
@@ -136,5 +137,127 @@ describe("CreatePostHandler", () => {
         expect(async () => {
             await handler.handle(createPostData, { id: userId } as User, { id: profileId } as Profile);
         }).toThrowError(BlockedError);
+    });
+
+    it("should throw NotFoundError when quoted post does not exist", async () => {
+        // Arrange
+        const userId = "b316b948-8f6c-4284-8b38-a68ca4d3dee0";
+        const profileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
+
+        const createPostData = {
+            userId,
+            profileId,
+            content: "This is a quote",
+            quoteToPostId: "non-existent-post"
+        };
+
+        // Act & Assert
+        expect(async () => {
+            await handler.handle(createPostData, { id: userId } as User, { id: profileId } as Profile);
+        }).toThrow(NotFoundError);
+    });
+
+    it("should throw BlockedError when user has blocked the author of the quoted post", async () => {
+        // Arrange
+        const userId = "b316b948-8f6c-4284-8b38-a68ca4d3dee0";
+        const profileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
+        const quotedPostAuthorProfileId = "profile-of-quoted-post-author";
+
+        const createPostData = {
+            userId,
+            profileId,
+            content: "This is a quote",
+            quoteToPostId: "quoted-post-id"
+        };
+
+        mockPostRepository.findOneBy = mock(() => Promise.resolve({
+            id: "quoted-post-id",
+            profile: { id: quotedPostAuthorProfileId }
+        } as any));
+
+        mockBlockRepository.findOne = mock(() => Promise.resolve({
+            id: "block-id",
+            blockerProfile: { id: profileId },
+            blockedProfile: { id: quotedPostAuthorProfileId }
+        } as any));
+
+        // Act & Assert
+        expect(async () => {
+            await handler.handle(createPostData, { id: userId } as User, { id: profileId } as Profile);
+        }).toThrowError(BlockedError);
+    });
+
+    it("should throw BlockedError when author of the quoted post has blocked the user", async () => {
+        // Arrange
+        const userId = "b316b948-8f6c-4284-8b38-a68ca4d3dee0";
+        const profileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
+        const quotedPostAuthorProfileId = "profile-of-quoted-post-author";
+        const createPostData = {
+            userId,
+            profileId,
+            content: "This is a quote",
+            quoteToPostId: "quoted-post-id"
+        };
+        mockPostRepository.findOneBy = mock(() => Promise.resolve({
+            id: "quoted-post-id",
+            profile: { id: quotedPostAuthorProfileId }
+        } as any));
+
+        mockBlockRepository.findOne = mock(() => Promise.resolve({
+            id: "block-id",
+            blockerProfile: { id: quotedPostAuthorProfileId },
+            blockedProfile: { id: profileId }
+        } as any));
+
+        // Act & Assert
+        expect(async () => {
+            await handler.handle(createPostData, { id: userId } as User, { id: profileId } as Profile);
+        }).toThrowError(BlockedError);
+    });
+
+    it("should create post with quote successfully when quoted post exists and no blocks", async () => {
+        // Arrange
+        const user = { id: "b316b948-8f6c-4284-8b38-a68ca4d3dee0" } as User;
+        const profile = { id: "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d" } as Profile;
+        const quotedPostAuthorProfile = { id: "quoted-post-author-profile-id" } as Profile;
+        const quotedPost = {
+            id: "quoted-post-id",
+            profile: quotedPostAuthorProfile,
+            content: "Original post",
+            createdAt: new Date(),
+            updatedAt: new Date()
+        } as Post;
+
+        mockPostRepository.findOneBy = mock(() => Promise.resolve(quotedPost));
+        mockBlockRepository.findOne = mock(() => Promise.resolve(null));
+        mockPostRepository.save = mock((data) => Promise.resolve({
+            id: "post-id",
+            user,
+            profile,
+            content: "This is a quote",
+            quoteToPost: quotedPost,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        } as any));
+
+        const createPostData = {
+            content: "This is a quote",
+            quoteToPostId: "quoted-post-id"
+        };
+
+        // Act
+        const result = await handler.handle(createPostData, user, profile);
+
+        // Assert
+        expect(result.content).toBe("This is a quote");
+        expect(result.quoteToPostId).toBe("quoted-post-id");
+        expect(mockPostRepository.create).toHaveBeenCalledWith({
+            user,
+            profile,
+            content: "This is a quote",
+            replyToPost: undefined,
+            quoteToPost: quotedPost
+        });
+        expect(mockPostRepository.save).toHaveBeenCalled();
     });
 });

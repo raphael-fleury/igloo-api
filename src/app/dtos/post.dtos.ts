@@ -9,12 +9,14 @@ export const postDto = basePostDto.extend({
     userId: z.uuid(),
     profileId: z.uuid(),
     replyToPostId: z.uuid().nullable().optional(),
+    quoteToPostId: z.uuid().nullable().optional(),
     createdAt: z.date(),
     updatedAt: z.date()
 });
 
 export const createPostDto = basePostDto.extend({
-    replyToPostId: z.uuid().nullable().optional()
+    replyToPostId: z.uuid().nullable().optional(),
+    quoteToPostId: z.uuid().nullable().optional()
 });
 
 export type PostDto = z.infer<typeof postDto>;

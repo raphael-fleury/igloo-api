@@ -12,12 +12,24 @@ export class GetPostByIdHandler {
     }
 
     async handle(id: string) {
-        const post = await this.postRepository.findOneBy({ id });
+        const post = await this.postRepository.findOne({
+            where: { id },
+            relations: ['quoteToPost']
+        });
         
         if (!post) {
             throw new NotFoundError(`Post with id ${id} not found`);
         }
 
-        return postDto.parse(post);
+        return postDto.parse({
+            id: post.id,
+            userId: post.user.id,
+            profileId: post.profile.id,
+            content: post.content,
+            replyToPostId: post.replyToPost?.id,
+            quoteToPostId: post.quoteToPost?.id,
+            createdAt: post.createdAt,
+            updatedAt: post.updatedAt
+        });
     }
 }
