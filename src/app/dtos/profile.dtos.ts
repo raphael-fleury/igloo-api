@@ -1,4 +1,5 @@
 import z from "zod";
+import { idDto } from "./common.dtos";
 
 export const USERNAME_MAX_LENGTH = 15;
 export const DISPLAYNAME_MAX_LENGTH = 50;
@@ -13,7 +14,7 @@ export const createProfileDto = z.object({
 export const updateProfileDto = createProfileDto.partial();
 
 export const profileDto = createProfileDto.extend({
-    id: z.string(),
+    id: idDto,
     createdAt: z.date(),
     updatedAt: z.date(),
 });

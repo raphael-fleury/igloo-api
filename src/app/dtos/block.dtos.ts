@@ -1,11 +1,12 @@
 import z from "zod";
+import { idDto } from "./common.dtos";
 
 export const blockDto = z.object({
-    blockedProfileId: z.uuid()
+    blockedProfileId: idDto
 });
 
 export const blockCheckDto = z.object({
-    blockerProfileId: z.uuid()
+    blockerProfileId: idDto
 });
 
 export type BlockDto = z.infer<typeof blockDto>;

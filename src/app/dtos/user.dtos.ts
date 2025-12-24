@@ -1,5 +1,6 @@
 import z from "zod";
-import { createProfileDto, profileDto } from "./profile.dtos";
+import { idDto } from "./common.dtos";
+import { createProfileDto } from "./profile.dtos";
 
 const phoneRegex = new RegExp(
   '^\\+(9[976]\\d|8[987530]\\d|6[987]\\d|5[90]\\d|42\\d|3[875]\\d|' +
@@ -13,7 +14,7 @@ const baseUserDto = z.object({
 });
 
 export const userDto = baseUserDto.extend({
-    id: z.uuid(),
+    id: idDto,
     isActive: z.boolean(),
     createdAt: z.date(),
     updatedAt: z.date()

@@ -1,7 +1,8 @@
 import z from "zod";
+import { idDto } from "./common.dtos";
 
 export const repostDto = z.object({
-    postId: z.uuid()
+    postId: idDto
 });
 
 export type RepostDto = z.infer<typeof repostDto>;
