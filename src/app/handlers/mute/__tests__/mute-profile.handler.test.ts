@@ -59,11 +59,9 @@ describe("MuteProfileHandler", () => {
         mockProfileInteractionRepository.save = mock(() => Promise.resolve(createdMute)) as any;
 
         // Act
-        const result = await handler.handle(muterProfileId, mutedProfileId);
+        await handler.handle(muterProfileId, mutedProfileId);
 
         // Assert
-        expect(result.message).toBe("Profile muted successfully");
-        expect(result.mutedAt).toEqual(createdMute.createdAt);
         expect(mockProfileInteractionRepository.save).toHaveBeenCalled();
     });
 

@@ -52,12 +52,8 @@ export class LikePostHandler {
         const like = this.postInteractionRepository.create({
             user, profile, post, interactionType: InteractionType.Like
         });
-        const savedLike = await this.postInteractionRepository.save(like);
-
-        return {
-            message: "Post liked successfully",
-            likedAt: savedLike.createdAt
-        };
+        
+        await this.postInteractionRepository.save(like);
     }
 }
 

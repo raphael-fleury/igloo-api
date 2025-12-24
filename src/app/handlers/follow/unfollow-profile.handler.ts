@@ -24,12 +24,6 @@ export class UnfollowProfileHandler {
             throw new ConflictError(`Follow between profiles not found`);
         }
 
-        // Remove the follow
         await this.profileInteractionRepository.remove(follow);
-
-        return {
-            message: "Profile unfollowed successfully",
-            unfollowedAt: new Date()
-        };
     }
 }

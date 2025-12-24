@@ -63,11 +63,6 @@ export class BlockProfileHandler {
             interactionType: ProfileInteractionType.Block
         });
 
-        const savedBlock = await this.profileInteractionRepository.save(block);
-
-        return {
-            message: "Profile blocked successfully",
-            blockedAt: savedBlock.createdAt
-        };
+        await this.profileInteractionRepository.save(block);
     }
 }

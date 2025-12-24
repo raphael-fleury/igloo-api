@@ -65,11 +65,9 @@ describe("RepostPostHandler", () => {
         mockPostInteractionRepository.save = mock(() => Promise.resolve(createdRepost)) as any;
 
         // Act
-        const result = await handler.handle(postId, user, profile);
+        await handler.handle(postId, user, profile);
 
         // Assert
-        expect(result.message).toBe("Post reposted successfully");
-        expect(result.repostedAt).toBeDefined();
         expect(mockPostRepository.findOne).toHaveBeenCalledWith({
             where: { id: postId },
             relations: ['profile']

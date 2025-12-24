@@ -65,11 +65,9 @@ describe("LikePostHandler", () => {
         mockPostInteractionRepository.save = mock(() => Promise.resolve(createdLike)) as any;
 
         // Act
-        const result = await handler.handle(postId, user, profile);
+        await handler.handle(postId, user, profile);
 
         // Assert
-        expect(result.message).toBe("Post liked successfully");
-        expect(result.likedAt).toBeDefined();
         expect(mockPostRepository.findOne).toHaveBeenCalledWith({
             where: { id: postId },
             relations: ['profile']

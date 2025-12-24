@@ -26,11 +26,6 @@ export class UnlikePostHandler {
 
         // Remove the like
         await this.postInteractionRepository.remove(like);
-
-        return {
-            message: "Post unliked successfully",
-            unlikedAt: new Date()
-        };
     }
 }
 

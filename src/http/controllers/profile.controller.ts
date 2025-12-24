@@ -37,43 +37,49 @@ export const profileController = (
 
     .group('/:id', (app) => app
         .use(authMiddleware)
-        .post('/block', async ({ profile, params }) => {
-            return await blockProfileHandler.handle(profile.id, params.id);
+        .post('/block', async ({ profile, params, status }) => {
+            await blockProfileHandler.handle(profile.id, params.id);
+            return status("No Content");
         }, {
             detail: { summary: "Block a profile" },
             params: profileIdParam
         })
 
-        .delete('/block', async ({ profile, params }) => {
-            return await unblockProfileHandler.handle(profile.id, params.id);
+        .delete('/block', async ({ profile, params, status }) => {
+            await unblockProfileHandler.handle(profile.id, params.id);
+            return status("No Content");
         }, {
             detail: { summary: "Unblock a profile" },
             params: profileIdParam
         })
 
-        .post('/mute', async ({ profile, params }) => {
-            return await muteProfileHandler.handle(profile.id, params.id);
+        .post('/mute', async ({ profile, params, status }) => {
+            await muteProfileHandler.handle(profile.id, params.id);
+            return status("No Content");
         }, {
             detail: { summary: "Mute a profile" },
             params: profileIdParam
         })
 
-        .delete('/mute', async ({ profile, params }) => {
-            return await unmuteProfileHandler.handle(profile.id, params.id);
+        .delete('/mute', async ({ profile, params, status }) => {
+            await unmuteProfileHandler.handle(profile.id, params.id);
+            return status("No Content");
         }, {
             detail: { summary: "Unmute a profile" },
             params: profileIdParam
         })
 
-        .post('/follow', async ({ profile, params }) => {
-            return await followProfileHandler.handle(profile.id, params.id);
+        .post('/follow', async ({ profile, params, status }) => {
+            await followProfileHandler.handle(profile.id, params.id);
+            return status("No Content");
         }, {
             detail: { summary: "Follow a profile" },
             params: profileIdParam
         })
 
-        .delete('/follow', async ({ profile, params }) => {
-            return await unfollowProfileHandler.handle(profile.id, params.id);
+        .delete('/follow', async ({ profile, params, status }) => {
+            await unfollowProfileHandler.handle(profile.id, params.id);
+            return status("No Content");
         }, {
             detail: { summary: "Unfollow a profile" },
             params: profileIdParam

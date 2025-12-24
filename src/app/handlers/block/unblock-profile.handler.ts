@@ -24,12 +24,6 @@ export class UnblockProfileHandler {
             throw new ConflictError(`Block between profiles not found`);
         }
 
-        // Remove the block
         await this.profileInteractionRepository.remove(block);
-
-        return {
-            message: "Profile unblocked successfully",
-            unblockedAt: new Date()
-        };
     }
 }

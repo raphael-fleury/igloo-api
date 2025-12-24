@@ -39,11 +39,9 @@ describe("UnfollowProfileHandler", () => {
         mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(existingFollow));
 
         // Act
-        const result = await handler.handle(followerProfileId, followedProfileId);
+        await handler.handle(followerProfileId, followedProfileId);
 
         // Assert
-        expect(result.message).toBe("Profile unfollowed successfully");
-        expect(result.unfollowedAt).toBeDefined();
         expect(mockProfileInteractionRepository.remove).toHaveBeenCalledWith(existingFollow);
         expect(mockProfileInteractionRepository.findOne).toHaveBeenCalledWith({
             where: {

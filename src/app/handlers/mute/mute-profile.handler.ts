@@ -46,11 +46,6 @@ export class MuteProfileHandler {
             interactionType: ProfileInteractionType.Mute
         });
 
-        const savedMute = await this.profileInteractionRepository.save(mute);
-
-        return {
-            message: "Profile muted successfully",
-            mutedAt: savedMute.createdAt
-        };
+        await this.profileInteractionRepository.save(mute);
     }
 }

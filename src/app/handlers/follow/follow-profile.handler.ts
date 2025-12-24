@@ -44,11 +44,6 @@ export class FollowProfileHandler {
             interactionType: ProfileInteractionType.Follow
         });
 
-        const savedFollow = await this.profileInteractionRepository.save(follow);
-
-        return {
-            message: "Profile followed successfully",
-            followedAt: savedFollow.createdAt
-        };
+        await this.profileInteractionRepository.save(follow);
     }
 }

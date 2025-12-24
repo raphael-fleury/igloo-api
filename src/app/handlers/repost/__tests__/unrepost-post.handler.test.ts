@@ -44,11 +44,9 @@ describe("UnrepostPostHandler", () => {
         mockPostInteractionRepository.findOne = mock(() => Promise.resolve(existingRepost));
 
         // Act
-        const result = await handler.handle(profileId, postId);
+        await handler.handle(profileId, postId);
 
         // Assert
-        expect(result.message).toBe("Post unreposted successfully");
-        expect(result.unrepostedAt).toBeDefined();
         expect(mockPostInteractionRepository.findOne).toHaveBeenCalledWith({
             where: {
                 profile: { id: profileId },

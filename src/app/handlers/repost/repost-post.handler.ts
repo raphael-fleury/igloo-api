@@ -53,12 +53,8 @@ export class RepostPostHandler {
         const repost = this.postInteractionRepository.create({
             user, profile, post, interactionType: InteractionType.Repost
         });
-        const savedRepost = await this.postInteractionRepository.save(repost);
-
-        return {
-            message: "Post reposted successfully",
-            repostedAt: savedRepost.createdAt
-        };
+        
+        await this.postInteractionRepository.save(repost);
     }
 }
 

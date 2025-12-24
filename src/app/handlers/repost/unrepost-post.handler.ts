@@ -26,11 +26,6 @@ export class UnrepostPostHandler {
 
         // Remove the repost
         await this.postInteractionRepository.remove(repost);
-
-        return {
-            message: "Post unreposted successfully",
-            unrepostedAt: new Date()
-        };
     }
 }
 

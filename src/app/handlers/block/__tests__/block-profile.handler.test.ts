@@ -45,10 +45,9 @@ describe("BlockProfileHandler", () => {
         });
 
         // Act
-        const result = await handler.handle(blockerProfile.id, blockedProfile.id);
+        await handler.handle(blockerProfile.id, blockedProfile.id);
 
         // Assert
-        expect(result.message).toBe("Profile blocked successfully");
         expect(mockProfileInteractionRepository.create).toHaveBeenCalledWith({
             sourceProfile: blockerProfile,
             targetProfile: blockedProfile,
@@ -87,10 +86,9 @@ describe("BlockProfileHandler", () => {
             .mockResolvedValueOnce(null); // block check
 
         // Act
-        const result = await handler.handle(blockerProfile.id, blockedProfile.id);
+        await handler.handle(blockerProfile.id, blockedProfile.id);
 
         // Assert
-        expect(result.message).toBe("Profile blocked successfully");
         expect(mockProfileInteractionRepository.findOne).toHaveBeenCalledTimes(3);
         expect(mockProfileInteractionRepository.remove).toHaveBeenCalledTimes(2);
     });

@@ -3,6 +3,8 @@ import { appDataSource } from "@/database/data-source";
 import { User } from "@/database/entities/user";
 import { Profile } from "@/database/entities/profile";
 import { UserProfile } from "@/database/entities/user-profile";
+import { userDto } from "@/app/dtos/user.dtos";
+import { profileDto } from "@/app/dtos/profile.dtos";
 
 export const authMiddleware = (app: Elysia) => app
     .derive(async () => {
@@ -14,7 +16,10 @@ export const authMiddleware = (app: Elysia) => app
             .getRepository(Profile)
             .findOneBy({ id: '14ae85e0-ec24-4c44-bfc7-1d0ba895f51d' }); // Mock
 
-        return { user: user!, profile: profile! };
+        return {
+            user: userDto.parse(user),
+            profile: profileDto.parse(profile)
+        };
     })
     .onBeforeHandle(async ({ user, profile }) => {
         if (!user)

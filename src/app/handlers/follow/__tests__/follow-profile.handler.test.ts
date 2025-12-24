@@ -55,11 +55,9 @@ describe("FollowProfileHandler", () => {
         mockProfileInteractionRepository.save = mock(() => Promise.resolve(createdFollow)) as any;
 
         // Act
-        const result = await handler.handle(followerProfileId, followedProfileId);
+        await handler.handle(followerProfileId, followedProfileId);
 
         // Assert
-        expect(result.message).toBe("Profile followed successfully");
-        expect(result.followedAt).toEqual(createdFollow.createdAt);
         expect(mockProfileInteractionRepository.save).toHaveBeenCalled();
     });
 

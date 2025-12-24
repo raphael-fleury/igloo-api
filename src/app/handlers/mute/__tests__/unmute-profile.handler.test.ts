@@ -39,10 +39,9 @@ describe("UnmuteProfileHandler", () => {
         mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(existingMute));
 
         // Act
-        const result = await handler.handle(muterProfileId, mutedProfileId);
+        await handler.handle(muterProfileId, mutedProfileId);
 
         // Assert
-        expect(result.message).toBe("Profile unmuted successfully");
         expect(mockProfileInteractionRepository.findOne).toHaveBeenCalledWith({
             where: {
                 sourceProfile: { id: muterProfileId },

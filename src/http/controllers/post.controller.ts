@@ -78,29 +78,33 @@ export const postController = (
                 }
             })
 
-            .post('/like', async ({ user, profile, params }) => {
-                return await likePostHandler.handle(params.id, user, profile);
+            .post('/like', async ({ user, profile, params, status }) => {
+                await likePostHandler.handle(params.id, user, profile);
+                return status("No Content");
             }, {
                 detail: { summary: "Like a post" },
                 params: postIdParam
             })
 
             .delete('/like', async ({ profile, params }) => {
-                return await unlikePostHandler.handle(profile.id, params.id);
+                await unlikePostHandler.handle(profile.id, params.id);
+                return status("No Content");
             }, {
                 detail: { summary: "Unlike a post" },
                 params: postIdParam
             })
 
-            .post('/repost', async ({ user, profile, params }) => {
-                return await repostPostHandler.handle(params.id, user, profile);
+            .post('/repost', async ({ user, profile, params, status }) => {
+                await repostPostHandler.handle(params.id, user, profile);
+                return status("No Content");
             }, {
                 detail: { summary: "Repost a post" },
                 params: postIdParam
             })
 
-            .delete('/repost', async ({ profile, params }) => {
-                return await unrepostPostHandler.handle(profile.id, params.id);
+            .delete('/repost', async ({ profile, params, status }) => {
+                await unrepostPostHandler.handle(profile.id, params.id);
+                return status("No Content");
             }, {
                 detail: { summary: "Unrepost a post" },
                 params: postIdParam

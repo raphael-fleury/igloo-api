@@ -44,11 +44,9 @@ describe("UnlikePostHandler", () => {
         mockPostInteractionRepository.findOne = mock(() => Promise.resolve(existingLike));
 
         // Act
-        const result = await handler.handle(profileId, postId);
+        await handler.handle(profileId, postId);
 
         // Assert
-        expect(result.message).toBe("Post unliked successfully");
-        expect(result.unlikedAt).toBeDefined();
         expect(mockPostInteractionRepository.findOne).toHaveBeenCalledWith({
             where: {
                 profile: { id: profileId },

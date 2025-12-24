@@ -26,10 +26,5 @@ export class UnmuteProfileHandler {
 
         // Remove the mute
         await this.profileInteractionRepository.remove(mute);
-
-        return {
-            message: "Profile unmuted successfully",
-            unmutedAt: new Date()
-        };
     }
 }

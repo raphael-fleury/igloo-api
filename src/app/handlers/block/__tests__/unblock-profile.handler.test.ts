@@ -26,11 +26,9 @@ describe("UnblockProfileHandler", () => {
         mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(existingBlock));
 
         // Act
-        const result = await handler.handle(blockerProfileId, blockedProfileId);
+        await handler.handle(blockerProfileId, blockedProfileId);
 
         // Assert
-        expect(result.message).toBe("Profile unblocked successfully");
-        expect(result.unblockedAt).toBeInstanceOf(Date);
         expect(mockProfileInteractionRepository.remove).toHaveBeenCalledWith(existingBlock);
     });
 
