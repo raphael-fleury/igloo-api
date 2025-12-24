@@ -7,8 +7,6 @@ const basePostDto = z.object({
 
 export const postDto = basePostDto.extend({
     id: idDto,
-    userId: idDto,
-    profileId: idDto,
     replyToPostId: idDto.nullable().optional(),
     quoteToPostId: idDto.nullable().optional(),
     createdAt: z.date(),

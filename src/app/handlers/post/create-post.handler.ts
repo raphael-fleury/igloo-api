@@ -57,8 +57,6 @@ export class CreatePostHandler {
 
         return postDto.parse({
             id: savedPost.id,
-            userId: savedPost.user.id,
-            profileId: savedPost.profile.id,
             content: savedPost.content,
             replyToPostId: savedPost.replyToPost?.id,
             quoteToPostId: savedPost.quoteToPost?.id,
