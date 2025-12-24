@@ -19,6 +19,15 @@ export const profileDto = createProfileDto.extend({
     updatedAt: z.date(),
 });
 
+export const detailedProfileDto = profileDto.extend({
+    blocksMe: z.boolean(),
+    blocked: z.boolean(),
+    followsMe: z.boolean(),
+    followed: z.boolean(),
+    muted: z.boolean()
+})
+
 export type CreateProfileDto = z.infer<typeof createProfileDto>;
 export type UpdateProfileDto = z.infer<typeof updateProfileDto>;
 export type ProfileDto = z.infer<typeof profileDto>;
+export type DetailedProfileDto = z.infer<typeof detailedProfileDto>;
