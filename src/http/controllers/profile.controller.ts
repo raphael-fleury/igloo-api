@@ -1,6 +1,8 @@
 import z from "zod";
 import Elysia from "elysia";
 import { GetProfileByIdHandler } from "@/app/handlers/profile/get-profile-by-id.handler";
+import { GetFollowersHandler } from "@/app/handlers/follow/get-followers.handler";
+import { GetFollowingHandler } from "@/app/handlers/follow/get-following.handler";
 import { BlockProfileHandler } from "@/app/handlers/block/block-profile.handler";
 import { UnblockProfileHandler } from "@/app/handlers/block/unblock-profile.handler";
 import { MuteProfileHandler } from "@/app/handlers/mute/mute-profile.handler";
@@ -16,6 +18,8 @@ const profileIdParam = z.object({
 
 export const profileController = (
     getProfileByIdHandler = GetProfileByIdHandler.default,
+    getFollowersHandler = GetFollowersHandler.default,
+    getFollowingHandler = GetFollowingHandler.default,
     blockProfileHandler = BlockProfileHandler.default,
     unblockProfileHandler = UnblockProfileHandler.default,
     muteProfileHandler = MuteProfileHandler.default,
@@ -37,6 +41,20 @@ export const profileController = (
 
     .group('/:id', (app) => app
         .use(authMiddleware)
+        .get('/followers', async ({ params }) => {
+            return await getFollowersHandler.handle(params.id);
+        }, {
+            detail: { summary: "Get followers of a profile" },
+            params: profileIdParam
+        })
+
+        .get('/following', async ({ params }) => {
+            return await getFollowingHandler.handle(params.id);
+        }, {
+            detail: { summary: "Get all profiles followed by this one" },
+            params: profileIdParam
+        })
+
         .post('/block', async ({ profile, params, status }) => {
             await blockProfileHandler.handle(profile.id, params.id);
             return status("No Content");
