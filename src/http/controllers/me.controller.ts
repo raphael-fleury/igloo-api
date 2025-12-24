@@ -2,15 +2,18 @@ import z from "zod";
 import Elysia from "elysia";
 import { updateUserDto, userDto } from "@/app/dtos/user.dtos";
 import { UpdateUserHandler } from "@/app/handlers/user/update-user.handler";
+import { UpdateProfileHandler } from "@/app/handlers/profile/update-profile.handler";
 import { GetBlockedProfilesHandler } from "@/app/handlers/block/get-blocked-profiles.handler";
 import { GetFollowersHandler } from "@/app/handlers/follow/get-followers.handler";
 import { GetFollowingHandler } from "@/app/handlers/follow/get-following.handler";
 import { GetMutedProfilesHandler } from "@/app/handlers/mute/get-muted-profiles.handler";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { authMiddleware } from "../middlewares/auth.middleware";
+import { updateProfileDto } from "@/app/dtos/profile.dtos";
 
 export const meController = (
     updateUserHandler = UpdateUserHandler.default,
+    updateProfileHandler = UpdateProfileHandler.default,
     getBlockedProfilesHandler = GetBlockedProfilesHandler.default,
     getFollowersHandler = GetFollowersHandler.default,
     getFollowingHandler = GetFollowingHandler.default,
@@ -36,6 +39,19 @@ export const meController = (
                 message: z.string()
             })
         }
+    })
+
+    .get('/profile', async ({ profile }) => {
+        return profile;
+    }, {
+        detail: { summary: "Get current profile" }
+    })
+
+    .patch('/profile', async ({ profile, body }) => {
+        return await updateProfileHandler.handle(profile.id, body);
+    }, {
+        detail: { summary: "Update current profile" },
+        body: updateProfileDto
     })
 
     .get('/profile/blocks', async ({ profile }) => {
