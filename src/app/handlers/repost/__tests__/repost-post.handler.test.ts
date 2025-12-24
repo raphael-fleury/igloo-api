@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
 import { RepostPostHandler } from "../repost-post.handler";
+import { zocker } from "zocker";
+import { userDto } from "@/app/dtos/user.dtos";
+import { profileDto } from "@/app/dtos/profile.dtos";
+import { idDto } from "@/app/dtos/common.dtos";
+import { postDto } from "@/app/dtos/post.dtos";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
 import { Post } from "@/database/entities/post";
 import { User } from "@/database/entities/user";
@@ -34,17 +39,17 @@ describe("RepostPostHandler", () => {
 
     it("should repost post successfully when post exists and no blocks", async () => {
         // Arrange
-        const postId = "99e85e01-ec24-4c44-bfc7-1d0ba895f51e";
-        const user = { id: "b316b948-8f6c-4284-8b38-a68ca4d3dee0" } as User;
-        const profile = { id: "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d" } as Profile;
-        const postAuthorProfile = { id: "author-profile-id" } as Profile;
-
+        const postData = zocker(postDto).generate();
+        const postId = postData.id;
+        const user = zocker(userDto).generate() as User;
+        const profile = zocker(profileDto).generate() as Profile;
+        const postAuthorProfile = { id: postData.profileId } as Profile;
         const mockPost = {
             id: postId,
             profile: postAuthorProfile,
-            content: "Test post",
-            createdAt: new Date(),
-            updatedAt: new Date()
+            content: postData.content,
+            createdAt: postData.createdAt,
+            updatedAt: postData.updatedAt
         } as Post;
 
         const createdRepost = {
@@ -79,9 +84,9 @@ describe("RepostPostHandler", () => {
 
     it("should throw NotFoundError when post does not exist", async () => {
         // Arrange
-        const postId = "non-existent-post";
-        const user = { id: "b316b948-8f6c-4284-8b38-a68ca4d3dee0" } as User;
-        const profile = { id: "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d" } as Profile;
+        const postId = zocker(idDto).generate();
+        const user = zocker(userDto).generate() as User;
+        const profile = zocker(profileDto).generate() as Profile;
 
         mockPostRepository.findOne = mock(() => Promise.resolve(null));
 
@@ -94,17 +99,17 @@ describe("RepostPostHandler", () => {
 
     it("should throw BlockedError when user has blocked the author of the post", async () => {
         // Arrange
-        const postId = "99e85e01-ec24-4c44-bfc7-1d0ba895f51e";
-        const user = { id: "b316b948-8f6c-4284-8b38-a68ca4d3dee0" } as User;
-        const profile = { id: "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d" } as Profile;
-        const postAuthorProfile = { id: "author-profile-id" } as Profile;
-
+        const postData = zocker(postDto).generate();
+        const postId = postData.id;
+        const user = zocker(userDto).generate() as User;
+        const profile = zocker(profileDto).generate() as Profile;
+        const postAuthorProfile = { id: postData.profileId } as Profile;
         const mockPost = {
             id: postId,
             profile: postAuthorProfile,
-            content: "Test post",
-            createdAt: new Date(),
-            updatedAt: new Date()
+            content: postData.content,
+            createdAt: postData.createdAt,
+            updatedAt: postData.updatedAt
         } as Post;
 
         mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
@@ -120,17 +125,17 @@ describe("RepostPostHandler", () => {
 
     it("should throw BlockedError when author of the post has blocked the user", async () => {
         // Arrange
-        const postId = "99e85e01-ec24-4c44-bfc7-1d0ba895f51e";
-        const user = { id: "b316b948-8f6c-4284-8b38-a68ca4d3dee0" } as User;
-        const profile = { id: "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d" } as Profile;
-        const postAuthorProfile = { id: "author-profile-id" } as Profile;
-
+        const postData = zocker(postDto).generate();
+        const postId = postData.id;
+        const user = zocker(userDto).generate() as User;
+        const profile = zocker(profileDto).generate() as Profile;
+        const postAuthorProfile = { id: postData.profileId } as Profile;
         const mockPost = {
             id: postId,
             profile: postAuthorProfile,
-            content: "Test post",
-            createdAt: new Date(),
-            updatedAt: new Date()
+            content: postData.content,
+            createdAt: postData.createdAt,
+            updatedAt: postData.updatedAt
         } as Post;
 
         mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
@@ -146,17 +151,17 @@ describe("RepostPostHandler", () => {
 
     it("should return existing repost when post is already reposted", async () => {
         // Arrange
-        const postId = "99e85e01-ec24-4c44-bfc7-1d0ba895f51e";
-        const user = { id: "b316b948-8f6c-4284-8b38-a68ca4d3dee0" } as User;
-        const profile = { id: "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d" } as Profile;
-        const postAuthorProfile = { id: "author-profile-id" } as Profile;
-
+        const postData = zocker(postDto).generate();
+        const postId = postData.id;
+        const user = zocker(userDto).generate() as User;
+        const profile = zocker(profileDto).generate() as Profile;
+        const postAuthorProfile = { id: postData.profileId } as Profile;
         const mockPost = {
             id: postId,
             profile: postAuthorProfile,
-            content: "Test post",
-            createdAt: new Date(),
-            updatedAt: new Date()
+            content: postData.content,
+            createdAt: postData.createdAt,
+            updatedAt: postData.updatedAt
         } as Post;
 
         const existingRepost = {

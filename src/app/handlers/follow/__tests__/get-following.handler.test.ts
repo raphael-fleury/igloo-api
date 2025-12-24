@@ -4,6 +4,7 @@ import { zocker } from "zocker";
 import { GetFollowingHandler } from "../get-following.handler";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { profileDto } from "@/app/dtos/profile.dtos";
+import { idDto } from "@/app/dtos/common.dtos";
 
 describe("GetFollowingHandler", () => {
     let handler: GetFollowingHandler;
@@ -19,7 +20,7 @@ describe("GetFollowingHandler", () => {
 
     it("should return all profiles being followed successfully", async () => {
         // Arrange
-        const followerProfileId = "123e4567-e89b-12d3-a456-426614174000";
+        const followerProfileId = zocker(idDto).generate();
         
         const followed1 = zocker(profileDto).generate();
         const followed2 = zocker(profileDto).generate();

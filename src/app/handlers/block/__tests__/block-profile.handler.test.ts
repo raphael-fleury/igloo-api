@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
+import { zocker } from "zocker";
+import { idDto } from "@/app/dtos/common.dtos";
+import { profileDto } from "@/app/dtos/profile.dtos";
 import { BlockProfileHandler } from "../block-profile.handler";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { Profile } from "@/database/entities/profile";
@@ -28,11 +31,11 @@ describe("BlockProfileHandler", () => {
 
     it("should block profile successfully when both profiles exist", async () => {
         // Arrange
-        const blockerProfileId = "blocker-id";
-        const blockedProfileId = "blocked-id";
+        const blockerProfileId = zocker(idDto).generate();
+        const blockedProfileId = zocker(idDto).generate();
         
-        const mockBlockerProfile = { id: blockerProfileId, username: "blocker" } as Profile;
-        const mockBlockedProfile = { id: blockedProfileId, username: "blocked" } as Profile;
+        const mockBlockerProfile = { ...zocker(profileDto).generate(), id: blockerProfileId } as Profile;
+        const mockBlockedProfile = { ...zocker(profileDto).generate(), id: blockedProfileId } as Profile;
 
         mockInteractionValidator.assertProfileExists = mock((profileId: string) => {
             if (profileId === blockerProfileId) return Promise.resolve(mockBlockerProfile);
@@ -55,11 +58,11 @@ describe("BlockProfileHandler", () => {
 
     it("should remove follows in both directions when blocking a profile", async () => {
         // Arrange
-        const blockerProfileId = "blocker-id";
-        const blockedProfileId = "blocked-id";
+        const blockerProfileId = zocker(idDto).generate();
+        const blockedProfileId = zocker(idDto).generate();
         
-        const mockBlockerProfile = { id: blockerProfileId, username: "blocker" } as Profile;
-        const mockBlockedProfile = { id: blockedProfileId, username: "blocked" } as Profile;
+        const mockBlockerProfile = { ...zocker(profileDto).generate(), id: blockerProfileId } as Profile;
+        const mockBlockedProfile = { ...zocker(profileDto).generate(), id: blockedProfileId } as Profile;
         const mockFollowFromBlocker = { 
             id: "follow-1", 
             sourceProfile: mockBlockerProfile, 
@@ -99,8 +102,8 @@ describe("BlockProfileHandler", () => {
 
     it("should throw NotFoundError when blocker profile does not exist", async () => {
         // Arrange
-        const blockerProfileId = "non-existent-blocker";
-        const blockedProfileId = "blocked-id";
+        const blockerProfileId = zocker(idDto).generate();
+        const blockedProfileId = zocker(idDto).generate();
 
         mockInteractionValidator.assertProfileExists = mock(() => {
             throw new NotFoundError(`Profile with id ${blockerProfileId} not found`);
@@ -113,10 +116,10 @@ describe("BlockProfileHandler", () => {
 
     it("should throw NotFoundError when blocked profile does not exist", async () => {
         // Arrange
-        const blockerProfileId = "blocker-id";
-        const blockedProfileId = "non-existent-blocked";
+        const blockerProfileId = zocker(idDto).generate();
+        const blockedProfileId = zocker(idDto).generate();
         
-        const mockBlockerProfile = { id: blockerProfileId, username: "blocker" } as Profile;
+        const mockBlockerProfile = { ...zocker(profileDto).generate(), id: blockerProfileId } as Profile;
 
         mockInteractionValidator.assertProfileExists = mock((profileId: string) => {
             if (profileId === blockerProfileId) return Promise.resolve(mockBlockerProfile);
@@ -130,11 +133,11 @@ describe("BlockProfileHandler", () => {
 
     it("should return existing block when already blocked", async () => {
         // Arrange
-        const blockerProfileId = "blocker-id";
-        const blockedProfileId = "blocked-id";
+        const blockerProfileId = zocker(idDto).generate();
+        const blockedProfileId = zocker(idDto).generate();
 
-        const mockBlockerProfile = { id: blockerProfileId, username: "blocker" } as Profile;
-        const mockBlockedProfile = { id: blockedProfileId, username: "blocked" } as Profile;
+        const mockBlockerProfile = { ...zocker(profileDto).generate(), id: blockerProfileId } as Profile;
+        const mockBlockedProfile = { ...zocker(profileDto).generate(), id: blockedProfileId } as Profile;
         const existingBlock = { 
             id: "existing-block-id",
             sourceProfile: mockBlockerProfile,

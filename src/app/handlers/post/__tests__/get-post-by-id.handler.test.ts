@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
 import { GetPostByIdHandler } from "../get-post-by-id.handler";
+import { zocker } from "zocker";
+import { postDto } from "@/app/dtos/post.dtos";
+import { idDto } from "@/app/dtos/common.dtos";
 import { Post } from "@/database/entities/post";
 import { NotFoundError } from "@/app/errors";
 
@@ -18,18 +21,19 @@ describe("GetPostByIdHandler", () => {
 
     it("should return post when post exists", async () => {
         // Arrange
-        const postId = "99e85e01-ec24-4c44-bfc7-1d0ba895f51e";
-        const userId = "b316b948-8f6c-4284-8b38-a68ca4d3dee0";
-        const profileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
+        const postData = zocker(postDto).generate();
+        const postId = postData.id;
+        const userId = postData.userId;
+        const profileId = postData.profileId;
         const mockPost = {
             id: postId,
             user: { id: userId },
             profile: { id: profileId },
-            content: "Test post",
+            content: postData.content,
             replyToPost: null,
             quoteToPost: null,
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: postData.createdAt,
+            updatedAt: postData.updatedAt
         } as any;
 
         mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
@@ -39,7 +43,7 @@ describe("GetPostByIdHandler", () => {
 
         // Assert
         expect(result.id).toBe(postId);
-        expect(result.content).toBe("Test post");
+        expect(result.content).toBe(postData.content);
         expect(mockPostRepository.findOne).toHaveBeenCalledWith({
             where: { id: postId },
             relations: ['quoteToPost']
@@ -48,7 +52,7 @@ describe("GetPostByIdHandler", () => {
 
     it("should throw NotFoundError when post does not exist", async () => {
         // Arrange
-        const postId = "non-existent-post";
+        const postId = zocker(idDto).generate();
 
         // Act & Assert
         expect(async () => {

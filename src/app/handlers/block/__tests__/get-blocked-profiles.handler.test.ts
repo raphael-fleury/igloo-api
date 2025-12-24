@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
+import { zocker } from "zocker";
 import { GetBlockedProfilesHandler } from "../get-blocked-profiles.handler";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
-import { zocker } from "zocker";
 import { profileDto } from "@/app/dtos/profile.dtos";
+import { idDto } from "@/app/dtos/common.dtos";
 
 describe("GetBlockedProfilesHandler", () => {
     let handler: GetBlockedProfilesHandler;
@@ -19,7 +20,7 @@ describe("GetBlockedProfilesHandler", () => {
 
     it("should return blocked profiles successfully", async () => {
         // Arrange
-        const blockerProfileId = "blocker-id";
+        const blockerProfileId = zocker(idDto).generate();
         const mockBlockedProfile1 = zocker(profileDto).generate();
         const mockBlockedProfile2 = zocker(profileDto).generate();
 

@@ -7,6 +7,7 @@ import { Profile } from "@/database/entities/profile";
 import { NotFoundError, SelfInteractionError, BlockedError } from "@/app/errors";
 import { profileDto } from "@/app/dtos/profile.dtos";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
+import { idDto } from "@/app/dtos/common.dtos";
 
 describe("FollowProfileHandler", () => {
     let handler: FollowProfileHandler;
@@ -31,8 +32,8 @@ describe("FollowProfileHandler", () => {
 
     it("should follow profile successfully when both profiles exist and no blocks", async () => {
         // Arrange
-        const followerProfileId = "123e4567-e89b-12d3-a456-426614174000";
-        const followedProfileId = "123e4567-e89b-12d3-a456-426614174001";
+        const followerProfileId = zocker(idDto).generate();
+        const followedProfileId = zocker(idDto).generate();
         
         const followerProfile = zocker(profileDto).generate();
         const followedProfile = zocker(profileDto).generate();
@@ -64,7 +65,7 @@ describe("FollowProfileHandler", () => {
 
     it("should throw SelfInteractionError when trying to follow the same profile", async () => {
         // Arrange
-        const profileId = "123e4567-e89b-12d3-a456-426614174000";
+        const profileId = zocker(idDto).generate();
 
         mockInteractionValidator.assertProfilesAreNotSame = mock(() => {
             throw new SelfInteractionError("A profile cannot interact with itself");
@@ -78,8 +79,8 @@ describe("FollowProfileHandler", () => {
 
     it("should throw NotFoundError when follower profile does not exist", async () => {
         // Arrange
-        const followerProfileId = "123e4567-e89b-12d3-a456-426614174000";
-        const followedProfileId = "123e4567-e89b-12d3-a456-426614174001";
+        const followerProfileId = zocker(idDto).generate();
+        const followedProfileId = zocker(idDto).generate();
 
         mockInteractionValidator.assertProfileExists = mock(() => {
             throw new NotFoundError(`Profile with id ${followerProfileId} not found`);
@@ -92,8 +93,8 @@ describe("FollowProfileHandler", () => {
 
     it("should throw NotFoundError when followed profile does not exist", async () => {
         // Arrange
-        const followerProfileId = "123e4567-e89b-12d3-a456-426614174000";
-        const followedProfileId = "123e4567-e89b-12d3-a456-426614174001";
+        const followerProfileId = zocker(idDto).generate();
+        const followedProfileId = zocker(idDto).generate();
         
         const followerProfile = zocker(profileDto).generate();
 
@@ -111,8 +112,8 @@ describe("FollowProfileHandler", () => {
 
     it("should throw BlockedError when follower has blocked the followed profile", async () => {
         // Arrange
-        const followerProfileId = "123e4567-e89b-12d3-a456-426614174000";
-        const followedProfileId = "123e4567-e89b-12d3-a456-426614174001";
+        const followerProfileId = zocker(idDto).generate();
+        const followedProfileId = zocker(idDto).generate();
 
         mockInteractionValidator.assertProfilesDoesNotBlockEachOther = mock(() => {
             throw new BlockedError("You cannot interact with a profile you have blocked");
@@ -125,8 +126,8 @@ describe("FollowProfileHandler", () => {
 
     it("should throw BlockedError when followed profile has blocked the follower", async () => {
         // Arrange
-        const followerProfileId = "123e4567-e89b-12d3-a456-426614174000";
-        const followedProfileId = "123e4567-e89b-12d3-a456-426614174001";
+        const followerProfileId = zocker(idDto).generate();
+        const followedProfileId = zocker(idDto).generate();
 
         mockInteractionValidator.assertProfilesDoesNotBlockEachOther = mock(() => {
             throw new BlockedError("You cannot interact with a profile that has blocked you");
@@ -139,8 +140,8 @@ describe("FollowProfileHandler", () => {
 
     it("should return existing follow when already following", async () => {
         // Arrange
-        const followerProfileId = "123e4567-e89b-12d3-a456-426614174000";
-        const followedProfileId = "123e4567-e89b-12d3-a456-426614174001";
+        const followerProfileId = zocker(idDto).generate();
+        const followedProfileId = zocker(idDto).generate();
         
         const followerProfile = zocker(profileDto).generate();
         const followedProfile = zocker(profileDto).generate();

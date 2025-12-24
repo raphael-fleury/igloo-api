@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
 import { DeletePostHandler } from "../delete-post.handler";
+import { zocker } from "zocker";
+import { idDto } from "@/app/dtos/common.dtos";
+import { profileDto } from "@/app/dtos/profile.dtos";
 import { Post } from "@/database/entities/post";
 import { NotFoundError, UnauthorizedError } from "@/app/errors";
 
@@ -19,8 +22,8 @@ describe("DeletePostHandler", () => {
 
     it("should delete post successfully when post exists and profile matches", async () => {
         // Arrange
-        const postId = "99e85e01-ec24-4c44-bfc7-1d0ba895f51e";
-        const profileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
+        const postId = zocker(idDto).generate();
+        const profileId = zocker(idDto).generate();
         const mockPost = {
             id: postId,
             profile: { id: profileId },
@@ -42,8 +45,8 @@ describe("DeletePostHandler", () => {
 
     it("should throw NotFoundError when post does not exist", async () => {
         // Arrange
-        const postId = "non-existent-post";
-        const profileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
+        const postId = zocker(idDto).generate();
+        const profileId = zocker(idDto).generate();
 
         // Act & Assert
         expect(async () => {
@@ -53,9 +56,9 @@ describe("DeletePostHandler", () => {
 
     it("should throw UnauthorizedError when profile does not match post author", async () => {
         // Arrange
-        const postId = "99e85e01-ec24-4c44-bfc7-1d0ba895f51e";
-        const authorProfileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
-        const otherProfileId = "24ae85e0-ec24-4c44-bfc7-1d0ba895f51e";
+        const postId = zocker(idDto).generate();
+        const authorProfileId = zocker(idDto).generate();
+        const otherProfileId = zocker(idDto).generate();
         
         const mockPost = {
             id: postId,

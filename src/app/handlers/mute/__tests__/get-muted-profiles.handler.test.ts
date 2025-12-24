@@ -4,6 +4,7 @@ import { zocker } from "zocker";
 import { GetMutedProfilesHandler } from "../get-muted-profiles.handler";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { profileDto } from "@/app/dtos/profile.dtos";
+import { idDto } from "@/app/dtos/common.dtos";
 
 describe("GetMutedProfilesHandler", () => {
     let handler: GetMutedProfilesHandler;
@@ -18,7 +19,7 @@ describe("GetMutedProfilesHandler", () => {
 
     it("should return muted profiles successfully", async () => {
         // Arrange
-        const muterProfileId = "123e4567-e89b-12d3-a456-426614174000";
+        const muterProfileId = zocker(idDto).generate();
         const mutedProfile = zocker(profileDto).generate();
         const mute = {
             id: "mute-id-1",

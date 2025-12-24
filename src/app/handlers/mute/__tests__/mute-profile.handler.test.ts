@@ -7,6 +7,7 @@ import { Profile } from "@/database/entities/profile";
 import { NotFoundError, SelfInteractionError } from "@/app/errors";
 import { profileDto } from "@/app/dtos/profile.dtos";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
+import { idDto } from "@/app/dtos/common.dtos";
 
 describe("MuteProfileHandler", () => {
     let handler: MuteProfileHandler;
@@ -35,8 +36,8 @@ describe("MuteProfileHandler", () => {
 
     it("should mute profile successfully when both profiles exist", async () => {
         // Arrange
-        const muterProfileId = "123e4567-e89b-12d3-a456-426614174000";
-        const mutedProfileId = "123e4567-e89b-12d3-a456-426614174001";
+        const muterProfileId = zocker(idDto).generate();
+        const mutedProfileId = zocker(idDto).generate();
         
         const muterProfile = zocker(profileDto).generate();
         const mutedProfile = zocker(profileDto).generate();
@@ -81,8 +82,8 @@ describe("MuteProfileHandler", () => {
 
     it("should throw NotFoundError when muted profile does not exist", async () => {
         // Arrange
-        const muterProfileId = "123e4567-e89b-12d3-a456-426614174000";
-        const mutedProfileId = "123e4567-e89b-12d3-a456-426614174001";
+        const muterProfileId = zocker(idDto).generate();
+        const mutedProfileId = zocker(idDto).generate();
         
         const muterProfile = zocker(profileDto).generate();
 
@@ -99,8 +100,8 @@ describe("MuteProfileHandler", () => {
 
     it("should return existing mute when already muted", async () => {
         // Arrange
-        const muterProfileId = "123e4567-e89b-12d3-a456-426614174000";
-        const mutedProfileId = "123e4567-e89b-12d3-a456-426614174001";
+        const muterProfileId = zocker(idDto).generate();
+        const mutedProfileId = zocker(idDto).generate();
         
         const muterProfile = zocker(profileDto).generate();
         const mutedProfile = zocker(profileDto).generate();
@@ -130,7 +131,7 @@ describe("MuteProfileHandler", () => {
 
     it("should throw SelfInteractionError when trying to mute the same profile", async () => {
         // Arrange
-        const profileId = "123e4567-e89b-12d3-a456-426614174000";
+        const profileId = zocker(idDto).generate();
 
         mockInteractionValidator.assertProfilesAreNotSame = mock(() => {
             throw new SelfInteractionError("A profile cannot interact with itself");

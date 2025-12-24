@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
 import { UnrepostPostHandler } from "../unrepost-post.handler";
+import { zocker } from "zocker";
+import { idDto } from "@/app/dtos/common.dtos";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
 import { NotFoundError } from "@/app/errors";
 import { User } from "@/database/entities/user";
@@ -22,8 +24,8 @@ describe("UnrepostPostHandler", () => {
 
     it("should unrepost post successfully when repost exists", async () => {
         // Arrange
-        const profileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
-        const postId = "99e85e01-ec24-4c44-bfc7-1d0ba895f51e";
+        const profileId = zocker(idDto).generate();
+        const postId = zocker(idDto).generate();
         
         const user = { id: "b316b948-8f6c-4284-8b38-a68ca4d3dee0" } as User;
         const profile = { id: profileId } as Profile;
@@ -59,8 +61,8 @@ describe("UnrepostPostHandler", () => {
 
     it("should throw NotFoundError when repost does not exist", async () => {
         // Arrange
-        const profileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
-        const postId = "99e85e01-ec24-4c44-bfc7-1d0ba895f51e";
+        const profileId = zocker(idDto).generate();
+        const postId = zocker(idDto).generate();
 
         mockPostInteractionRepository.findOne = mock(() => Promise.resolve(null));
 
