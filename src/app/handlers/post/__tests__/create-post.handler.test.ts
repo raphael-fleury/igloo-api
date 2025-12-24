@@ -72,7 +72,7 @@ describe("CreatePostHandler", () => {
             userId,
             profileId,
             content: "This is a reply",
-            replyToPostId: "non-existent-post"
+            replyToPostId: "123e4567-e89b-12d3-a456-426614174000"
         };
 
         // Act & Assert
@@ -86,16 +86,17 @@ describe("CreatePostHandler", () => {
         const userId = "b316b948-8f6c-4284-8b38-a68ca4d3dee0";
         const profileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
         const repliedPostAuthorProfileId = "profile-of-replied-post-author";
+        const repliedPostId = "123e4567-e89b-12d3-a456-426614174000";
 
         const createPostData = {
             userId,
             profileId,
             content: "This is a reply",
-            replyToPostId: "replied-post-id"
+            replyToPostId: repliedPostId
         };
 
         mockPostRepository.findOneBy = mock(() => Promise.resolve({
-            id: "replied-post-id",
+            id: repliedPostId,
             profile: { id: repliedPostAuthorProfileId }
         } as any));
 
@@ -113,14 +114,16 @@ describe("CreatePostHandler", () => {
         const userId = "b316b948-8f6c-4284-8b38-a68ca4d3dee0";
         const profileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
         const repliedPostAuthorProfileId = "profile-of-replied-post-author";
+        const repliedPostId = "123e4567-e89b-12d3-a456-426614174000";
+
         const createPostData = {
             userId,
             profileId,
             content: "This is a reply",
-            replyToPostId: "replied-post-id"
+            replyToPostId: repliedPostId
         };
         mockPostRepository.findOneBy = mock(() => Promise.resolve({
-            id: "replied-post-id",
+            id: repliedPostId,
             profile: { id: repliedPostAuthorProfileId }
         } as any));
 
@@ -142,7 +145,7 @@ describe("CreatePostHandler", () => {
             userId,
             profileId,
             content: "This is a quote",
-            quoteToPostId: "non-existent-post"
+            quoteToPostId: "123e4567-e89b-12d3-a456-426614174000"
         };
 
         // Act & Assert
@@ -156,16 +159,17 @@ describe("CreatePostHandler", () => {
         const userId = "b316b948-8f6c-4284-8b38-a68ca4d3dee0";
         const profileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
         const quotedPostAuthorProfileId = "profile-of-quoted-post-author";
+        const quotedPostId = "123e4567-e89b-12d3-a456-426614174000";
 
         const createPostData = {
             userId,
             profileId,
             content: "This is a quote",
-            quoteToPostId: "quoted-post-id"
+            quoteToPostId: quotedPostId
         };
 
         mockPostRepository.findOneBy = mock(() => Promise.resolve({
-            id: "quoted-post-id",
+            id: quotedPostId,
             profile: { id: quotedPostAuthorProfileId }
         } as any));
 
@@ -183,14 +187,15 @@ describe("CreatePostHandler", () => {
         const userId = "b316b948-8f6c-4284-8b38-a68ca4d3dee0";
         const profileId = "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d";
         const quotedPostAuthorProfileId = "profile-of-quoted-post-author";
+        const quotedPostId = "123e4567-e89b-12d3-a456-426614174000";
         const createPostData = {
             userId,
             profileId,
             content: "This is a quote",
-            quoteToPostId: "quoted-post-id"
+            quoteToPostId: quotedPostId
         };
         mockPostRepository.findOneBy = mock(() => Promise.resolve({
-            id: "quoted-post-id",
+            id: quotedPostId,
             profile: { id: quotedPostAuthorProfileId }
         } as any));
 
@@ -208,8 +213,11 @@ describe("CreatePostHandler", () => {
         const user = { id: "b316b948-8f6c-4284-8b38-a68ca4d3dee0" } as User;
         const profile = { id: "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d" } as Profile;
         const quotedPostAuthorProfile = { id: "quoted-post-author-profile-id" } as Profile;
+        const quotedPostId = "123e4567-e89b-12d3-a456-426614174000";
+        const newPostId = "99e85e01-ec24-4c44-bfc7-1d0ba895f51e";
+
         const quotedPost = {
-            id: "quoted-post-id",
+            id: quotedPostId,
             profile: quotedPostAuthorProfile,
             content: "Original post",
             createdAt: new Date(),
@@ -218,7 +226,7 @@ describe("CreatePostHandler", () => {
 
         mockPostRepository.findOneBy = mock(() => Promise.resolve(quotedPost));
         mockPostRepository.save = mock((data) => Promise.resolve({
-            id: "post-id",
+            id: newPostId,
             user,
             profile,
             content: "This is a quote",
@@ -229,7 +237,7 @@ describe("CreatePostHandler", () => {
 
         const createPostData = {
             content: "This is a quote",
-            quoteToPostId: "quoted-post-id"
+            quoteToPostId: quotedPostId
         };
 
         // Act
@@ -237,7 +245,7 @@ describe("CreatePostHandler", () => {
 
         // Assert
         expect(result.content).toBe("This is a quote");
-        expect(result.quoteToPostId).toBe("quoted-post-id");
+        expect(result.quoteToPostId).toBe(quotedPostId);
         expect(mockPostRepository.create).toHaveBeenCalledWith({
             user,
             profile,
