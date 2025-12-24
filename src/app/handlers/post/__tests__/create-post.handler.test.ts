@@ -42,7 +42,7 @@ describe("CreatePostHandler", () => {
             user,
             profile,
             content: "This is a test post",
-            replyToPost: null,
+            repliedPost: null,
             createdAt: new Date(),
             updatedAt: new Date()
         } as any));
@@ -56,8 +56,8 @@ describe("CreatePostHandler", () => {
             user,
             profile,
             content: "This is a test post",
-            replyToPost: undefined,
-            quoteToPost: undefined
+            repliedPost: undefined,
+            quotedPost: undefined
         });
         expect(mockPostRepository.save).toHaveBeenCalled();
     });
@@ -217,7 +217,7 @@ describe("CreatePostHandler", () => {
             user,
             profile,
             content: "This is a quote",
-            quoteToPost: quotedPost,
+            quotedPost: quotedPost,
             createdAt: new Date(),
             updatedAt: new Date()
         } as any));
@@ -237,8 +237,8 @@ describe("CreatePostHandler", () => {
             user,
             profile,
             content: "This is a quote",
-            replyToPost: undefined,
-            quoteToPost: quotedPost
+            repliedPost: undefined,
+            quotedPost: quotedPost
         });
         expect(mockPostRepository.save).toHaveBeenCalled();
     });

@@ -22,26 +22,26 @@ export class CreatePostHandler {
 
     async handle(data: CreatePostDto, user: UserDto, profile: ProfileDto) {
         // Validations
-        let replyToPost = null;
+        let repliedPost = null;
         if (data.replyToPostId) {
-            replyToPost = await this.postRepository.findOneBy({ id: data.replyToPostId });
-            if (!replyToPost) {
+            repliedPost = await this.postRepository.findOneBy({ id: data.replyToPostId });
+            if (!repliedPost) {
                 throw new NotFoundError(`Post with id ${data.replyToPostId} not found`);
             }
 
             // Check if profiles block each other
-            await this.interactionValidator.assertProfilesDoesNotBlockEachOther(profile.id, replyToPost.profile.id);
+            await this.interactionValidator.assertProfilesDoesNotBlockEachOther(profile.id, repliedPost.profile.id);
         }
 
-        let quoteToPost = null;
+        let quotedPost = null;
         if (data.quoteToPostId) {
-            quoteToPost = await this.postRepository.findOneBy({ id: data.quoteToPostId });
-            if (!quoteToPost) {
+            quotedPost = await this.postRepository.findOneBy({ id: data.quoteToPostId });
+            if (!quotedPost) {
                 throw new NotFoundError(`Post with id ${data.quoteToPostId} not found`);
             }
 
             // Check if profiles block each other
-            await this.interactionValidator.assertProfilesDoesNotBlockEachOther(profile.id, quoteToPost.profile.id);
+            await this.interactionValidator.assertProfilesDoesNotBlockEachOther(profile.id, quotedPost.profile.id);
         }
 
         // Creation
@@ -49,8 +49,8 @@ export class CreatePostHandler {
             user,
             profile,
             content: data.content,
-            replyToPost: replyToPost || undefined,
-            quoteToPost: quoteToPost || undefined
+            repliedPost: repliedPost || undefined,
+            quotedPost: quotedPost || undefined
         });
 
         const savedPost = await this.postRepository.save(post);
@@ -58,8 +58,8 @@ export class CreatePostHandler {
         return postDto.parse({
             id: savedPost.id,
             content: savedPost.content,
-            replyToPostId: savedPost.replyToPost?.id,
-            quoteToPostId: savedPost.quoteToPost?.id,
+            replyToPostId: savedPost.repliedPost?.id,
+            quoteToPostId: savedPost.quotedPost?.id,
             createdAt: savedPost.createdAt,
             updatedAt: savedPost.updatedAt
         });

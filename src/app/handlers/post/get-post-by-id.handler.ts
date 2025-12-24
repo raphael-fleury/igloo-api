@@ -14,7 +14,7 @@ export class GetPostByIdHandler {
     async handle(id: string) {
         const post = await this.postRepository.findOne({
             where: { id },
-            relations: ['quoteToPost']
+            relations: ['quotedPost']
         });
         
         if (!post) {
@@ -26,8 +26,8 @@ export class GetPostByIdHandler {
             userId: post.user.id,
             profileId: post.profile.id,
             content: post.content,
-            replyToPostId: post.replyToPost?.id,
-            quoteToPostId: post.quoteToPost?.id,
+            replyToPostId: post.repliedPost?.id,
+            quoteToPostId: post.quotedPost?.id,
             createdAt: post.createdAt,
             updatedAt: post.updatedAt
         });

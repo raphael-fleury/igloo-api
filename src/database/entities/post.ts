@@ -22,18 +22,18 @@ export class Post {
         nullable: true,
     })
     @JoinColumn({ name: "replyToPostId" })
-    replyToPost?: Post;
+    repliedPost?: Post;
 
-    @OneToMany(() => Post, post => post.replyToPost)
+    @OneToMany(() => Post, post => post.repliedPost)
     replies!: Post[];
 
     @ManyToOne(() => Post, post => post.quotes, {
         nullable: true,
     })
     @JoinColumn({ name: "quoteToPostId" })
-    quoteToPost?: Post;
+    quotedPost?: Post;
 
-    @OneToMany(() => Post, post => post.quoteToPost)
+    @OneToMany(() => Post, post => post.quotedPost)
     quotes!: Post[];
 
     @CreateDateColumn()

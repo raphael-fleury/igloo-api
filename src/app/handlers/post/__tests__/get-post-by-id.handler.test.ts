@@ -30,8 +30,8 @@ describe("GetPostByIdHandler", () => {
             user: { id: userId },
             profile: { id: profileId },
             content: postData.content,
-            replyToPost: null,
-            quoteToPost: null,
+            repliedPost: null,
+            quotedPost: null,
             createdAt: postData.createdAt,
             updatedAt: postData.updatedAt
         } as any;
@@ -46,7 +46,7 @@ describe("GetPostByIdHandler", () => {
         expect(result.content).toBe(postData.content);
         expect(mockPostRepository.findOne).toHaveBeenCalledWith({
             where: { id: postId },
-            relations: ['quoteToPost']
+            relations: ['quotedPost']
         });
     });
 
