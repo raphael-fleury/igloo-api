@@ -5,8 +5,10 @@ export const USERNAME_MAX_LENGTH = 15;
 export const DISPLAYNAME_MAX_LENGTH = 50;
 export const BIO_MAX_LENGTH = 160;
 
+const usernameRegex = new RegExp(String.raw`^\w{1,${USERNAME_MAX_LENGTH}}$`);
+
 export const createProfileDto = z.object({
-    username: z.string().regex(new RegExp(`^\\w{1,${USERNAME_MAX_LENGTH}}$`)),
+    username: z.string().regex(usernameRegex),
     displayName: z.string().max(DISPLAYNAME_MAX_LENGTH),
     bio: z.string().max(BIO_MAX_LENGTH).default(""),
 });
