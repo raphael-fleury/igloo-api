@@ -3,7 +3,7 @@ import { Repository } from "typeorm";
 import { zocker } from "zocker";
 import { UnmuteProfileHandler } from "../unmute-profile.handler";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
-import { NotFoundError } from "@/app/errors";
+import { ConflictError } from "@/app/errors";
 import { profileDto } from "@/app/dtos/profile.dtos";
 import { idDto } from "@/app/dtos/common.dtos";
 
@@ -53,7 +53,7 @@ describe("UnmuteProfileHandler", () => {
         expect(mockProfileInteractionRepository.remove).toHaveBeenCalledWith(existingMute);
     });
 
-    it("should throw NotFoundError when mute does not exist", async () => {
+    it("should throw ConflictError when mute does not exist", async () => {
         // Arrange
         const muterProfileId = zocker(idDto).generate();
         const mutedProfileId = zocker(idDto).generate();
@@ -61,7 +61,7 @@ describe("UnmuteProfileHandler", () => {
         mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(null));
 
         // Act & Assert
-        expect(handler.handle(muterProfileId, mutedProfileId)).rejects.toThrow(NotFoundError);
+        expect(handler.handle(muterProfileId, mutedProfileId)).rejects.toThrow(ConflictError);
         expect(handler.handle(muterProfileId, mutedProfileId)).rejects.toThrow(
             "Mute between profiles not found"
         );

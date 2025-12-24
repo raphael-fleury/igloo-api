@@ -3,6 +3,7 @@ import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { Profile } from "@/database/entities/profile";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
+import { ConflictError } from "@/app/errors";
 
 export class MuteProfileHandler {
     constructor(
@@ -35,7 +36,7 @@ export class MuteProfileHandler {
         });
 
         if (existingMute) {
-            return { message: "Profile is already muted", mutedAt: existingMute.createdAt };
+            throw new ConflictError("Profile is already muted");
         }
 
         // Creation

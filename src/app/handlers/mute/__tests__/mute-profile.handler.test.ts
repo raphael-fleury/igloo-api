@@ -4,7 +4,7 @@ import { zocker } from "zocker";
 import { MuteProfileHandler } from "../mute-profile.handler";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { Profile } from "@/database/entities/profile";
-import { NotFoundError, SelfInteractionError } from "@/app/errors";
+import { NotFoundError, SelfInteractionError, ConflictError } from "@/app/errors";
 import { profileDto } from "@/app/dtos/profile.dtos";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 import { idDto } from "@/app/dtos/common.dtos";
@@ -98,7 +98,7 @@ describe("MuteProfileHandler", () => {
         expect(handler.handle(muterProfileId, mutedProfileId)).rejects.toThrow(NotFoundError);
     });
 
-    it("should return existing mute when already muted", async () => {
+    it("should throw ConflictError when already muted", async () => {
         // Arrange
         const muterProfileId = zocker(idDto).generate();
         const mutedProfileId = zocker(idDto).generate();
@@ -120,12 +120,11 @@ describe("MuteProfileHandler", () => {
 
         mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(existingMute));
 
-        // Act
-        const result = await handler.handle(muterProfileId, mutedProfileId);
-
-        // Assert
-        expect(result.message).toBe("Profile is already muted");
-        expect(result.mutedAt).toEqual(existingMute.createdAt);
+        // Act & Assert
+        expect(handler.handle(muterProfileId, mutedProfileId))
+            .rejects.toThrow(ConflictError);
+        expect(handler.handle(muterProfileId, mutedProfileId))
+            .rejects.toThrow("Profile is already muted");
         expect(mockProfileInteractionRepository.save).not.toHaveBeenCalled();
     });
 

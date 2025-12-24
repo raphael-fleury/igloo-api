@@ -3,7 +3,7 @@ import { Repository } from "typeorm";
 import { zocker } from "zocker";
 import { UnfollowProfileHandler } from "../unfollow-profile.handler";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
-import { NotFoundError } from "@/app/errors";
+import { ConflictError } from "@/app/errors";
 import { profileDto } from "@/app/dtos/profile.dtos";
 
 describe("UnfollowProfileHandler", () => {
@@ -54,7 +54,7 @@ describe("UnfollowProfileHandler", () => {
         });
     });
 
-    it("should throw NotFoundError when follow relationship does not exist", async () => {
+    it("should throw ConflictError when follow relationship does not exist", async () => {
         // Arrange
         const followerProfileId = "123e4567-e89b-12d3-a456-426614174000";
         const followedProfileId = "123e4567-e89b-12d3-a456-426614174001";
@@ -62,7 +62,7 @@ describe("UnfollowProfileHandler", () => {
         mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(null));
 
         // Act & Assert
-        expect(handler.handle(followerProfileId, followedProfileId)).rejects.toThrow(NotFoundError);
+        expect(handler.handle(followerProfileId, followedProfileId)).rejects.toThrow(ConflictError);
         expect(handler.handle(followerProfileId, followedProfileId)).rejects.toThrow(
             "Follow between profiles not found"
         );

@@ -8,7 +8,7 @@ import { idDto } from "@/app/dtos/common.dtos";
 import { postDto } from "@/app/dtos/post.dtos";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
 import { Post } from "@/database/entities/post";
-import { NotFoundError, BlockedError } from "@/app/errors";
+import { NotFoundError, BlockedError, ConflictError } from "@/app/errors";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 
 describe("RepostPostHandler", () => {
@@ -147,7 +147,7 @@ describe("RepostPostHandler", () => {
         expect(mockPostInteractionRepository.save).not.toHaveBeenCalled();
     });
 
-    it("should return existing repost when post is already reposted", async () => {
+    it("should throw ConflictError when post is already reposted", async () => {
         // Arrange
         const postData = zocker(postDto).generate();
         const postId = postData.id;
@@ -175,12 +175,11 @@ describe("RepostPostHandler", () => {
         mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
         mockPostInteractionRepository.findOne = mock(() => Promise.resolve(existingRepost));
 
-        // Act
-        const result = await handler.handle(postId, user, profile);
-
-        // Assert
-        expect(result.message).toBe("Post is already reposted");
-        expect(result.repostedAt).toEqual(existingRepost.createdAt);
+        // Act & Assert
+        expect(handler.handle(postId, user, profile))
+            .rejects.toThrow(ConflictError);
+        expect(handler.handle(postId, user, profile))
+            .rejects.toThrow("Post is already reposted");
         expect(mockPostInteractionRepository.save).not.toHaveBeenCalled();
     });
 });

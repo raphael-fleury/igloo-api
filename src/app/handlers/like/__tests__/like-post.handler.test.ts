@@ -6,7 +6,7 @@ import { userDto } from "@/app/dtos/user.dtos";
 import { profileDto } from "@/app/dtos/profile.dtos";
 import { idDto } from "@/app/dtos/common.dtos";
 import { postDto } from "@/app/dtos/post.dtos";
-import { NotFoundError, BlockedError } from "@/app/errors";
+import { NotFoundError, BlockedError, ConflictError } from "@/app/errors";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
 import { Post } from "@/database/entities/post";
@@ -147,7 +147,7 @@ describe("LikePostHandler", () => {
         expect(mockPostInteractionRepository.save).not.toHaveBeenCalled();
     });
 
-    it("should return existing like when post is already liked", async () => {
+    it("should throw ConflictError when post is already liked", async () => {
         // Arrange
         const postData = zocker(postDto).generate();
         const postId = postData.id;
@@ -175,12 +175,11 @@ describe("LikePostHandler", () => {
         mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
         mockPostInteractionRepository.findOne = mock(() => Promise.resolve(existingLike));
 
-        // Act
-        const result = await handler.handle(postId, user, profile);
-
-        // Assert
-        expect(result.message).toBe("Post is already liked");
-        expect(result.likedAt).toEqual(existingLike.createdAt);
+        // Act & Assert
+        expect(handler.handle(postId, user, profile))
+            .rejects.toThrow(ConflictError);
+        expect(handler.handle(postId, user, profile))
+            .rejects.toThrow("Post is already liked");
         expect(mockPostInteractionRepository.save).not.toHaveBeenCalled();
     });
 });

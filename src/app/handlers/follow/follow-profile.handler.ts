@@ -2,6 +2,7 @@ import { Repository } from "typeorm";
 import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
+import { ConflictError } from "@/app/errors";
 
 export class FollowProfileHandler {
     constructor(
@@ -33,7 +34,7 @@ export class FollowProfileHandler {
         });
 
         if (existingFollow) {
-            return { message: "Profile is already followed", followedAt: existingFollow.createdAt };
+            throw new ConflictError("Profile is already followed");
         }
 
         // Creation

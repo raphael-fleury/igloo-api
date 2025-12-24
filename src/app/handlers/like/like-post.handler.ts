@@ -1,5 +1,5 @@
 import { Repository } from "typeorm";
-import { NotFoundError } from "@/app/errors";
+import { NotFoundError, ConflictError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
 import { Post } from "@/database/entities/post";
@@ -45,10 +45,7 @@ export class LikePostHandler {
         });
 
         if (existingLike) {
-            return { 
-                message: "Post is already liked", 
-                likedAt: existingLike.createdAt 
-            };
+            throw new ConflictError("Post is already liked");
         }
 
         // Creation

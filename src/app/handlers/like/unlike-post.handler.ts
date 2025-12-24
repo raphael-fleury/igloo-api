@@ -1,5 +1,5 @@
 import { Repository } from "typeorm";
-import { NotFoundError } from "@/app/errors";
+import { ConflictError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
 
@@ -21,7 +21,7 @@ export class UnlikePostHandler {
         });
 
         if (!like) {
-            throw new NotFoundError(`Like for this post not found`);
+            throw new ConflictError(`Like for this post not found`);
         }
 
         // Remove the like

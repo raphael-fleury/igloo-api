@@ -4,7 +4,7 @@ import { zocker } from "zocker";
 import { FollowProfileHandler } from "../follow-profile.handler";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { Profile } from "@/database/entities/profile";
-import { NotFoundError, SelfInteractionError, BlockedError } from "@/app/errors";
+import { NotFoundError, SelfInteractionError, BlockedError, ConflictError } from "@/app/errors";
 import { profileDto } from "@/app/dtos/profile.dtos";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 import { idDto } from "@/app/dtos/common.dtos";
@@ -138,7 +138,7 @@ describe("FollowProfileHandler", () => {
             .rejects.toThrow(BlockedError);
     });
 
-    it("should return existing follow when already following", async () => {
+    it("should throw ConflictError when already following", async () => {
         // Arrange
         const followerProfileId = zocker(idDto).generate();
         const followedProfileId = zocker(idDto).generate();
@@ -160,12 +160,11 @@ describe("FollowProfileHandler", () => {
 
         mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(existingFollow));
 
-        // Act
-        const result = await handler.handle(followerProfileId, followedProfileId);
-
-        // Assert
-        expect(result.message).toBe("Profile is already followed");
-        expect(result.followedAt).toEqual(existingFollow.createdAt);
+        // Act & Assert
+        expect(handler.handle(followerProfileId, followedProfileId))
+            .rejects.toThrow(ConflictError);
+        expect(handler.handle(followerProfileId, followedProfileId))
+            .rejects.toThrow("Profile is already followed");
         expect(mockProfileInteractionRepository.save).not.toHaveBeenCalled();
     });
 });

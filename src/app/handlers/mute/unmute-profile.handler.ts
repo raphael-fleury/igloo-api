@@ -1,5 +1,5 @@
 import { Repository } from "typeorm";
-import { NotFoundError } from "@/app/errors";
+import { ConflictError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 
@@ -21,7 +21,7 @@ export class UnmuteProfileHandler {
         });
 
         if (!mute) {
-            throw new NotFoundError(`Mute between profiles not found`);
+            throw new ConflictError(`Mute between profiles not found`);
         }
 
         // Remove the mute

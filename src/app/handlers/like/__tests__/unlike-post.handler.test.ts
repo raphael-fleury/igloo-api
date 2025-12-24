@@ -4,7 +4,7 @@ import { UnlikePostHandler } from "../unlike-post.handler";
 import { zocker } from "zocker";
 import { idDto } from "@/app/dtos/common.dtos";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
-import { NotFoundError } from "@/app/errors";
+import { ConflictError } from "@/app/errors";
 import { User } from "@/database/entities/user";
 import { Profile } from "@/database/entities/profile";
 import { Post } from "@/database/entities/post";
@@ -59,7 +59,7 @@ describe("UnlikePostHandler", () => {
         expect(mockPostInteractionRepository.remove).toHaveBeenCalledWith(existingLike);
     });
 
-    it("should throw NotFoundError when like does not exist", async () => {
+    it("should throw ConflictError when like does not exist", async () => {
         // Arrange
         const profileId = zocker(idDto).generate();
         const postId = zocker(idDto).generate();
@@ -68,7 +68,7 @@ describe("UnlikePostHandler", () => {
 
         // Act & Assert
         expect(handler.handle(profileId, postId))
-            .rejects.toThrow(NotFoundError);
+            .rejects.toThrow(ConflictError);
         expect(handler.handle(profileId, postId))
             .rejects.toThrow("Like for this post not found");
         expect(mockPostInteractionRepository.remove).not.toHaveBeenCalled();

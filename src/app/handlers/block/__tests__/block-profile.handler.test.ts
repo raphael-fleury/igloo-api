@@ -6,7 +6,7 @@ import { profileDto } from "@/app/dtos/profile.dtos";
 import { BlockProfileHandler } from "../block-profile.handler";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { Profile } from "@/database/entities/profile";
-import { NotFoundError } from "@/app/errors";
+import { NotFoundError, ConflictError } from "@/app/errors";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 
 describe("BlockProfileHandler", () => {
@@ -131,7 +131,7 @@ describe("BlockProfileHandler", () => {
             .rejects.toThrow(NotFoundError);
     });
 
-    it("should return existing block when already blocked", async () => {
+    it("should throw ConflictError when already blocked", async () => {
         // Arrange
         const blockerProfileId = zocker(idDto).generate();
         const blockedProfileId = zocker(idDto).generate();
@@ -154,11 +154,11 @@ describe("BlockProfileHandler", () => {
 
         mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(existingBlock));
 
-        // Act
-        const result = await handler.handle(blockerProfileId, blockedProfileId);
-
-        // Assert
-        expect(result.message).toBe("Profile is already blocked");
+        // Act & Assert
+        expect(handler.handle(blockerProfileId, blockedProfileId))
+            .rejects.toThrow(ConflictError);
+        expect(handler.handle(blockerProfileId, blockedProfileId))
+            .rejects.toThrow("Profile is already blocked");
         expect(mockProfileInteractionRepository.create).not.toHaveBeenCalled();
     });
 });

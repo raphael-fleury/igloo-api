@@ -2,6 +2,7 @@ import { Repository } from "typeorm";
 import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
+import { ConflictError } from "@/app/errors";
 
 export class BlockProfileHandler {
     constructor(
@@ -53,7 +54,7 @@ export class BlockProfileHandler {
         });
 
         if (existingBlock) {
-            return { message: "Profile is already blocked", blockedAt: existingBlock.createdAt };
+            throw new ConflictError("Profile is already blocked");
         }
 
         const block = this.profileInteractionRepository.create({

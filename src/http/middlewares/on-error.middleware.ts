@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { AlreadyExistsError, NotFoundError, SelfInteractionError, BlockedError, UnauthorizedError } from "@/app/errors";
+import { AlreadyExistsError, NotFoundError, SelfInteractionError, BlockedError, UnauthorizedError, ConflictError } from "@/app/errors";
 
 export const onErrorMiddleware = (app: Elysia) => app
     .error({
@@ -7,7 +7,8 @@ export const onErrorMiddleware = (app: Elysia) => app
         NotFoundError,
         SelfInteractionError,
         BlockedError,
-        UnauthorizedError
+        UnauthorizedError,
+        ConflictError
     })
     .onError(({ code, error, set }) => {
         console.log('error middleware')
@@ -25,6 +26,9 @@ export const onErrorMiddleware = (app: Elysia) => app
             case 'NOT_FOUND':
             case 'NotFoundError':
                 set.status = 404;
+                break;
+            case 'ConflictError':
+                set.status = 409;
                 break;
             case 'PARSE':
             case 'VALIDATION':

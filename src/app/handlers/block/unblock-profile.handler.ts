@@ -1,5 +1,5 @@
 import { Repository } from "typeorm";
-import { NotFoundError } from "@/app/errors";
+import { ConflictError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 
@@ -21,7 +21,7 @@ export class UnblockProfileHandler {
         });
 
         if (!block) {
-            throw new NotFoundError(`Block between profiles not found`);
+            throw new ConflictError(`Block between profiles not found`);
         }
 
         // Remove the block

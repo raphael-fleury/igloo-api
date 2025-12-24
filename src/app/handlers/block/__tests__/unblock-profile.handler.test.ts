@@ -1,29 +1,29 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
 import { UnblockProfileHandler } from "../unblock-profile.handler";
-import { Block } from "@/database/entities/block";
-import { NotFoundError } from "@/app/errors";
+import { ConflictError } from "@/app/errors";
+import { ProfileInteraction } from "@/database/entities/profile-interaction";
 
 describe("UnblockProfileHandler", () => {
     let handler: UnblockProfileHandler;
-    let mockBlockRepository: Repository<Block>;
+    let mockProfileInteractionRepository: Repository<ProfileInteraction>;
 
     beforeEach(() => {
-        mockBlockRepository = {
+        mockProfileInteractionRepository = {
             findOne: mock(() => Promise.resolve(null)),
             remove: mock(() => Promise.resolve())
         } as any;
 
-        handler = new UnblockProfileHandler(mockBlockRepository);
+        handler = new UnblockProfileHandler(mockProfileInteractionRepository);
     });
 
     it("should unblock profile successfully when block exists", async () => {
         // Arrange
         const blockerProfileId = "blocker-id";
         const blockedProfileId = "blocked-id";
-        const existingBlock = { id: "block-id" } as Block;
+        const existingBlock = { id: "block-id" } as ProfileInteraction;
 
-        mockBlockRepository.findOne = mock(() => Promise.resolve(existingBlock));
+        mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(existingBlock));
 
         // Act
         const result = await handler.handle(blockerProfileId, blockedProfileId);
@@ -31,19 +31,19 @@ describe("UnblockProfileHandler", () => {
         // Assert
         expect(result.message).toBe("Profile unblocked successfully");
         expect(result.unblockedAt).toBeInstanceOf(Date);
-        expect(mockBlockRepository.remove).toHaveBeenCalledWith(existingBlock);
+        expect(mockProfileInteractionRepository.remove).toHaveBeenCalledWith(existingBlock);
     });
 
-    it("should throw NotFoundError when block does not exist", async () => {
+    it("should throw ConflictError when block does not exist", async () => {
         // Arrange
         const blockerProfileId = "blocker-id";
         const blockedProfileId = "blocked-id";
 
-        mockBlockRepository.findOne = mock(() => Promise.resolve(null));
+        mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(null));
 
         // Act & Assert
         expect(async () => {
             await handler.handle(blockerProfileId, blockedProfileId);
-        }).toThrow(NotFoundError);
+        }).toThrow(ConflictError);
     });
 });
