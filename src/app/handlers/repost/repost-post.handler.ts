@@ -3,9 +3,9 @@ import { NotFoundError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
 import { Post } from "@/database/entities/post";
-import { User } from "@/database/entities/user";
-import { Profile } from "@/database/entities/profile";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
+import { UserDto } from "@/app/dtos/user.dtos";
+import { ProfileDto } from "@/app/dtos/profile.dtos";
 
 export class RepostPostHandler {
     constructor(
@@ -22,7 +22,7 @@ export class RepostPostHandler {
         );
     }
 
-    async handle(postId: string, user: User, profile: Profile) {
+    async handle(postId: string, user: UserDto, profile: ProfileDto) {
         // Validations
         const post = await this.postRepository.findOne({
             where: { id: postId },

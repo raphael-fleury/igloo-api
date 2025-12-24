@@ -1,15 +1,13 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
-import { RepostPostHandler } from "../repost-post.handler";
 import { zocker } from "zocker";
+import { RepostPostHandler } from "../repost-post.handler";
 import { userDto } from "@/app/dtos/user.dtos";
 import { profileDto } from "@/app/dtos/profile.dtos";
 import { idDto } from "@/app/dtos/common.dtos";
 import { postDto } from "@/app/dtos/post.dtos";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
 import { Post } from "@/database/entities/post";
-import { User } from "@/database/entities/user";
-import { Profile } from "@/database/entities/profile";
 import { NotFoundError, BlockedError } from "@/app/errors";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 
@@ -41,9 +39,9 @@ describe("RepostPostHandler", () => {
         // Arrange
         const postData = zocker(postDto).generate();
         const postId = postData.id;
-        const user = zocker(userDto).generate() as User;
-        const profile = zocker(profileDto).generate() as Profile;
-        const postAuthorProfile = { id: postData.profileId } as Profile;
+        const user = zocker(userDto).generate();
+        const profile = zocker(profileDto).generate();
+        const postAuthorProfile = zocker(profileDto).generate();
         const mockPost = {
             id: postId,
             profile: postAuthorProfile,
@@ -85,8 +83,8 @@ describe("RepostPostHandler", () => {
     it("should throw NotFoundError when post does not exist", async () => {
         // Arrange
         const postId = zocker(idDto).generate();
-        const user = zocker(userDto).generate() as User;
-        const profile = zocker(profileDto).generate() as Profile;
+        const user = zocker(userDto).generate();
+        const profile = zocker(profileDto).generate();
 
         mockPostRepository.findOne = mock(() => Promise.resolve(null));
 
@@ -101,9 +99,9 @@ describe("RepostPostHandler", () => {
         // Arrange
         const postData = zocker(postDto).generate();
         const postId = postData.id;
-        const user = zocker(userDto).generate() as User;
-        const profile = zocker(profileDto).generate() as Profile;
-        const postAuthorProfile = { id: postData.profileId } as Profile;
+        const user = zocker(userDto).generate();
+        const profile = zocker(profileDto).generate();
+        const postAuthorProfile = zocker(profileDto).generate();
         const mockPost = {
             id: postId,
             profile: postAuthorProfile,
@@ -127,9 +125,9 @@ describe("RepostPostHandler", () => {
         // Arrange
         const postData = zocker(postDto).generate();
         const postId = postData.id;
-        const user = zocker(userDto).generate() as User;
-        const profile = zocker(profileDto).generate() as Profile;
-        const postAuthorProfile = { id: postData.profileId } as Profile;
+        const user = zocker(userDto).generate();
+        const profile = zocker(profileDto).generate();
+        const postAuthorProfile = zocker(profileDto).generate();
         const mockPost = {
             id: postId,
             profile: postAuthorProfile,
@@ -153,9 +151,9 @@ describe("RepostPostHandler", () => {
         // Arrange
         const postData = zocker(postDto).generate();
         const postId = postData.id;
-        const user = zocker(userDto).generate() as User;
-        const profile = zocker(profileDto).generate() as Profile;
-        const postAuthorProfile = { id: postData.profileId } as Profile;
+        const user = zocker(userDto).generate();
+        const profile = zocker(profileDto).generate();
+        const postAuthorProfile = zocker(profileDto).generate();
         const mockPost = {
             id: postId,
             profile: postAuthorProfile,
