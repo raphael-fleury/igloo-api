@@ -8,11 +8,14 @@ import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/
 export class GetProfileByIdHandler {
     constructor(
         private readonly profileRepository: Repository<Profile>,
-        private readonly profileInteractionRepository: Repository<ProfileInteraction> = appDataSource.getRepository(ProfileInteraction)
+        private readonly profileInteractionRepository: Repository<ProfileInteraction>
     ) { }
 
     static get default() {
-        return new GetProfileByIdHandler(appDataSource.getRepository(Profile));
+        return new GetProfileByIdHandler(
+            appDataSource.getRepository(Profile),
+            appDataSource.getRepository(ProfileInteraction)
+        );
     }
 
     async handle(id: string, viewerProfileId?: string | null): Promise<ProfileDto | DetailedProfileDto> {
@@ -28,51 +31,33 @@ export class GetProfileByIdHandler {
             return parsed;
         }
 
-        const [blocksMe, blocked, followsMe, followed, muted] = await Promise.all([
-            this.profileInteractionRepository.exists({
-                where: {
-                    sourceProfile: { id },
-                    targetProfile: { id: viewerProfileId },
-                    interactionType: ProfileInteractionType.Block
-                }
-            }),
-            this.profileInteractionRepository.exists({
-                where: {
-                    sourceProfile: { id: viewerProfileId },
-                    targetProfile: { id },
-                    interactionType: ProfileInteractionType.Block
-                }
-            }),
-            this.profileInteractionRepository.exists({
-                where: {
-                    sourceProfile: { id },
-                    targetProfile: { id: viewerProfileId },
-                    interactionType: ProfileInteractionType.Follow
-                }
-            }),
-            this.profileInteractionRepository.exists({
-                where: {
-                    sourceProfile: { id: viewerProfileId },
-                    targetProfile: { id },
-                    interactionType: ProfileInteractionType.Follow
-                }
-            }),
-            this.profileInteractionRepository.exists({
-                where: {
-                    sourceProfile: { id: viewerProfileId },
-                    targetProfile: { id },
-                    interactionType: ProfileInteractionType.Mute
-                }
-            }),
-        ]);
+        const interactions = await this.profileInteractionRepository.find({
+            select: ["interactionType", "sourceProfile", "targetProfile"],
+            where: [
+                { sourceProfile: { id }, targetProfile: { id: viewerProfileId } },
+                { sourceProfile: { id: viewerProfileId }, targetProfile: { id } },
+            ]
+        });
+
+        const isFromViewer = (i: ProfileInteraction) => i.sourceProfile.id === viewerProfileId;
+        const isFromTarget = (i: ProfileInteraction) => i.sourceProfile.id === id;
+        const has = (type: ProfileInteractionType, from: "viewer" | "target") =>
+            interactions.some(i =>
+                i.interactionType === type &&
+                (from === "viewer" ? isFromViewer(i) : isFromTarget(i))
+            );
+
+        const relations = {
+            blocksMe: has(ProfileInteractionType.Block, "target"),
+            blocked: has(ProfileInteractionType.Block, "viewer"),
+            followsMe: has(ProfileInteractionType.Follow, "target"),
+            followed: has(ProfileInteractionType.Follow, "viewer"),
+            muted: has(ProfileInteractionType.Mute, "viewer"),
+        };
 
         return {
             ...parsed,
-            blocksMe,
-            blocked,
-            followsMe,
-            followed,
-            muted,
+            ...relations
         };
     }
 }

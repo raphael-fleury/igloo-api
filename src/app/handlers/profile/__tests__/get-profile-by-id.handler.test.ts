@@ -5,18 +5,22 @@ import { GetProfileByIdHandler } from "../get-profile-by-id.handler";
 import { Profile } from "@/database/entities/profile";
 import { NotFoundError } from "@/app/errors";
 import { DetailedProfileDto, profileDto } from "@/app/dtos/profile.dtos";
-import { ProfileInteraction } from "@/database/entities/profile-interaction";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { idDto } from "@/app/dtos/common.dtos";
 
 describe("GetProfileByIdHandler", () => {
     let handler: GetProfileByIdHandler;
     let mockRepository: Repository<Profile>;
+    let mockInteractionRepository: Repository<ProfileInteraction>;
 
     beforeEach(() => {
         mockRepository = {
             findOneBy: mock(() => Promise.resolve(null)),
         } as any;
-        handler = new GetProfileByIdHandler(mockRepository);
+        mockInteractionRepository = {
+            find: mock(() => Promise.resolve([])),
+        } as any;
+        handler = new GetProfileByIdHandler(mockRepository, mockInteractionRepository);
     });
 
     it("should return profile when profile exists", async () => {
@@ -24,7 +28,7 @@ describe("GetProfileByIdHandler", () => {
         const mockProfileData = zocker(profileDto).generate();
         const mockProfile = mockProfileData as Profile;
         const profileId = mockProfile.id;
-        
+
         mockRepository.findOneBy = mock(() => Promise.resolve(mockProfile));
 
         // Act
@@ -71,35 +75,28 @@ describe("GetProfileByIdHandler", () => {
         const targetProfile = targetProfileData as Profile;
         const targetProfileId = targetProfile.id;
 
-        const mockInteractionRepository: Repository<ProfileInteraction> = {
-            exists: mock()
-                // blocksMe: target blocks viewer
-                .mockResolvedValueOnce(true)
-                // blocked: viewer blocks target
-                .mockResolvedValueOnce(false)
-                // followsMe: target follows viewer
-                .mockResolvedValueOnce(true)
-                // followed: viewer follows target
-                .mockResolvedValueOnce(false)
-                // muted: viewer mutes target
-                .mockResolvedValueOnce(true)
-        } as any;
-
         mockRepository.findOneBy = mock(() => Promise.resolve(targetProfile));
-
-        const handlerWithInteractions = new GetProfileByIdHandler(
-            mockRepository,
-            mockInteractionRepository
-        );
+        mockInteractionRepository.find = mock().mockResolvedValue([
+            {
+                interactionType: ProfileInteractionType.Block,
+                sourceProfile: { id: targetProfileId },
+                targetProfile: { id: viewerProfileId },
+            },
+            {
+                interactionType: ProfileInteractionType.Mute,
+                sourceProfile: { id: viewerProfileId },
+                targetProfile: { id: targetProfileId },
+            },
+        ]);
 
         // Act
-        const result = await handlerWithInteractions.handle(targetProfileId, viewerProfileId) as DetailedProfileDto;
+        const result = await handler.handle(targetProfileId, viewerProfileId) as DetailedProfileDto;
 
         // Assert
         expect(result.id).toBe(targetProfileId);
         expect(result.blocksMe).toBe(true);
         expect(result.blocked).toBe(false);
-        expect(result.followsMe).toBe(true);
+        expect(result.followsMe).toBe(false);
         expect(result.followed).toBe(false);
         expect(result.muted).toBe(true);
         expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: targetProfileId });
