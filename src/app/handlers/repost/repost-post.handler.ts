@@ -1,24 +1,24 @@
 import { Repository } from "typeorm";
-import { NotFoundError, BlockedError } from "@/app/errors";
+import { NotFoundError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
-import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { Post } from "@/database/entities/post";
 import { User } from "@/database/entities/user";
 import { Profile } from "@/database/entities/profile";
+import { InteractionValidator } from "@/app/validators/interaction.validator";
 
 export class RepostPostHandler {
     constructor(
         private readonly postInteractionRepository: Repository<PostInteraction>,
         private readonly postRepository: Repository<Post>,
-        private readonly profileInteractionRepository: Repository<ProfileInteraction>
+        private readonly interactionValidator: InteractionValidator
     ) { }
 
     static get default() {
         return new RepostPostHandler(
             appDataSource.getRepository(PostInteraction),
             appDataSource.getRepository(Post),
-            appDataSource.getRepository(ProfileInteraction)
+            InteractionValidator.default
         );
     }
 
@@ -33,31 +33,8 @@ export class RepostPostHandler {
             throw new NotFoundError(`Post with id ${postId} not found`);
         }
 
-        // Check if the user has blocked the author of the post
-        const blocked = await this.profileInteractionRepository.findOne({
-            where: {
-                sourceProfile: { id: profile.id },
-                targetProfile: { id: post.profile.id },
-                interactionType: ProfileInteractionType.Block
-            }
-        });
-
-        if (blocked) {
-            throw new BlockedError(`You cannot repost a post from a profile that you have blocked`);
-        }
-
-        // Check if the author of the post has blocked the user
-        const block = await this.profileInteractionRepository.findOne({
-            where: {
-                sourceProfile: { id: post.profile.id },
-                targetProfile: { id: profile.id },
-                interactionType: ProfileInteractionType.Block
-            }
-        });
-
-        if (block) {
-            throw new BlockedError(`You cannot repost a post from a profile that has blocked you`);
-        }
+        // Check if profiles block each other
+        await this.interactionValidator.assertProfilesDoesNotBlockEachOther(profile.id, post.profile.id);
 
         // Check if already reposted
         const existingRepost = await this.postInteractionRepository.findOne({

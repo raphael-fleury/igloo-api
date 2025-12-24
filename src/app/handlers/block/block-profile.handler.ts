@@ -1,33 +1,25 @@
 import { Repository } from "typeorm";
-import { NotFoundError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
-import { Profile } from "@/database/entities/profile";
+import { InteractionValidator } from "@/app/validators/interaction.validator";
 
 export class BlockProfileHandler {
     constructor(
         private readonly profileInteractionRepository: Repository<ProfileInteraction>,
-        private readonly profileRepository: Repository<Profile>
+        private readonly interactionValidator: InteractionValidator
     ) { }
 
     static get default() {
         return new BlockProfileHandler(
             appDataSource.getRepository(ProfileInteraction),
-            appDataSource.getRepository(Profile)
+            InteractionValidator.default
         );
     }
 
     async handle(blockerProfileId: string, blockedProfileId: string) {
         // Validations
-        const blockerProfile = await this.profileRepository.findOneBy({ id: blockerProfileId });
-        if (!blockerProfile) {
-            throw new NotFoundError(`Blocker profile with id ${blockerProfileId} not found`);
-        }
-
-        const blockedProfile = await this.profileRepository.findOneBy({ id: blockedProfileId });
-        if (!blockedProfile) {
-            throw new NotFoundError(`Blocked profile with id ${blockedProfileId} not found`);
-        }
+        const blockerProfile = await this.interactionValidator.assertProfileExists(blockerProfileId);
+        const blockedProfile = await this.interactionValidator.assertProfileExists(blockedProfileId);
 
         const existingBlock = await this.profileInteractionRepository.findOne({
             where: {

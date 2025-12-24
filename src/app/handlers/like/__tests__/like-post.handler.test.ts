@@ -3,16 +3,16 @@ import { Repository } from "typeorm";
 import { LikePostHandler } from "../like-post.handler";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
 import { Post } from "@/database/entities/post";
-import { Block } from "@/database/entities/block";
 import { User } from "@/database/entities/user";
 import { Profile } from "@/database/entities/profile";
 import { NotFoundError, BlockedError } from "@/app/errors";
+import { InteractionValidator } from "@/app/validators/interaction.validator";
 
 describe("LikePostHandler", () => {
     let handler: LikePostHandler;
     let mockPostInteractionRepository: Repository<PostInteraction>;
     let mockPostRepository: Repository<Post>;
-    let mockBlockRepository: Repository<Block>;
+    let mockInteractionValidator: InteractionValidator;
 
     beforeEach(() => {
         mockPostInteractionRepository = {
@@ -25,11 +25,11 @@ describe("LikePostHandler", () => {
             findOne: mock(() => Promise.resolve(null))
         } as any;
 
-        mockBlockRepository = {
-            findOne: mock(() => Promise.resolve(null))
+        mockInteractionValidator = {
+            assertProfilesDoesNotBlockEachOther: mock(() => Promise.resolve())
         } as any;
 
-        handler = new LikePostHandler(mockPostInteractionRepository, mockPostRepository, mockBlockRepository);
+        handler = new LikePostHandler(mockPostInteractionRepository, mockPostRepository, mockInteractionValidator);
     });
 
     it("should like post successfully when post exists and no blocks", async () => {
@@ -58,7 +58,6 @@ describe("LikePostHandler", () => {
         } as PostInteraction;
 
         mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
-        mockBlockRepository.findOne = mock(() => Promise.resolve(null));
         mockPostInteractionRepository.findOne = mock(() => Promise.resolve(null));
         mockPostInteractionRepository.save = mock(() => Promise.resolve(createdLike)) as any;
 
@@ -84,7 +83,7 @@ describe("LikePostHandler", () => {
         const user = { id: "b316b948-8f6c-4284-8b38-a68ca4d3dee0" } as User;
         const profile = { id: "14ae85e0-ec24-4c44-bfc7-1d0ba895f51d" } as Profile;
 
-        mockPostRepository.findOneBy = mock(() => Promise.resolve(null));
+        mockPostRepository.findOne = mock(() => Promise.resolve(null));
 
         // Act & Assert
         expect(handler.handle(postId, user, profile))
@@ -108,16 +107,10 @@ describe("LikePostHandler", () => {
             updatedAt: new Date()
         } as Post;
 
-        const blockRecord = {
-            id: "block-id",
-            blockerProfile: profile,
-            blockedProfile: postAuthorProfile,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        } as Block;
-
         mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
-        mockBlockRepository.findOne = mock(() => Promise.resolve(blockRecord));
+        mockInteractionValidator.assertProfilesDoesNotBlockEachOther = mock(() => {
+            throw new BlockedError("You cannot interact with a profile you have blocked");
+        });
 
         // Act & Assert
         expect(handler.handle(postId, user, profile))
@@ -140,18 +133,10 @@ describe("LikePostHandler", () => {
             updatedAt: new Date()
         } as Post;
 
-        const blockRecord = {
-            id: "block-id",
-            blockerProfile: postAuthorProfile,
-            blockedProfile: profile,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        } as Block;
-
         mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
-        mockBlockRepository.findOne = mock()
-            .mockResolvedValueOnce(null)
-            .mockResolvedValueOnce(blockRecord);
+        mockInteractionValidator.assertProfilesDoesNotBlockEachOther = mock(() => {
+            throw new BlockedError("You cannot interact with a profile that has blocked you");
+        });
 
         // Act & Assert
         expect(handler.handle(postId, user, profile))
@@ -185,7 +170,6 @@ describe("LikePostHandler", () => {
         } as PostInteraction;
 
         mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
-        mockBlockRepository.findOne = mock(() => Promise.resolve(null));
         mockPostInteractionRepository.findOne = mock(() => Promise.resolve(existingLike));
 
         // Act

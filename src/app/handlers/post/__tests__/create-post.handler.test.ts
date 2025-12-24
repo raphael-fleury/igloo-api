@@ -5,12 +5,12 @@ import { BlockedError, NotFoundError } from "@/app/errors";
 import { Post } from "@/database/entities/post";
 import { User } from "@/database/entities/user";
 import { Profile } from "@/database/entities/profile";
-import { Block } from "@/database/entities/block";
+import { InteractionValidator } from "@/app/validators/interaction.validator";
 
 describe("CreatePostHandler", () => {
     let handler: CreatePostHandler;
     let mockPostRepository: Repository<Post>;
-    let mockBlockRepository: Repository<Block>;
+    let mockInteractionValidator: InteractionValidator;
 
     beforeEach(() => {
         mockPostRepository = {
@@ -19,11 +19,11 @@ describe("CreatePostHandler", () => {
             save: mock((data) => Promise.resolve({ ...data, id: "post-id", createdAt: new Date(), updatedAt: new Date() }))
         } as any;
 
-        mockBlockRepository = {
-            findOne: mock(() => Promise.resolve(null))
+        mockInteractionValidator = {
+            assertProfilesDoesNotBlockEachOther: mock(() => Promise.resolve())
         } as any;
 
-        handler = new CreatePostHandler(mockPostRepository, mockBlockRepository);
+        handler = new CreatePostHandler(mockPostRepository, mockInteractionValidator);
     });
 
     it("should create post successfully when user and profile exist", async () => {
@@ -99,16 +99,13 @@ describe("CreatePostHandler", () => {
             profile: { id: repliedPostAuthorProfileId }
         } as any));
 
-        mockBlockRepository.findOne = mock(() => Promise.resolve({
-            id: "block-id",
-            blockerProfile: { id: profileId },
-            blockedProfile: { id: repliedPostAuthorProfileId }
-        } as any));
+        mockInteractionValidator.assertProfilesDoesNotBlockEachOther = mock(() => {
+            throw new BlockedError("You cannot interact with a profile you have blocked");
+        });
 
         // Act & Assert
-        expect(async () => {
-            await handler.handle(createPostData, { id: userId } as User, { id: profileId } as Profile);
-        }).toThrowError(BlockedError);
+        expect(handler.handle(createPostData, { id: userId } as User, { id: profileId } as Profile))
+            .rejects.toThrow(BlockedError);
     });
 
     it("should throw BlockedError when author of the replied post has blocked the user", async () => {
@@ -127,16 +124,13 @@ describe("CreatePostHandler", () => {
             profile: { id: repliedPostAuthorProfileId }
         } as any));
 
-        mockBlockRepository.findOne = mock(() => Promise.resolve({
-            id: "block-id",
-            blockerProfile: { id: repliedPostAuthorProfileId },
-            blockedProfile: { id: profileId }
-        } as any));
+        mockInteractionValidator.assertProfilesDoesNotBlockEachOther = mock(() => {
+            throw new BlockedError("You cannot interact with a profile that has blocked you");
+        });
 
         // Act & Assert
-        expect(async () => {
-            await handler.handle(createPostData, { id: userId } as User, { id: profileId } as Profile);
-        }).toThrowError(BlockedError);
+        expect(handler.handle(createPostData, { id: userId } as User, { id: profileId } as Profile))
+            .rejects.toThrow(BlockedError);
     });
 
     it("should throw NotFoundError when quoted post does not exist", async () => {
@@ -175,16 +169,13 @@ describe("CreatePostHandler", () => {
             profile: { id: quotedPostAuthorProfileId }
         } as any));
 
-        mockBlockRepository.findOne = mock(() => Promise.resolve({
-            id: "block-id",
-            blockerProfile: { id: profileId },
-            blockedProfile: { id: quotedPostAuthorProfileId }
-        } as any));
+        mockInteractionValidator.assertProfilesDoesNotBlockEachOther = mock(() => {
+            throw new BlockedError("You cannot interact with a profile you have blocked");
+        });
 
         // Act & Assert
-        expect(async () => {
-            await handler.handle(createPostData, { id: userId } as User, { id: profileId } as Profile);
-        }).toThrowError(BlockedError);
+        expect(handler.handle(createPostData, { id: userId } as User, { id: profileId } as Profile))
+            .rejects.toThrow(BlockedError);
     });
 
     it("should throw BlockedError when author of the quoted post has blocked the user", async () => {
@@ -203,16 +194,13 @@ describe("CreatePostHandler", () => {
             profile: { id: quotedPostAuthorProfileId }
         } as any));
 
-        mockBlockRepository.findOne = mock(() => Promise.resolve({
-            id: "block-id",
-            blockerProfile: { id: quotedPostAuthorProfileId },
-            blockedProfile: { id: profileId }
-        } as any));
+        mockInteractionValidator.assertProfilesDoesNotBlockEachOther = mock(() => {
+            throw new BlockedError("You cannot interact with a profile that has blocked you");
+        });
 
         // Act & Assert
-        expect(async () => {
-            await handler.handle(createPostData, { id: userId } as User, { id: profileId } as Profile);
-        }).toThrowError(BlockedError);
+        expect(handler.handle(createPostData, { id: userId } as User, { id: profileId } as Profile))
+            .rejects.toThrow(BlockedError);
     });
 
     it("should create post with quote successfully when quoted post exists and no blocks", async () => {
@@ -229,7 +217,6 @@ describe("CreatePostHandler", () => {
         } as Post;
 
         mockPostRepository.findOneBy = mock(() => Promise.resolve(quotedPost));
-        mockBlockRepository.findOne = mock(() => Promise.resolve(null));
         mockPostRepository.save = mock((data) => Promise.resolve({
             id: "post-id",
             user,

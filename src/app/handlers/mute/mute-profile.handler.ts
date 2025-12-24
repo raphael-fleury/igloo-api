@@ -1,37 +1,30 @@
 import { Repository } from "typeorm";
-import { NotFoundError, SelfInteractionError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { Profile } from "@/database/entities/profile";
+import { InteractionValidator } from "@/app/validators/interaction.validator";
 
 export class MuteProfileHandler {
     constructor(
         private readonly profileInteractionRepository: Repository<ProfileInteraction>,
-        private readonly profileRepository: Repository<Profile>
+        private readonly profileRepository: Repository<Profile>,
+        private readonly interactionValidator: InteractionValidator
     ) { }
 
     static get default() {
         return new MuteProfileHandler(
             appDataSource.getRepository(ProfileInteraction),
-            appDataSource.getRepository(Profile)
+            appDataSource.getRepository(Profile),
+            InteractionValidator.default
         );
     }
 
     async handle(muterProfileId: string, mutedProfileId: string) {
         // Validations
-        if (muterProfileId === mutedProfileId) {
-            throw new SelfInteractionError("A profile cannot mute itself");
-        }
+        await this.interactionValidator.assertProfilesAreNotSame(muterProfileId, mutedProfileId);
+        const muterProfile = await this.interactionValidator.assertProfileExists(muterProfileId);
+        const mutedProfile = await this.interactionValidator.assertProfileExists(mutedProfileId);
 
-        const muterProfile = await this.profileRepository.findOneBy({ id: muterProfileId });
-        if (!muterProfile) {
-            throw new NotFoundError(`Muter profile with id ${muterProfileId} not found`);
-        }
-
-        const mutedProfile = await this.profileRepository.findOneBy({ id: mutedProfileId });
-        if (!mutedProfile) {
-            throw new NotFoundError(`Muted profile with id ${mutedProfileId} not found`);
-        }
 
         const existingMute = await this.profileInteractionRepository.findOne({
             where: {

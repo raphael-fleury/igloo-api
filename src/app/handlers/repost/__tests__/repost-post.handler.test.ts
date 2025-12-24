@@ -3,16 +3,16 @@ import { Repository } from "typeorm";
 import { RepostPostHandler } from "../repost-post.handler";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
 import { Post } from "@/database/entities/post";
-import { Block } from "@/database/entities/block";
 import { User } from "@/database/entities/user";
 import { Profile } from "@/database/entities/profile";
 import { NotFoundError, BlockedError } from "@/app/errors";
+import { InteractionValidator } from "@/app/validators/interaction.validator";
 
 describe("RepostPostHandler", () => {
     let handler: RepostPostHandler;
     let mockPostInteractionRepository: Repository<PostInteraction>;
     let mockPostRepository: Repository<Post>;
-    let mockBlockRepository: Repository<Block>;
+    let mockInteractionValidator: InteractionValidator;
 
     beforeEach(() => {
         mockPostInteractionRepository = {
@@ -25,11 +25,11 @@ describe("RepostPostHandler", () => {
             findOne: mock(() => Promise.resolve(null))
         } as any;
 
-        mockBlockRepository = {
-            findOne: mock(() => Promise.resolve(null))
+        mockInteractionValidator = {
+            assertProfilesDoesNotBlockEachOther: mock(() => Promise.resolve())
         } as any;
 
-        handler = new RepostPostHandler(mockPostInteractionRepository, mockPostRepository, mockBlockRepository);
+        handler = new RepostPostHandler(mockPostInteractionRepository, mockPostRepository, mockInteractionValidator);
     });
 
     it("should repost post successfully when post exists and no blocks", async () => {
@@ -58,7 +58,6 @@ describe("RepostPostHandler", () => {
         } as PostInteraction;
 
         mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
-        mockBlockRepository.findOne = mock(() => Promise.resolve(null));
         mockPostInteractionRepository.findOne = mock(() => Promise.resolve(null));
         mockPostInteractionRepository.save = mock(() => Promise.resolve(createdRepost)) as any;
 
@@ -108,16 +107,10 @@ describe("RepostPostHandler", () => {
             updatedAt: new Date()
         } as Post;
 
-        const blockRecord = {
-            id: "block-id",
-            blockerProfile: profile,
-            blockedProfile: postAuthorProfile,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        } as Block;
-
         mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
-        mockBlockRepository.findOne = mock(() => Promise.resolve(blockRecord));
+        mockInteractionValidator.assertProfilesDoesNotBlockEachOther = mock(() => {
+            throw new BlockedError("You cannot interact with a profile you have blocked");
+        });
 
         // Act & Assert
         expect(handler.handle(postId, user, profile))
@@ -140,18 +133,10 @@ describe("RepostPostHandler", () => {
             updatedAt: new Date()
         } as Post;
 
-        const blockRecord = {
-            id: "block-id",
-            blockerProfile: postAuthorProfile,
-            blockedProfile: profile,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        } as Block;
-
         mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
-        mockBlockRepository.findOne = mock()
-            .mockResolvedValueOnce(null)
-            .mockResolvedValueOnce(blockRecord);
+        mockInteractionValidator.assertProfilesDoesNotBlockEachOther = mock(() => {
+            throw new BlockedError("You cannot interact with a profile that has blocked you");
+        });
 
         // Act & Assert
         expect(handler.handle(postId, user, profile))
@@ -185,7 +170,6 @@ describe("RepostPostHandler", () => {
         } as PostInteraction;
 
         mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
-        mockBlockRepository.findOne = mock(() => Promise.resolve(null));
         mockPostInteractionRepository.findOne = mock(() => Promise.resolve(existingRepost));
 
         // Act

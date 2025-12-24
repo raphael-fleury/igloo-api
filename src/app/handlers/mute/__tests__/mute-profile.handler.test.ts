@@ -2,18 +2,20 @@ import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
 import { zocker } from "zocker";
 import { MuteProfileHandler } from "../mute-profile.handler";
-import { Mute } from "@/database/entities/mute";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { Profile } from "@/database/entities/profile";
 import { NotFoundError, SelfInteractionError } from "@/app/errors";
 import { profileDto } from "@/app/dtos/profile.dtos";
+import { InteractionValidator } from "@/app/validators/interaction.validator";
 
 describe("MuteProfileHandler", () => {
     let handler: MuteProfileHandler;
-    let mockMuteRepository: Repository<Mute>;
+    let mockProfileInteractionRepository: Repository<ProfileInteraction>;
     let mockProfileRepository: Repository<Profile>;
+    let mockInteractionValidator: InteractionValidator;
 
     beforeEach(() => {
-        mockMuteRepository = {
+        mockProfileInteractionRepository = {
             findOne: mock(() => Promise.resolve(null)),
             create: mock(data => data),
             save: mock(data => Promise.resolve(data))
@@ -23,7 +25,12 @@ describe("MuteProfileHandler", () => {
             findOneBy: mock(() => Promise.resolve(null))
         } as any;
 
-        handler = new MuteProfileHandler(mockMuteRepository, mockProfileRepository);
+        mockInteractionValidator = {
+            assertProfilesAreNotSame: mock(() => Promise.resolve()),
+            assertProfileExists: mock(() => Promise.resolve({ id: "profile-id" } as Profile))
+        } as any;
+
+        handler = new MuteProfileHandler(mockProfileInteractionRepository, mockProfileRepository, mockInteractionValidator);
     });
 
     it("should mute profile successfully when both profiles exist", async () => {
@@ -36,18 +43,19 @@ describe("MuteProfileHandler", () => {
 
         const createdMute = {
             id: "mute-id",
-            muterProfile,
-            mutedProfile,
+            sourceProfile: muterProfile,
+            targetProfile: mutedProfile,
+            interactionType: ProfileInteractionType.Mute,
             createdAt: new Date(),
             updatedAt: new Date()
-        } as Mute;
+        } as ProfileInteraction;
 
-        mockProfileRepository.findOneBy = mock()
-            .mockReturnValueOnce(Promise.resolve(muterProfile))
-            .mockReturnValueOnce(Promise.resolve(mutedProfile));
+        mockInteractionValidator.assertProfileExists = mock()
+            .mockResolvedValueOnce(muterProfile)
+            .mockResolvedValueOnce(mutedProfile);
 
-        mockMuteRepository.findOne = mock(() => Promise.resolve(null));
-        mockMuteRepository.save = mock(() => Promise.resolve(createdMute)) as any;
+        mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(null));
+        mockProfileInteractionRepository.save = mock(() => Promise.resolve(createdMute)) as any;
 
         // Act
         const result = await handler.handle(muterProfileId, mutedProfileId);
@@ -55,7 +63,7 @@ describe("MuteProfileHandler", () => {
         // Assert
         expect(result.message).toBe("Profile muted successfully");
         expect(result.mutedAt).toEqual(createdMute.createdAt);
-        expect(mockMuteRepository.save).toHaveBeenCalled();
+        expect(mockProfileInteractionRepository.save).toHaveBeenCalled();
     });
 
     it("should throw NotFoundError when muter profile does not exist", async () => {
@@ -63,13 +71,12 @@ describe("MuteProfileHandler", () => {
         const muterProfileId = "123e4567-e89b-12d3-a456-426614174000";
         const mutedProfileId = "123e4567-e89b-12d3-a456-426614174001";
 
-        mockProfileRepository.findOneBy = mock(() => Promise.resolve(null));
+        mockInteractionValidator.assertProfileExists = mock(() => {
+            throw new NotFoundError(`Profile with id ${muterProfileId} not found`);
+        });
 
         // Act & Assert
         expect(handler.handle(muterProfileId, mutedProfileId)).rejects.toThrow(NotFoundError);
-        expect(handler.handle(muterProfileId, mutedProfileId)).rejects.toThrow(
-            `Muter profile with id ${muterProfileId} not found`
-        );
     });
 
     it("should throw NotFoundError when muted profile does not exist", async () => {
@@ -79,18 +86,15 @@ describe("MuteProfileHandler", () => {
         
         const muterProfile = zocker(profileDto).generate();
 
-        mockProfileRepository.findOneBy = mock(({ id }) => {
-            if (id === muterProfileId) {
+        mockInteractionValidator.assertProfileExists = mock((profileId: string) => {
+            if (profileId === muterProfileId) {
                 return Promise.resolve(muterProfile);
             }
-            return Promise.resolve(null);
-        })
+            throw new NotFoundError(`Profile with id ${mutedProfileId} not found`);
+        });
 
         // Act & Assert
         expect(handler.handle(muterProfileId, mutedProfileId)).rejects.toThrow(NotFoundError);
-        expect(handler.handle(muterProfileId, mutedProfileId)).rejects.toThrow(
-            `Muted profile with id ${mutedProfileId} not found`
-        );
     });
 
     it("should return existing mute when already muted", async () => {
@@ -102,17 +106,18 @@ describe("MuteProfileHandler", () => {
         const mutedProfile = zocker(profileDto).generate();
         const existingMute = {
             id: "mute-id",
-            muterProfile,
-            mutedProfile,
+            sourceProfile: muterProfile,
+            targetProfile: mutedProfile,
+            interactionType: ProfileInteractionType.Mute,
             createdAt: new Date("2024-01-01"),
             updatedAt: new Date("2024-01-01")
-        } as Mute;
+        } as ProfileInteraction;
 
-        mockProfileRepository.findOneBy = mock()
-            .mockReturnValueOnce(Promise.resolve(muterProfile))
-            .mockReturnValueOnce(Promise.resolve(mutedProfile));
+        mockInteractionValidator.assertProfileExists = mock()
+            .mockResolvedValueOnce(muterProfile)
+            .mockResolvedValueOnce(mutedProfile);
 
-        mockMuteRepository.findOne = mock(() => Promise.resolve(existingMute));
+        mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(existingMute));
 
         // Act
         const result = await handler.handle(muterProfileId, mutedProfileId);
@@ -120,18 +125,19 @@ describe("MuteProfileHandler", () => {
         // Assert
         expect(result.message).toBe("Profile is already muted");
         expect(result.mutedAt).toEqual(existingMute.createdAt);
-        expect(mockMuteRepository.save).not.toHaveBeenCalled();
+        expect(mockProfileInteractionRepository.save).not.toHaveBeenCalled();
     });
 
     it("should throw SelfInteractionError when trying to mute the same profile", async () => {
         // Arrange
         const profileId = "123e4567-e89b-12d3-a456-426614174000";
 
+        mockInteractionValidator.assertProfilesAreNotSame = mock(() => {
+            throw new SelfInteractionError("A profile cannot interact with itself");
+        });
+
         // Act & Assert
         expect(handler.handle(profileId, profileId)).rejects.toThrow(SelfInteractionError);
-        expect(handler.handle(profileId, profileId)).rejects.toThrow(
-            "A profile cannot mute itself"
-        );
-        expect(mockProfileRepository.findOneBy).not.toHaveBeenCalled();
+        expect(mockInteractionValidator.assertProfileExists).not.toHaveBeenCalled();
     });
 });

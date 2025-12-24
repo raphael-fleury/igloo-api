@@ -2,34 +2,31 @@ import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
 import { zocker } from "zocker";
 import { FollowProfileHandler } from "../follow-profile.handler";
-import { Follow } from "@/database/entities/follow";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { Profile } from "@/database/entities/profile";
-import { Block } from "@/database/entities/block";
 import { NotFoundError, SelfInteractionError, BlockedError } from "@/app/errors";
 import { profileDto } from "@/app/dtos/profile.dtos";
+import { InteractionValidator } from "@/app/validators/interaction.validator";
 
 describe("FollowProfileHandler", () => {
     let handler: FollowProfileHandler;
-    let mockFollowRepository: Repository<Follow>;
-    let mockProfileRepository: Repository<Profile>;
-    let mockBlockRepository: Repository<Block>;
+    let mockProfileInteractionRepository: Repository<ProfileInteraction>;
+    let mockInteractionValidator: InteractionValidator;
 
     beforeEach(() => {
-        mockFollowRepository = {
+        mockProfileInteractionRepository = {
             findOne: mock(() => Promise.resolve(null)),
             create: mock(data => data),
             save: mock(data => Promise.resolve(data))
         } as any;
 
-        mockProfileRepository = {
-            findOneBy: mock(() => Promise.resolve(null))
+        mockInteractionValidator = {
+            assertProfilesAreNotSame: mock(() => Promise.resolve()),
+            assertProfilesDoesNotBlockEachOther: mock(() => Promise.resolve()),
+            assertProfileExists: mock(() => Promise.resolve({ id: "profile-id" } as Profile))
         } as any;
 
-        mockBlockRepository = {
-            findOne: mock(() => Promise.resolve(null))
-        } as any;
-
-        handler = new FollowProfileHandler(mockFollowRepository, mockProfileRepository, mockBlockRepository);
+        handler = new FollowProfileHandler(mockProfileInteractionRepository, mockInteractionValidator);
     });
 
     it("should follow profile successfully when both profiles exist and no blocks", async () => {
@@ -42,19 +39,19 @@ describe("FollowProfileHandler", () => {
 
         const createdFollow = {
             id: "follow-id",
-            followerProfile,
-            followedProfile,
+            sourceProfile: followerProfile,
+            targetProfile: followedProfile,
+            interactionType: ProfileInteractionType.Follow,
             createdAt: new Date(),
             updatedAt: new Date()
-        } as Follow;
+        } as ProfileInteraction;
 
-        mockProfileRepository.findOneBy = mock()
-            .mockReturnValueOnce(Promise.resolve(followerProfile))
-            .mockReturnValueOnce(Promise.resolve(followedProfile));
+        mockInteractionValidator.assertProfileExists = mock()
+            .mockResolvedValueOnce(followerProfile)
+            .mockResolvedValueOnce(followedProfile);
 
-        mockBlockRepository.findOne = mock(() => Promise.resolve(null));
-        mockFollowRepository.findOne = mock(() => Promise.resolve(null));
-        mockFollowRepository.save = mock(() => Promise.resolve(createdFollow)) as any;
+        mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(null));
+        mockProfileInteractionRepository.save = mock(() => Promise.resolve(createdFollow)) as any;
 
         // Act
         const result = await handler.handle(followerProfileId, followedProfileId);
@@ -62,17 +59,21 @@ describe("FollowProfileHandler", () => {
         // Assert
         expect(result.message).toBe("Profile followed successfully");
         expect(result.followedAt).toEqual(createdFollow.createdAt);
-        expect(mockFollowRepository.save).toHaveBeenCalled();
+        expect(mockProfileInteractionRepository.save).toHaveBeenCalled();
     });
 
     it("should throw SelfInteractionError when trying to follow the same profile", async () => {
         // Arrange
         const profileId = "123e4567-e89b-12d3-a456-426614174000";
 
+        mockInteractionValidator.assertProfilesAreNotSame = mock(() => {
+            throw new SelfInteractionError("A profile cannot interact with itself");
+        });
+
         // Act & Assert
         expect(handler.handle(profileId, profileId))
-            .rejects.toThrow(SelfInteractionError)
-        expect(mockProfileRepository.findOneBy).not.toHaveBeenCalled();
+            .rejects.toThrow(SelfInteractionError);
+        expect(mockInteractionValidator.assertProfileExists).not.toHaveBeenCalled();
     });
 
     it("should throw NotFoundError when follower profile does not exist", async () => {
@@ -80,7 +81,9 @@ describe("FollowProfileHandler", () => {
         const followerProfileId = "123e4567-e89b-12d3-a456-426614174000";
         const followedProfileId = "123e4567-e89b-12d3-a456-426614174001";
 
-        mockProfileRepository.findOneBy = mock(() => Promise.resolve(null));
+        mockInteractionValidator.assertProfileExists = mock(() => {
+            throw new NotFoundError(`Profile with id ${followerProfileId} not found`);
+        });
 
         // Act & Assert
         expect(handler.handle(followerProfileId, followedProfileId))
@@ -94,12 +97,12 @@ describe("FollowProfileHandler", () => {
         
         const followerProfile = zocker(profileDto).generate();
 
-        mockProfileRepository.findOneBy = mock(({ id }) => {
-            if (id === followerProfileId) {
+        mockInteractionValidator.assertProfileExists = mock((profileId: string) => {
+            if (profileId === followerProfileId) {
                 return Promise.resolve(followerProfile);
             }
-            return Promise.resolve(null);
-        })
+            throw new NotFoundError(`Profile with id ${followedProfileId} not found`);
+        });
 
         // Act & Assert
         expect(handler.handle(followerProfileId, followedProfileId))
@@ -110,29 +113,10 @@ describe("FollowProfileHandler", () => {
         // Arrange
         const followerProfileId = "123e4567-e89b-12d3-a456-426614174000";
         const followedProfileId = "123e4567-e89b-12d3-a456-426614174001";
-        
-        const followerProfile = zocker(profileDto).generate();
-        const followedProfile = zocker(profileDto).generate();
 
-        const blockRecord = {
-            id: "block-id",
-            blockerProfile: followerProfile,
-            blockedProfile: followedProfile,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        } as Block;
-
-        mockProfileRepository.findOneBy = mock(({ id }) => {
-            if (id === followerProfileId) {
-                return Promise.resolve(followerProfile);
-            }
-            if (id === followedProfileId) {
-                return Promise.resolve(followedProfile);
-            }
-            return Promise.resolve(null);
+        mockInteractionValidator.assertProfilesDoesNotBlockEachOther = mock(() => {
+            throw new BlockedError("You cannot interact with a profile you have blocked");
         });
-
-        mockBlockRepository.findOne = mock(() => Promise.resolve(blockRecord));
 
         // Act & Assert
         expect(handler.handle(followerProfileId, followedProfileId))
@@ -143,31 +127,10 @@ describe("FollowProfileHandler", () => {
         // Arrange
         const followerProfileId = "123e4567-e89b-12d3-a456-426614174000";
         const followedProfileId = "123e4567-e89b-12d3-a456-426614174001";
-        
-        const followerProfile = zocker(profileDto).generate();
-        const followedProfile = zocker(profileDto).generate();
 
-        const blockRecord = {
-            id: "block-id",
-            blockerProfile: followedProfile,
-            blockedProfile: followerProfile,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        } as Block;
-
-        mockProfileRepository.findOneBy = mock(({ id }) => {
-            if (id === followerProfileId) {
-                return Promise.resolve(followerProfile);
-            }
-            if (id === followedProfileId) {
-                return Promise.resolve(followedProfile);
-            }
-            return Promise.resolve(null);
+        mockInteractionValidator.assertProfilesDoesNotBlockEachOther = mock(() => {
+            throw new BlockedError("You cannot interact with a profile that has blocked you");
         });
-
-        mockBlockRepository.findOne = mock()
-            .mockResolvedValueOnce(null)
-            .mockResolvedValueOnce(blockRecord);
 
         // Act & Assert
         expect(handler.handle(followerProfileId, followedProfileId))
@@ -183,18 +146,18 @@ describe("FollowProfileHandler", () => {
         const followedProfile = zocker(profileDto).generate();
         const existingFollow = {
             id: "follow-id",
-            followerProfile,
-            followedProfile,
+            sourceProfile: followerProfile,
+            targetProfile: followedProfile,
+            interactionType: ProfileInteractionType.Follow,
             createdAt: new Date("2024-01-01"),
             updatedAt: new Date("2024-01-01")
-        } as Follow;
+        } as ProfileInteraction;
 
-        mockProfileRepository.findOneBy = mock()
-            .mockReturnValueOnce(Promise.resolve(followerProfile))
-            .mockReturnValueOnce(Promise.resolve(followedProfile));
+        mockInteractionValidator.assertProfileExists = mock()
+            .mockResolvedValueOnce(followerProfile)
+            .mockResolvedValueOnce(followedProfile);
 
-        mockBlockRepository.findOne = mock(() => Promise.resolve(null));
-        mockFollowRepository.findOne = mock(() => Promise.resolve(existingFollow));
+        mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(existingFollow));
 
         // Act
         const result = await handler.handle(followerProfileId, followedProfileId);
@@ -202,6 +165,6 @@ describe("FollowProfileHandler", () => {
         // Assert
         expect(result.message).toBe("Profile is already followed");
         expect(result.followedAt).toEqual(existingFollow.createdAt);
-        expect(mockFollowRepository.save).not.toHaveBeenCalled();
+        expect(mockProfileInteractionRepository.save).not.toHaveBeenCalled();
     });
 });

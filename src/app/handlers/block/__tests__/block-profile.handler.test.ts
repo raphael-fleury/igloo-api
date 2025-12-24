@@ -1,34 +1,29 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
 import { BlockProfileHandler } from "../block-profile.handler";
-import { Block } from "@/database/entities/block";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { Profile } from "@/database/entities/profile";
-import { Follow } from "@/database/entities/follow";
 import { NotFoundError } from "@/app/errors";
+import { InteractionValidator } from "@/app/validators/interaction.validator";
 
 describe("BlockProfileHandler", () => {
     let handler: BlockProfileHandler;
-    let mockBlockRepository: Repository<Block>;
-    let mockProfileRepository: Repository<Profile>;
-    let mockFollowRepository: Repository<Follow>;
+    let mockProfileInteractionRepository: Repository<ProfileInteraction>;
+    let mockInteractionValidator: InteractionValidator;
 
     beforeEach(() => {
-        mockBlockRepository = {
+        mockProfileInteractionRepository = {
             findOne: mock(() => Promise.resolve(null)),
             create: mock((data) => data),
-            save: mock((data) => Promise.resolve({ ...data, id: "block-id", createdAt: new Date() }))
-        } as any;
-
-        mockProfileRepository = {
-            findOneBy: mock(() => Promise.resolve(null))
-        } as any;
-
-        mockFollowRepository = {
-            findOne: mock(() => Promise.resolve(null)),
+            save: mock((data) => Promise.resolve({ ...data, id: "block-id", createdAt: new Date() })),
             remove: mock((data) => Promise.resolve(data))
         } as any;
 
-        handler = new BlockProfileHandler(mockBlockRepository, mockProfileRepository, mockFollowRepository);
+        mockInteractionValidator = {
+            assertProfileExists: mock(() => Promise.resolve({ id: "profile-id" } as Profile))
+        } as any;
+
+        handler = new BlockProfileHandler(mockProfileInteractionRepository, mockInteractionValidator);
     });
 
     it("should block profile successfully when both profiles exist", async () => {
@@ -39,10 +34,10 @@ describe("BlockProfileHandler", () => {
         const mockBlockerProfile = { id: blockerProfileId, username: "blocker" } as Profile;
         const mockBlockedProfile = { id: blockedProfileId, username: "blocked" } as Profile;
 
-        mockProfileRepository.findOneBy = mock((criteria: any) => {
-            if (criteria.id === blockerProfileId) return Promise.resolve(mockBlockerProfile);
-            if (criteria.id === blockedProfileId) return Promise.resolve(mockBlockedProfile);
-            return Promise.resolve(null);
+        mockInteractionValidator.assertProfileExists = mock((profileId: string) => {
+            if (profileId === blockerProfileId) return Promise.resolve(mockBlockerProfile);
+            if (profileId === blockedProfileId) return Promise.resolve(mockBlockedProfile);
+            return Promise.resolve({ id: profileId } as Profile);
         });
 
         // Act
@@ -50,11 +45,12 @@ describe("BlockProfileHandler", () => {
 
         // Assert
         expect(result.message).toBe("Profile blocked successfully");
-        expect(mockBlockRepository.create).toHaveBeenCalledWith({
-            blockerProfile: mockBlockerProfile,
-            blockedProfile: mockBlockedProfile
+        expect(mockProfileInteractionRepository.create).toHaveBeenCalledWith({
+            sourceProfile: mockBlockerProfile,
+            targetProfile: mockBlockedProfile,
+            interactionType: ProfileInteractionType.Block
         });
-        expect(mockBlockRepository.save).toHaveBeenCalled();
+        expect(mockProfileInteractionRepository.save).toHaveBeenCalled();
     });
 
     it("should remove follows in both directions when blocking a profile", async () => {
@@ -64,20 +60,31 @@ describe("BlockProfileHandler", () => {
         
         const mockBlockerProfile = { id: blockerProfileId, username: "blocker" } as Profile;
         const mockBlockedProfile = { id: blockedProfileId, username: "blocked" } as Profile;
-        const mockFollowFromBlocker = { id: "follow-1", followerProfile: mockBlockerProfile, followedProfile: mockBlockedProfile } as Follow;
-        const mockFollowFromBlocked = { id: "follow-2", followerProfile: mockBlockedProfile, followedProfile: mockBlockerProfile } as Follow;
+        const mockFollowFromBlocker = { 
+            id: "follow-1", 
+            sourceProfile: mockBlockerProfile, 
+            targetProfile: mockBlockedProfile,
+            interactionType: ProfileInteractionType.Follow
+        } as ProfileInteraction;
+        const mockFollowFromBlocked = { 
+            id: "follow-2", 
+            sourceProfile: mockBlockedProfile, 
+            targetProfile: mockBlockerProfile,
+            interactionType: ProfileInteractionType.Follow
+        } as ProfileInteraction;
 
-        mockProfileRepository.findOneBy = mock((criteria: any) => {
-            if (criteria.id === blockerProfileId) return Promise.resolve(mockBlockerProfile);
-            if (criteria.id === blockedProfileId) return Promise.resolve(mockBlockedProfile);
-            return Promise.resolve(null);
+        mockInteractionValidator.assertProfileExists = mock((profileId: string) => {
+            if (profileId === blockerProfileId) return Promise.resolve(mockBlockerProfile);
+            if (profileId === blockedProfileId) return Promise.resolve(mockBlockedProfile);
+            return Promise.resolve({ id: profileId } as Profile);
         });
 
         let followFindOneCall = 0;
-        mockFollowRepository.findOne = mock(() => {
+        mockProfileInteractionRepository.findOne = mock(() => {
             followFindOneCall++;
             if (followFindOneCall === 1) return Promise.resolve(mockFollowFromBlocker);
             if (followFindOneCall === 2) return Promise.resolve(mockFollowFromBlocked);
+            if (followFindOneCall === 3) return Promise.resolve(null); // existing block check
             return Promise.resolve(null);
         });
 
@@ -86,8 +93,8 @@ describe("BlockProfileHandler", () => {
 
         // Assert
         expect(result.message).toBe("Profile blocked successfully");
-        expect(mockFollowRepository.findOne).toHaveBeenCalledTimes(2);
-        expect(mockFollowRepository.remove).toHaveBeenCalledTimes(2);
+        expect(mockProfileInteractionRepository.findOne).toHaveBeenCalledTimes(3);
+        expect(mockProfileInteractionRepository.remove).toHaveBeenCalledTimes(2);
     });
 
     it("should throw NotFoundError when blocker profile does not exist", async () => {
@@ -95,10 +102,13 @@ describe("BlockProfileHandler", () => {
         const blockerProfileId = "non-existent-blocker";
         const blockedProfileId = "blocked-id";
 
+        mockInteractionValidator.assertProfileExists = mock(() => {
+            throw new NotFoundError(`Profile with id ${blockerProfileId} not found`);
+        });
+
         // Act & Assert
-        expect(async () => {
-            await handler.handle(blockerProfileId, blockedProfileId);
-        }).toThrow(NotFoundError);
+        expect(handler.handle(blockerProfileId, blockedProfileId))
+            .rejects.toThrow(NotFoundError);
     });
 
     it("should throw NotFoundError when blocked profile does not exist", async () => {
@@ -108,15 +118,14 @@ describe("BlockProfileHandler", () => {
         
         const mockBlockerProfile = { id: blockerProfileId, username: "blocker" } as Profile;
 
-        mockProfileRepository.findOneBy = mock((criteria: any) => {
-            if (criteria.id === blockerProfileId) return Promise.resolve(mockBlockerProfile);
-            return Promise.resolve(null);
+        mockInteractionValidator.assertProfileExists = mock((profileId: string) => {
+            if (profileId === blockerProfileId) return Promise.resolve(mockBlockerProfile);
+            throw new NotFoundError(`Profile with id ${blockedProfileId} not found`);
         });
 
         // Act & Assert
-        expect(async () => {
-            await handler.handle(blockerProfileId, blockedProfileId);
-        }).toThrow(NotFoundError);
+        expect(handler.handle(blockerProfileId, blockedProfileId))
+            .rejects.toThrow(NotFoundError);
     });
 
     it("should return existing block when already blocked", async () => {
@@ -126,21 +135,27 @@ describe("BlockProfileHandler", () => {
 
         const mockBlockerProfile = { id: blockerProfileId, username: "blocker" } as Profile;
         const mockBlockedProfile = { id: blockedProfileId, username: "blocked" } as Profile;
-        const existingBlock = { id: "existing-block-id" } as Block;
+        const existingBlock = { 
+            id: "existing-block-id",
+            sourceProfile: mockBlockerProfile,
+            targetProfile: mockBlockedProfile,
+            interactionType: ProfileInteractionType.Block,
+            createdAt: new Date()
+        } as ProfileInteraction;
 
-        mockProfileRepository.findOneBy = mock((criteria: any) => {
-            if (criteria.id === blockerProfileId) return Promise.resolve(mockBlockerProfile);
-            if (criteria.id === blockedProfileId) return Promise.resolve(mockBlockedProfile);
-            return Promise.resolve(null);
+        mockInteractionValidator.assertProfileExists = mock((profileId: string) => {
+            if (profileId === blockerProfileId) return Promise.resolve(mockBlockerProfile);
+            if (profileId === blockedProfileId) return Promise.resolve(mockBlockedProfile);
+            return Promise.resolve({ id: profileId } as Profile);
         });
 
-        mockBlockRepository.findOne = mock(() => Promise.resolve(existingBlock));
+        mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(existingBlock));
 
         // Act
         const result = await handler.handle(blockerProfileId, blockedProfileId);
 
         // Assert
         expect(result.message).toBe("Profile is already blocked");
-        expect(mockBlockRepository.create).not.toHaveBeenCalled();
+        expect(mockProfileInteractionRepository.create).not.toHaveBeenCalled();
     });
 });
