@@ -1,18 +1,18 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
 import { CheckBlockStatusHandler } from "../check-block-status.handler";
-import { Block } from "@/database/entities/block";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 
 describe("CheckBlockStatusHandler", () => {
     let handler: CheckBlockStatusHandler;
-    let mockBlockRepository: Repository<Block>;
+    let mockProfileInteractionRepository: Repository<ProfileInteraction>;
 
     beforeEach(() => {
-        mockBlockRepository = {
+        mockProfileInteractionRepository = {
             findOne: mock(() => Promise.resolve(null))
         } as any;
 
-        handler = new CheckBlockStatusHandler(mockBlockRepository);
+        handler = new CheckBlockStatusHandler(mockProfileInteractionRepository);
     });
 
     it("should return true when block exists", async () => {
@@ -22,10 +22,11 @@ describe("CheckBlockStatusHandler", () => {
         const blockDate = new Date("2023-01-01");
         const existingBlock = {
             id: "block-id",
+            interactionType: ProfileInteractionType.Block,
             createdAt: blockDate
-        } as Block;
+        } as ProfileInteraction;
 
-        mockBlockRepository.findOne = mock(() => Promise.resolve(existingBlock));
+        mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(existingBlock));
 
         // Act
         const result = await handler.handle(blockerProfileId, blockedProfileId);
@@ -33,10 +34,11 @@ describe("CheckBlockStatusHandler", () => {
         // Assert
         expect(result.isBlocked).toBe(true);
         expect(result.blockedAt).toEqual(blockDate);
-        expect(mockBlockRepository.findOne).toHaveBeenCalledWith({
+        expect(mockProfileInteractionRepository.findOne).toHaveBeenCalledWith({
             where: {
-                blockerProfile: { id: blockerProfileId },
-                blockedProfile: { id: blockedProfileId }
+                sourceProfile: { id: blockerProfileId },
+                targetProfile: { id: blockedProfileId },
+                interactionType: ProfileInteractionType.Block
             }
         });
     });
@@ -46,7 +48,7 @@ describe("CheckBlockStatusHandler", () => {
         const blockerProfileId = "blocker-id";
         const blockedProfileId = "blocked-id";
 
-        mockBlockRepository.findOne = mock(() => Promise.resolve(null));
+        mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(null));
 
         // Act
         const result = await handler.handle(blockerProfileId, blockedProfileId);

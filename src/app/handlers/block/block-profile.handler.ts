@@ -17,23 +17,9 @@ export class BlockProfileHandler {
     }
 
     async handle(blockerProfileId: string, blockedProfileId: string) {
-        // Validations
         const blockerProfile = await this.interactionValidator.assertProfileExists(blockerProfileId);
         const blockedProfile = await this.interactionValidator.assertProfileExists(blockedProfileId);
 
-        const existingBlock = await this.profileInteractionRepository.findOne({
-            where: {
-                sourceProfile: { id: blockerProfileId },
-                targetProfile: { id: blockedProfileId },
-                interactionType: ProfileInteractionType.Block
-            }
-        });
-
-        if (existingBlock) {
-            return { message: "Profile is already blocked", blockedAt: existingBlock.createdAt };
-        }
-
-        // Remove follows in both directions
         const followerFollow = await this.profileInteractionRepository.findOne({
             where: {
                 sourceProfile: { id: blockerProfileId },
@@ -58,7 +44,18 @@ export class BlockProfileHandler {
             await this.profileInteractionRepository.remove(followedByFollow);
         }
 
-        // Creation
+        const existingBlock = await this.profileInteractionRepository.findOne({
+            where: {
+                sourceProfile: { id: blockerProfileId },
+                targetProfile: { id: blockedProfileId },
+                interactionType: ProfileInteractionType.Block
+            }
+        });
+
+        if (existingBlock) {
+            return { message: "Profile is already blocked", blockedAt: existingBlock.createdAt };
+        }
+
         const block = this.profileInteractionRepository.create({
             sourceProfile: blockerProfile,
             targetProfile: blockedProfile,

@@ -2,19 +2,19 @@ import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
 import { zocker } from "zocker";
 import { GetFollowingHandler } from "../get-following.handler";
-import { Follow } from "@/database/entities/follow";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { profileDto } from "@/app/dtos/profile.dtos";
 
 describe("GetFollowingHandler", () => {
     let handler: GetFollowingHandler;
-    let mockFollowRepository: Repository<Follow>;
+    let mockProfileInteractionRepository: Repository<ProfileInteraction>;
 
     beforeEach(() => {
-        mockFollowRepository = {
+        mockProfileInteractionRepository = {
             find: mock(() => Promise.resolve([]))
         } as any;
 
-        handler = new GetFollowingHandler(mockFollowRepository);
+        handler = new GetFollowingHandler(mockProfileInteractionRepository);
     });
 
     it("should return all profiles being followed successfully", async () => {
@@ -27,21 +27,23 @@ describe("GetFollowingHandler", () => {
         const follows = [
             {
                 id: "follow-id-1",
-                followerProfile: zocker(profileDto).generate(),
-                followedProfile: followed1,
+                sourceProfile: zocker(profileDto).generate(),
+                targetProfile: followed1,
+                interactionType: ProfileInteractionType.Follow,
                 createdAt: new Date("2024-01-01"),
                 updatedAt: new Date("2024-01-01")
-            } as Follow,
+            } as ProfileInteraction,
             {
                 id: "follow-id-2",
-                followerProfile: zocker(profileDto).generate(),
-                followedProfile: followed2,
+                sourceProfile: zocker(profileDto).generate(),
+                targetProfile: followed2,
+                interactionType: ProfileInteractionType.Follow,
                 createdAt: new Date("2024-01-02"),
                 updatedAt: new Date("2024-01-02")
-            } as Follow
+            } as ProfileInteraction
         ];
 
-        mockFollowRepository.find = mock(() => Promise.resolve(follows));
+        mockProfileInteractionRepository.find = mock(() => Promise.resolve(follows));
 
         // Act
         const result = await handler.handle(followerProfileId);
@@ -51,11 +53,12 @@ describe("GetFollowingHandler", () => {
         expect(result.total).toBe(2);
         expect(result.profiles[0].id).toEqual(followed1.id);
         expect(result.profiles[1].id).toEqual(followed2.id);
-        expect(mockFollowRepository.find).toHaveBeenCalledWith({
+        expect(mockProfileInteractionRepository.find).toHaveBeenCalledWith({
             where: {
-                followerProfile: { id: followerProfileId }
+                sourceProfile: { id: followerProfileId },
+                interactionType: ProfileInteractionType.Follow
             },
-            relations: ["followedProfile"],
+            relations: ["targetProfile"],
             order: {
                 createdAt: "DESC"
             }
@@ -66,7 +69,7 @@ describe("GetFollowingHandler", () => {
         // Arrange
         const followerProfileId = "123e4567-e89b-12d3-a456-426614174000";
 
-        mockFollowRepository.find = mock(() => Promise.resolve([]));
+        mockProfileInteractionRepository.find = mock(() => Promise.resolve([]));
 
         // Act
         const result = await handler.handle(followerProfileId);
@@ -74,11 +77,12 @@ describe("GetFollowingHandler", () => {
         // Assert
         expect(result.profiles).toEqual([]);
         expect(result.total).toBe(0);
-        expect(mockFollowRepository.find).toHaveBeenCalledWith({
+        expect(mockProfileInteractionRepository.find).toHaveBeenCalledWith({
             where: {
-                followerProfile: { id: followerProfileId }
+                sourceProfile: { id: followerProfileId },
+                interactionType: ProfileInteractionType.Follow
             },
-            relations: ["followedProfile"],
+            relations: ["targetProfile"],
             order: {
                 createdAt: "DESC"
             }
@@ -94,14 +98,15 @@ describe("GetFollowingHandler", () => {
         const follows = [
             {
                 id: "follow-id",
-                followerProfile: zocker(profileDto).generate(),
-                followedProfile: followed,
+                sourceProfile: zocker(profileDto).generate(),
+                targetProfile: followed,
+                interactionType: ProfileInteractionType.Follow,
                 createdAt: followDate,
                 updatedAt: new Date()
-            } as Follow
+            } as ProfileInteraction
         ];
 
-        mockFollowRepository.find = mock(() => Promise.resolve(follows));
+        mockProfileInteractionRepository.find = mock(() => Promise.resolve(follows));
 
         // Act
         const result = await handler.handle(followerProfileId);

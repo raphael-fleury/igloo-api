@@ -2,18 +2,18 @@ import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
 import { zocker } from "zocker";
 import { GetMutedProfilesHandler } from "../get-muted-profiles.handler";
-import { Mute } from "@/database/entities/mute";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { profileDto } from "@/app/dtos/profile.dtos";
 
 describe("GetMutedProfilesHandler", () => {
     let handler: GetMutedProfilesHandler;
-    let mockRepository: Repository<Mute>;
+    let mockProfileInteractionRepository: Repository<ProfileInteraction>;
 
     beforeEach(() => {
-        mockRepository = {
+        mockProfileInteractionRepository = {
             find: mock(() => Promise.resolve([]))
         } as any;
-        handler = new GetMutedProfilesHandler(mockRepository);
+        handler = new GetMutedProfilesHandler(mockProfileInteractionRepository);
     });
 
     it("should return muted profiles successfully", async () => {
@@ -22,13 +22,14 @@ describe("GetMutedProfilesHandler", () => {
         const mutedProfile = zocker(profileDto).generate();
         const mute = {
             id: "mute-id-1",
-            muterProfile: { id: muterProfileId },
-            mutedProfile,
+            sourceProfile: { id: muterProfileId },
+            targetProfile: mutedProfile,
+            interactionType: ProfileInteractionType.Mute,
             createdAt: new Date(),
             updatedAt: new Date()
-        } as Mute;
+        } as ProfileInteraction;
 
-        mockRepository.find = mock(() => Promise.resolve([mute]));
+        mockProfileInteractionRepository.find = mock(() => Promise.resolve([mute]));
 
         // Act
         const result = await handler.handle(muterProfileId);
@@ -38,11 +39,12 @@ describe("GetMutedProfilesHandler", () => {
         expect(result.profiles).toHaveLength(1);
         expect(result.profiles[0].username).toBe(mutedProfile.username);
         expect(result.profiles[0].mutedAt).toEqual(mute.createdAt);
-        expect(mockRepository.find).toHaveBeenCalledWith({
+        expect(mockProfileInteractionRepository.find).toHaveBeenCalledWith({
             where: {
-                muterProfile: { id: muterProfileId }
+                sourceProfile: { id: muterProfileId },
+                interactionType: ProfileInteractionType.Mute
             },
-            relations: ["mutedProfile"],
+            relations: ["targetProfile"],
             order: {
                 createdAt: "DESC"
             }
@@ -52,7 +54,7 @@ describe("GetMutedProfilesHandler", () => {
     it("should return empty list when no muted profiles", async () => {
         // Arrange
         const muterProfileId = "123e4567-e89b-12d3-a456-426614174000";
-        mockRepository.find = mock(() => Promise.resolve([]));
+        mockProfileInteractionRepository.find = mock(() => Promise.resolve([]));
 
         // Act
         const result = await handler.handle(muterProfileId);
@@ -66,7 +68,7 @@ describe("GetMutedProfilesHandler", () => {
         // Arrange
         const muterProfileId = "123e4567-e89b-12d3-a456-426614174000";
         const error = new Error("Database connection failed");
-        mockRepository.find = mock(() => Promise.reject(error));
+        mockProfileInteractionRepository.find = mock(() => Promise.reject(error));
 
         // Act & Assert
         expect(handler.handle(muterProfileId)).rejects.toThrow("Database connection failed");

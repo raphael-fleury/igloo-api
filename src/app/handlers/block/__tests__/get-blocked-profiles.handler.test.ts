@@ -1,20 +1,20 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
 import { GetBlockedProfilesHandler } from "../get-blocked-profiles.handler";
-import { Block } from "@/database/entities/block";
+import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { zocker } from "zocker";
 import { profileDto } from "@/app/dtos/profile.dtos";
 
 describe("GetBlockedProfilesHandler", () => {
     let handler: GetBlockedProfilesHandler;
-    let mockBlockRepository: Repository<Block>;
+    let mockProfileInteractionRepository: Repository<ProfileInteraction>;
 
     beforeEach(() => {
-        mockBlockRepository = {
+        mockProfileInteractionRepository = {
             find: mock(() => Promise.resolve([]))
         } as any;
 
-        handler = new GetBlockedProfilesHandler(mockBlockRepository);
+        handler = new GetBlockedProfilesHandler(mockProfileInteractionRepository);
     });
 
     it("should return blocked profiles successfully", async () => {
@@ -26,17 +26,19 @@ describe("GetBlockedProfilesHandler", () => {
         const mockBlocks = [
             {
                 id: "block-1",
-                blockedProfile: mockBlockedProfile1,
+                targetProfile: mockBlockedProfile1,
+                interactionType: ProfileInteractionType.Block,
                 createdAt: new Date("2023-01-01")
             },
             {
                 id: "block-2",
-                blockedProfile: mockBlockedProfile2,
+                targetProfile: mockBlockedProfile2,
+                interactionType: ProfileInteractionType.Block,
                 createdAt: new Date("2023-01-02")
             }
-        ] as Block[];
+        ] as ProfileInteraction[];
 
-        mockBlockRepository.find = mock(() => Promise.resolve(mockBlocks));
+        mockProfileInteractionRepository.find = mock(() => Promise.resolve(mockBlocks));
 
         // Act
         const result = await handler.handle(blockerProfileId);
@@ -46,11 +48,12 @@ describe("GetBlockedProfilesHandler", () => {
         expect(result.profiles).toHaveLength(2);
         expect(result.profiles[0]).toEqual({ ...mockBlockedProfile1, blockedAt: new Date("2023-01-01") });
         expect(result.profiles[1]).toEqual({ ...mockBlockedProfile2, blockedAt: new Date("2023-01-02") });
-        expect(mockBlockRepository.find).toHaveBeenCalledWith({
+        expect(mockProfileInteractionRepository.find).toHaveBeenCalledWith({
             where: {
-                blockerProfile: { id: blockerProfileId }
+                sourceProfile: { id: blockerProfileId },
+                interactionType: ProfileInteractionType.Block
             },
-            relations: ["blockedProfile"],
+            relations: ["targetProfile"],
             order: {
                 createdAt: "DESC"
             }
@@ -60,7 +63,7 @@ describe("GetBlockedProfilesHandler", () => {
     it("should return empty list when no blocked profiles", async () => {
         // Arrange
         const blockerProfileId = "blocker-id";
-        mockBlockRepository.find = mock(() => Promise.resolve([]));
+        mockProfileInteractionRepository.find = mock(() => Promise.resolve([]));
 
         // Act
         const result = await handler.handle(blockerProfileId);
