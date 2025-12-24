@@ -3,9 +3,9 @@ import { CreatePostDto, postDto } from "@/app/dtos/post.dtos";
 import { NotFoundError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { Post } from "@/database/entities/post";
-import { User } from "@/database/entities/user";
-import { Profile } from "@/database/entities/profile";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
+import { UserDto } from "@/app/dtos/user.dtos";
+import { ProfileDto } from "@/app/dtos/profile.dtos";
 
 export class CreatePostHandler {
     constructor(
@@ -20,7 +20,7 @@ export class CreatePostHandler {
         );
     }
 
-    async handle(data: CreatePostDto, user: User, profile: Profile) {
+    async handle(data: CreatePostDto, user: UserDto, profile: ProfileDto) {
         // Validations
         let replyToPost = null;
         if (data.replyToPostId) {
