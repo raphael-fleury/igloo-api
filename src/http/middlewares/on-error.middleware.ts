@@ -11,7 +11,6 @@ export const onErrorMiddleware = (app: Elysia) => app
         ConflictError
     })
     .onError(({ code, error, set }) => {
-        console.log('error middleware')
         switch (code) {
             case 'AlreadyExistsError':
                 set.status = 409;
@@ -45,6 +44,7 @@ export const onErrorMiddleware = (app: Elysia) => app
                 break;
             default:
                 set.status = 500;
+                console.error(error);
                 return { message: 'Internal Server Error' }
         }
 
