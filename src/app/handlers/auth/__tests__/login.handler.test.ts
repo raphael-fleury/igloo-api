@@ -11,12 +11,16 @@ import { PasswordHashService } from "@/app/services/password-hash.service";
 describe("LoginHandler", () => {
     let handler: LoginHandler;
     let mockRepository: Repository<User>;
+    let mockHashService: PasswordHashService;
 
     beforeEach(() => {
         mockRepository = {
             findOne: mock(() => Promise.resolve(null)),
         } as any;
-        handler = new LoginHandler(mockRepository, new PasswordHashService());
+        mockHashService = {
+            verify: mock(() => Promise.resolve(true)),
+        } as any;
+        handler = new LoginHandler(mockRepository, mockHashService);
     });
 
     it("should return user id when email and password are valid", async () => {
@@ -28,14 +32,13 @@ describe("LoginHandler", () => {
         } as User;
 
         mockRepository.findOne = mock(() => Promise.resolve(mockUser));
-        (Bun as any).password = { verify: mock(() => Promise.resolve(true)) };
 
         // Act
         const result = await handler.handle(loginData);
 
         // Assert
         expect(result).toEqual(mockUser.id);
-        expect((Bun as any).password.verify).toHaveBeenCalled();
+        expect(mockHashService.verify).toHaveBeenCalled();
         expect(mockRepository.findOne).toHaveBeenCalledWith({
             where: { email: loginData.email },
             select: ["id", "passwordHash"],
@@ -56,11 +59,12 @@ describe("LoginHandler", () => {
         // Arrange
         const loginData = zocker(loginDto).generate();
         const mockUser = {
-            id: "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+            id: zocker(idDto).generate(),
             passwordHash: "$2b$10$qV1JmMOCKHASHVALUEqV1JmMOCKHASHVALUE",
         } as User;
+        
         mockRepository.findOne = mock(() => Promise.resolve(mockUser));
-        (Bun as any).password = { verify: mock(() => Promise.resolve(false)) };
+        mockHashService.verify = mock(() => Promise.resolve(false));
 
         // Act & Assert
         expect(handler.handle(loginData)).rejects.toThrow(NotFoundError);
