@@ -1,6 +1,7 @@
 import { Repository } from "typeorm";
 import { appDataSource } from "@/database/data-source";
 import { User } from "@/database/entities/user";
+import { UserProfile } from "@/database/entities/user-profile";
 import { LoginDto } from "@/app/dtos/auth.dtos";
 import { NotFoundError } from "@/app/errors";
 import { PasswordHashService } from "@/app/services/password-hash.service";
@@ -8,12 +9,14 @@ import { PasswordHashService } from "@/app/services/password-hash.service";
 export class LoginHandler {
     constructor(
         private readonly userRepository: Repository<User>,
+        private readonly userProfileRepository: Repository<UserProfile>,
         private readonly passwordHashService: PasswordHashService
     ) { }
 
     static get default() {
         return new LoginHandler(
             appDataSource.getRepository(User),
+            appDataSource.getRepository(UserProfile),
             new PasswordHashService()
         );
     }
@@ -32,6 +35,14 @@ export class LoginHandler {
             throw new NotFoundError(`Invalid email or password`);
         }
 
-        return user.id;
+        const userProfile = await this.userProfileRepository.findOne({
+            where: { user },
+            relations: { profile: true }
+        });
+
+        return {
+            userId: user.id,
+            profileId: userProfile!.profile.id as string
+        };
     }
 }
