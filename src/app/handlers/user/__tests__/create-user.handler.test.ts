@@ -6,12 +6,16 @@ import { User } from "@/database/entities/user";
 import { Profile } from "@/database/entities/profile";
 import { UserProfile } from "@/database/entities/user-profile";
 import { AlreadyExistsError } from "@/app/errors";
-import { createUserDto } from "@/app/dtos/user.dtos";
+import { createUserDto, userDto } from "@/app/dtos/user.dtos";
+import { PasswordHashService } from "@/app/services/password-hash.service";
+import { profileDto } from "@/app/dtos/profile.dtos";
+import { idDto } from "@/app/dtos/common.dtos";
 
 describe("CreateUserHandler", () => {
     let handler: CreateUserHandler;
     let mockDataSource: any;
     let mockEntityManager: any;
+    let mockHasher: any;
 
     beforeEach(() => {
         mockEntityManager = {
@@ -21,52 +25,25 @@ describe("CreateUserHandler", () => {
         };
 
         mockDataSource = {
-            transaction: mock(),
+            transaction: mock().mockImplementation(async (callback: any) => {
+                return callback(mockEntityManager);
+            })
         };
 
-        handler = new CreateUserHandler(mockDataSource as DataSource);
-        (Bun as any).password = { hash: mock(() => Promise.resolve("hashed")) };
+        mockHasher = {
+            hash: mock((data) => data)
+        }
+
+        handler = new CreateUserHandler(
+            mockDataSource as DataSource,
+            mockHasher as PasswordHashService
+        );
     });
 
     it("should create user with profile successfully", async () => {
         // Arrange
         const createUserData = zocker(createUserDto).generate();
 
-        const createdUser = {
-            id: "123e4567-e89b-12d3-a456-426614174000",
-            email: createUserData.email,
-            phone: createUserData.phone,
-            passwordHash: createUserData.password,
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        } as User;
-
-        const createdProfile = {
-            id: "123e4567-e89b-12d3-a456-426614174001",
-            username: createUserData.profile.username,
-            displayName: createUserData.profile.displayName,
-            bio: createUserData.profile.bio,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        } as Profile;
-
-        const createdUserProfile = {
-            id: "123e4567-e89b-12d3-a456-426614174002",
-            user: createdUser,
-            profile: createdProfile,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        } as UserProfile;
-
-        // Mock the transaction to call the callback with our mock entity manager
-        mockDataSource.transaction.mockImplementation(async (callback: any) => {
-            return callback(mockEntityManager);
-        });
-
-        // Mock entity manager methods
-        mockEntityManager.findOne.mockReturnValue(Promise.resolve(null)); // No existing entities
-        
         // Mock create to return the object that will be created
         const userToCreate = {
             email: createUserData.email,
@@ -79,11 +56,31 @@ describe("CreateUserHandler", () => {
             bio: createUserData.profile.bio,
         };
 
+        const createdUser = {
+            ...zocker(userDto).generate(),
+            ...userToCreate
+        } as User;
+
+        const createdProfile = {
+            ...zocker(profileDto).generate(),
+            ...profileToCreate
+        } as Profile;
+
         const userProfileToCreate = {
             user: createdUser,
             profile: createdProfile,
         };
-        
+
+        const createdUserProfile = {
+            id: zocker(idDto).generate(),
+            ...userProfileToCreate,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        } as UserProfile;
+
+        // Mock entity manager methods
+        mockEntityManager.findOne.mockReturnValue(Promise.resolve(null)); // No existing entities
+
         mockEntityManager.create
             .mockReturnValueOnce(userToCreate)
             .mockReturnValueOnce(profileToCreate)
@@ -110,17 +107,9 @@ describe("CreateUserHandler", () => {
         const createUserData = zocker(createUserDto).generate();
 
         const existingUser = {
-            id: "existing-id",
-            email: createUserData.email,
-            passwordHash: "hashedpassword",
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            ...zocker(userDto).generate(),
+            email: createUserData.email
         } as User;
-
-        mockDataSource.transaction.mockImplementation(async (callback: any) => {
-            return callback(mockEntityManager);
-        });
 
         mockEntityManager.findOne.mockReturnValue(Promise.resolve(existingUser));
 
@@ -134,17 +123,9 @@ describe("CreateUserHandler", () => {
         const createUserData = zocker(createUserDto).generate();
 
         const existingUser = {
-            id: "existing-id",
-            phone: createUserData.phone,
-            passwordHash: "hashedpassword",
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            ...zocker(userDto).generate(),
+            phone: createUserData.phone
         } as User;
-
-        mockDataSource.transaction.mockImplementation(async (callback: any) => {
-            return callback(mockEntityManager);
-        });
 
         mockEntityManager.findOne
             .mockReturnValueOnce(Promise.resolve(null)) // No email conflict
@@ -159,16 +140,9 @@ describe("CreateUserHandler", () => {
         const createUserData = zocker(createUserDto).generate();
 
         const existingProfile = {
-            id: "existing-profile-id",
-            username: createUserData.profile.username,
-            displayName: "Existing User",
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            ...zocker(profileDto).generate(),
+            username: createUserData.profile.username
         } as Profile;
-
-        mockDataSource.transaction.mockImplementation(async (callback: any) => {
-            return callback(mockEntityManager);
-        });
 
         mockEntityManager.findOne
             .mockReturnValueOnce(Promise.resolve(null)) // No email conflict

@@ -6,6 +6,7 @@ import { loginDto } from "@/app/dtos/auth.dtos";
 import { User } from "@/database/entities/user";
 import { NotFoundError } from "@/app/errors";
 import { idDto } from "@/app/dtos/common.dtos";
+import { PasswordHashService } from "@/app/services/password-hash.service";
 
 describe("LoginHandler", () => {
     let handler: LoginHandler;
@@ -15,7 +16,7 @@ describe("LoginHandler", () => {
         mockRepository = {
             findOne: mock(() => Promise.resolve(null)),
         } as any;
-        handler = new LoginHandler(mockRepository);
+        handler = new LoginHandler(mockRepository, new PasswordHashService());
     });
 
     it("should return user id when email and password are valid", async () => {

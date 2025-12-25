@@ -2,16 +2,20 @@ import { DataSource } from "typeorm";
 import { profileDto } from "@/app/dtos/profile.dtos";
 import { CreateUserDto, userDto } from "@/app/dtos/user.dtos";
 import { AlreadyExistsError } from "@/app/errors";
+import { PasswordHashService } from "@/app/services/password-hash.service";
 import { Profile } from "@/database/entities/profile";
 import { User } from "@/database/entities/user";
 import { UserProfile } from "@/database/entities/user-profile";
 import { appDataSource } from "@/database/data-source";
 
 export class CreateUserHandler {
-    constructor(private readonly dataSource: DataSource) { }
+    constructor(
+        private readonly dataSource: DataSource,
+        private readonly passwordHashService: PasswordHashService
+    ) { }
 
     static get default() {
-        return new CreateUserHandler(appDataSource);
+        return new CreateUserHandler(appDataSource, new PasswordHashService());
     }
 
     async handle(data: CreateUserDto) {
@@ -39,10 +43,7 @@ export class CreateUserHandler {
                 throw new AlreadyExistsError(`Username ${data.profile.username} already exists`);
             }
 
-            const hash = await Bun.password.hash(data.password, {
-                algorithm: "bcrypt",
-                cost: 12
-            });
+            const hash = await this.passwordHashService.hash(data.password);
 
             const user = transactionalEntityManager.create(User, {
                 email: data.email,
