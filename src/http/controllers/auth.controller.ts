@@ -40,12 +40,8 @@ export const authController = (
     })
 
     .post('/login', async ({ body, jwt }) => {
-        const user = await loginHandler.handle(body);
-
-        const token = await jwt.sign({
-            userId: user.id
-        })
-
+        const userId = await loginHandler.handle(body);
+        const token = await jwt.sign({ userId });
         return { token };
     }, {
         detail: { summary: "Login" },

@@ -39,10 +39,15 @@ export class CreateUserHandler {
                 throw new AlreadyExistsError(`Username ${data.profile.username} already exists`);
             }
 
+            const hash = await Bun.password.hash(data.password, {
+                algorithm: "bcrypt",
+                cost: 12
+            });
+
             const user = transactionalEntityManager.create(User, {
                 email: data.email,
                 phone: data.phone,
-                passwordHash: data.password // TODO: Encrypt password
+                passwordHash: hash
             });
             const savedUser = await transactionalEntityManager.save(user);
 

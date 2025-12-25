@@ -25,6 +25,7 @@ describe("CreateUserHandler", () => {
         };
 
         handler = new CreateUserHandler(mockDataSource as DataSource);
+        (Bun as any).password = { hash: mock(() => Promise.resolve("hashed")) };
     });
 
     it("should create user with profile successfully", async () => {

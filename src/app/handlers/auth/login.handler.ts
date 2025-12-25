@@ -3,7 +3,6 @@ import { appDataSource } from "@/database/data-source";
 import { User } from "@/database/entities/user";
 import { LoginDto } from "@/app/dtos/auth.dtos";
 import { NotFoundError } from "@/app/errors";
-import { userDto } from "@/app/dtos/user.dtos";
 
 export class LoginHandler {
     constructor(private readonly userRepository: Repository<User>) { }
@@ -13,19 +12,19 @@ export class LoginHandler {
     }
 
     async handle(data: LoginDto) {
-        const hashedPassword = data.password; //TODO: Hash
-
         const user = await this.userRepository.findOne({
-            where: {
-                email: data.email,
-                passwordHash: hashedPassword
-            }
+            where: { email: data.email },
+            select: ["id", "passwordHash"],
         });
 
         if (!user) {
             throw new NotFoundError(`Invalid email or password`);
         }
 
-        return userDto.parse(user);
+        if (!await Bun.password.verify(data.password, user.passwordHash, "bcrypt")) {
+            throw new NotFoundError(`Invalid email or password`);
+        }
+
+        return user.id;
     }
 }
