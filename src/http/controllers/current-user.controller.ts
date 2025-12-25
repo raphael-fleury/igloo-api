@@ -14,6 +14,15 @@ export const currentUserController = (
         detail: { tags: ['Current User'] }
     })
 
+    .get('/', async ({ user }) => {
+        return user;
+    }, {
+        detail: { summary: "Get current user" },
+        response: {
+            200: userDto
+        }
+    })
+
     .patch('/', async ({ user, body }) => {
         return await updateUserHandler.handle(user.id, body);
     }, {
