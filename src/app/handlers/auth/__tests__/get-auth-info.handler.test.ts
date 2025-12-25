@@ -2,25 +2,22 @@ import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { Repository } from "typeorm";
 import { zocker } from "zocker";
 import { GetAuthInfoHandler } from "../get-auth-info.handler";
+import { UserDto, userDto } from "@/app/dtos/user.dtos";
+import { ProfileDto, profileDto } from "@/app/dtos/profile.dtos";
+import { tokenPayloadDto } from "@/app/dtos/auth.dtos";
+import { idDto } from "@/app/dtos/common.dtos";
+import { UnauthorizedError } from "@/app/errors";
 import { User } from "@/database/entities/user";
 import { Profile } from "@/database/entities/profile";
 import { UserProfile } from "@/database/entities/user-profile";
-import { NotFoundError, UnauthorizedError } from "@/app/errors";
-import { userDto } from "@/app/dtos/user.dtos";
-import { profileDto } from "@/app/dtos/profile.dtos";
-import { tokenPayloadDto } from "@/app/dtos/auth.dtos";
 
 describe("GetAuthInfoHandler", () => {
     let handler: GetAuthInfoHandler;
     let mockUserRepository: Repository<User>;
-    let mockProfileRepository: Repository<Profile>;
     let mockUserProfileRepository: Repository<UserProfile>;
 
     beforeEach(() => {
         mockUserRepository = {
-            findOneBy: mock(() => Promise.resolve(null)),
-        } as any;
-        mockProfileRepository = {
             findOneBy: mock(() => Promise.resolve(null)),
         } as any;
         mockUserProfileRepository = {
@@ -29,7 +26,6 @@ describe("GetAuthInfoHandler", () => {
 
         handler = new GetAuthInfoHandler(
             mockUserRepository,
-            mockProfileRepository,
             mockUserProfileRepository
         );
     });
@@ -37,8 +33,8 @@ describe("GetAuthInfoHandler", () => {
     it("should return user and profile when profileId is present", async () => {
         // Arrange
         const payload = zocker(tokenPayloadDto).generate();
-        const mockUser = zocker(userDto).generate() as any as User;
-        const mockProfile = zocker(profileDto).generate() as any as Profile;
+        const mockUser = zocker(userDto).generate() as User;
+        const mockProfile = zocker(profileDto).generate() as Profile;
         const mockUserProfile = {
             id: "rel-1",
             user: mockUser,
@@ -47,78 +43,64 @@ describe("GetAuthInfoHandler", () => {
             updatedAt: new Date()
         } as UserProfile;
 
-        mockUserRepository.findOneBy = mock(() => Promise.resolve(mockUser));
-        mockProfileRepository.findOneBy = mock(() => Promise.resolve(mockProfile));
         mockUserProfileRepository.findOne = mock(() => Promise.resolve(mockUserProfile));
 
         // Act
         const result = await handler.handle(payload);
 
         // Assert
-        expect(result.user).toEqual(userDto.parse(mockUser));
-        expect(result.profile).toEqual(profileDto.parse(mockProfile));
-        expect(mockUserRepository.findOneBy).toHaveBeenCalledWith({ id: payload.userId });
-        expect(mockProfileRepository.findOneBy).toHaveBeenCalledWith({ id: payload.profileId });
+        expect(result.user).toEqual(mockUser as UserDto);
+        expect(result.profile).toEqual(mockProfile as ProfileDto);
         expect(mockUserProfileRepository.findOne).toHaveBeenCalledWith({
             where: {
                 user: { id: payload.userId },
                 profile: { id: payload.profileId }
             },
-            relations: { profile: true }
+            relations: {
+                user: true,
+                profile: true
+            }
         });
     });
 
     it("should return only user when profileId is empty", async () => {
         // Arrange
-        const payload = zocker(tokenPayloadDto).generate();
-        payload.profileId = undefined;
-        const mockUser = zocker(userDto).generate() as any as User;
+        const payload = {
+            userId: zocker(idDto).generate(),
+        }
+        const mockUser = zocker(userDto).generate() as User;
+
         mockUserRepository.findOneBy = mock(() => Promise.resolve(mockUser));
 
         // Act
         const result = await handler.handle(payload);
 
         // Assert
-        expect(result.user).toEqual(userDto.parse(mockUser));
-        expect((result as any).profile).toBeUndefined();
+        expect(result.user).toEqual(mockUser);
+        expect(result.profile).toBeUndefined();
         expect(mockUserRepository.findOneBy).toHaveBeenCalledWith({ id: payload.userId });
-        expect(mockProfileRepository.findOneBy).not.toHaveBeenCalled();
         expect(mockUserProfileRepository.findOne).not.toHaveBeenCalled();
     });
 
-    it("should throw NotFoundError when user does not exists", async () => {
+    it("should throw UnauthorizedError when user does not exists and profileId empty", async () => {
         // Arrange
-        const payload = zocker(tokenPayloadDto).generate();
+        const payload = {
+            userId: zocker(idDto).generate(),
+        }
         mockUserRepository.findOneBy = mock(() => Promise.resolve(null));
 
         // Act & Assert
-        expect(handler.handle(payload)).rejects.toThrow(NotFoundError);
-        expect(handler.handle(payload)).rejects.toThrow("User not found");
-    });
-
-    it("should throw NotFoundError when profile does not exists", async () => {
-        // Arrange
-        const payload = zocker(tokenPayloadDto).generate();
-        const mockUser = zocker(userDto).generate() as any as User;
-        mockUserRepository.findOneBy = mock(() => Promise.resolve(mockUser));
-        mockProfileRepository.findOneBy = mock(() => Promise.resolve(null));
-
-        // Act & Assert
-        expect(handler.handle(payload)).rejects.toThrow(NotFoundError);
-        expect(handler.handle(payload)).rejects.toThrow("Profile not found");
+        expect(handler.handle(payload)).rejects.toThrow(UnauthorizedError);
+        expect(mockUserProfileRepository.findOne).not.toHaveBeenCalled();
     });
 
     it("should throw UnauthorizedError when UserProfile relation does not exists", async () => {
         // Arrange
         const payload = zocker(tokenPayloadDto).generate();
-        const mockUser = zocker(userDto).generate() as any as User;
-        const mockProfile = zocker(profileDto).generate() as any as Profile;
-        mockUserRepository.findOneBy = mock(() => Promise.resolve(mockUser));
-        mockProfileRepository.findOneBy = mock(() => Promise.resolve(mockProfile));
         mockUserProfileRepository.findOne = mock(() => Promise.resolve(null));
 
         // Act & Assert
         expect(handler.handle(payload)).rejects.toThrow(UnauthorizedError);
-        expect(handler.handle(payload)).rejects.toThrow("User does not have access to this profile");
+        expect(mockUserRepository.findOneBy).not.toHaveBeenCalled();
     });
 })
