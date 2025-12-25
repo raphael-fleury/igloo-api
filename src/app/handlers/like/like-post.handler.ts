@@ -40,7 +40,8 @@ export class LikePostHandler {
         const existingLike = await this.postInteractionRepository.findOne({
             where: {
                 profile: { id: profile.id },
-                post: { id: postId }
+                post: { id: postId },
+                interactionType: InteractionType.Like
             }
         });
 
