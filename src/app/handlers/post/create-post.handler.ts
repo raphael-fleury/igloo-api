@@ -23,10 +23,10 @@ export class CreatePostHandler {
     async handle(data: CreatePostDto, user: UserDto, profile: ProfileDto) {
         // Validations
         let repliedPost = null;
-        if (data.replyToPostId) {
-            repliedPost = await this.postRepository.findOneBy({ id: data.replyToPostId });
+        if (data.repliedPostId) {
+            repliedPost = await this.postRepository.findOneBy({ id: data.repliedPostId });
             if (!repliedPost) {
-                throw new NotFoundError(`Post with id ${data.replyToPostId} not found`);
+                throw new NotFoundError(`Post with id ${data.repliedPostId} not found`);
             }
 
             // Check if profiles block each other
@@ -34,10 +34,10 @@ export class CreatePostHandler {
         }
 
         let quotedPost = null;
-        if (data.quoteToPostId) {
-            quotedPost = await this.postRepository.findOneBy({ id: data.quoteToPostId });
+        if (data.quotedPostId) {
+            quotedPost = await this.postRepository.findOneBy({ id: data.quotedPostId });
             if (!quotedPost) {
-                throw new NotFoundError(`Post with id ${data.quoteToPostId} not found`);
+                throw new NotFoundError(`Post with id ${data.quotedPostId} not found`);
             }
 
             // Check if profiles block each other
@@ -58,8 +58,8 @@ export class CreatePostHandler {
         return postDto.parse({
             id: savedPost.id,
             content: savedPost.content,
-            replyToPostId: savedPost.repliedPost?.id,
-            quoteToPostId: savedPost.quotedPost?.id,
+            repliedPostId: savedPost.repliedPost?.id,
+            quotedPostId: savedPost.quotedPost?.id,
             createdAt: savedPost.createdAt,
             updatedAt: savedPost.updatedAt
         });

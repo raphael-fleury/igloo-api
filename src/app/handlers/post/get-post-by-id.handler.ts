@@ -26,8 +26,8 @@ export class GetPostByIdHandler {
             userId: post.user.id,
             profileId: post.profile.id,
             content: post.content,
-            replyToPostId: post.repliedPost?.id,
-            quoteToPostId: post.quotedPost?.id,
+            repliedPostId: post.repliedPost?.id,
+            quotedPostId: post.quotedPost?.id,
             createdAt: post.createdAt,
             updatedAt: post.updatedAt
         });

@@ -21,7 +21,7 @@ export class Post {
     @ManyToOne(() => Post, post => post.replies, {
         nullable: true,
     })
-    @JoinColumn({ name: "replyToPostId" })
+    @JoinColumn({ name: "repliedPostId" })
     repliedPost?: Post;
 
     @OneToMany(() => Post, post => post.repliedPost)
@@ -30,7 +30,7 @@ export class Post {
     @ManyToOne(() => Post, post => post.quotes, {
         nullable: true,
     })
-    @JoinColumn({ name: "quoteToPostId" })
+    @JoinColumn({ name: "quotedPostId" })
     quotedPost?: Post;
 
     @OneToMany(() => Post, post => post.quotedPost)

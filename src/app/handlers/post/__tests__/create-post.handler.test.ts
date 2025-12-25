@@ -69,7 +69,7 @@ describe("CreatePostHandler", () => {
 
         const createPostData = {
             content: "This is a reply",
-            replyToPostId: zocker(idDto).generate()
+            repliedPostId: zocker(idDto).generate()
         };
 
         // Act & Assert
@@ -87,7 +87,7 @@ describe("CreatePostHandler", () => {
 
         const createPostData = {
             content: "This is a reply",
-            replyToPostId: repliedPostId
+            repliedPostId: repliedPostId
         };
 
         mockPostRepository.findOneBy = mock(() => Promise.resolve({
@@ -113,7 +113,7 @@ describe("CreatePostHandler", () => {
 
         const createPostData = {
             content: "This is a reply",
-            replyToPostId: repliedPostId
+            repliedPostId: repliedPostId
         };
         mockPostRepository.findOneBy = mock(() => Promise.resolve({
             id: repliedPostId,
@@ -136,7 +136,7 @@ describe("CreatePostHandler", () => {
 
         const createPostData = {
             content: "This is a quote",
-            quoteToPostId: "123e4567-e89b-12d3-a456-426614174000"
+            quotedPostId: "123e4567-e89b-12d3-a456-426614174000"
         };
 
         // Act & Assert
@@ -154,7 +154,7 @@ describe("CreatePostHandler", () => {
 
         const createPostData = {
             content: "This is a quote",
-            quoteToPostId: quotedPostId
+            quotedPostId: quotedPostId
         };
 
         mockPostRepository.findOneBy = mock(() => Promise.resolve({
@@ -179,7 +179,7 @@ describe("CreatePostHandler", () => {
         const quotedPostId = zocker(idDto).generate();
         const createPostData = {
             content: "This is a quote",
-            quoteToPostId: quotedPostId
+            quotedPostId: quotedPostId
         };
         mockPostRepository.findOneBy = mock(() => Promise.resolve({
             id: quotedPostId,
@@ -224,7 +224,7 @@ describe("CreatePostHandler", () => {
 
         const createPostData = {
             content: "This is a quote",
-            quoteToPostId: quotedPostId
+            quotedPostId: quotedPostId
         };
 
         // Act
@@ -232,7 +232,7 @@ describe("CreatePostHandler", () => {
 
         // Assert
         expect(result.content).toBe("This is a quote");
-        expect(result.quoteToPostId).toBe(quotedPostId);
+        expect(result.quotedPostId).toBe(quotedPostId);
         expect(mockPostRepository.create).toHaveBeenCalledWith({
             user,
             profile,
