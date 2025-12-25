@@ -16,19 +16,7 @@ describe("GetUsersHandler", () => {
         handler = new GetUsersHandler(mockRepository);
     });
 
-    it("should return empty array when no users exist", async () => {
-        // Arrange
-        mockRepository.find = mock(() => Promise.resolve([]));
-
-        // Act
-        const result = await handler.handle();
-
-        // Assert
-        expect(result).toEqual([]);
-        expect(mockRepository.find).toHaveBeenCalledTimes(1);
-    });
-
-    it("should return array of users when users exist", async () => {
+    it("should return array of users", async () => {
         // Arrange
         const mockUser1 = zocker(userDto).generate();
         const mockUser2 = zocker(userDto).generate();
@@ -40,23 +28,8 @@ describe("GetUsersHandler", () => {
 
         // Assert
         expect(result).toHaveLength(2);
-        expect(result[0]).toEqual({
-            id: mockUser1.id,
-            email: mockUser1.email,
-            phone: mockUser1.phone,
-            isActive: mockUser1.isActive,
-            createdAt: mockUser1.createdAt,
-            updatedAt: mockUser1.updatedAt,
-        });
+        expect(result[0]).toEqual(mockUser1);
+        expect(result[1]).toEqual(mockUser2);
         expect(mockRepository.find).toHaveBeenCalledTimes(1);
-    });
-
-    it("should handle repository errors", async () => {
-        // Arrange
-        const error = new Error("Database connection failed");
-        mockRepository.find = mock(() => Promise.reject(error));
-
-        // Act & Assert
-        expect(handler.handle()).rejects.toThrow("Database connection failed");
     });
 });

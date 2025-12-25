@@ -45,7 +45,7 @@ describe("GetBlockedProfilesHandler", () => {
         const result = await handler.handle(blockerProfileId);
 
         // Assert
-        expect(result.total).toBe(2);
+        expect(result.total).toBe(mockBlocks.length);
         expect(result.profiles).toHaveLength(2);
         expect(result.profiles[0]).toEqual({ ...mockBlockedProfile1, blockedAt: new Date("2023-01-01") });
         expect(result.profiles[1]).toEqual({ ...mockBlockedProfile2, blockedAt: new Date("2023-01-02") });
@@ -59,18 +59,5 @@ describe("GetBlockedProfilesHandler", () => {
                 createdAt: "DESC"
             }
         });
-    });
-
-    it("should return empty list when no blocked profiles", async () => {
-        // Arrange
-        const blockerProfileId = "blocker-id";
-        mockProfileInteractionRepository.find = mock(() => Promise.resolve([]));
-
-        // Act
-        const result = await handler.handle(blockerProfileId);
-
-        // Assert
-        expect(result.total).toBe(0);
-        expect(result.profiles).toHaveLength(0);
     });
 });

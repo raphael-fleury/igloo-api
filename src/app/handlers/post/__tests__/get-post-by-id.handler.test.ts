@@ -4,8 +4,8 @@ import { GetPostByIdHandler } from "../get-post-by-id.handler";
 import { zocker } from "zocker";
 import { postDto } from "@/app/dtos/post.dtos";
 import { idDto } from "@/app/dtos/common.dtos";
-import { Post } from "@/database/entities/post";
 import { NotFoundError } from "@/app/errors";
+import { Post } from "@/database/entities/post";
 
 describe("GetPostByIdHandler", () => {
     let handler: GetPostByIdHandler;
@@ -21,31 +21,24 @@ describe("GetPostByIdHandler", () => {
 
     it("should return post when post exists", async () => {
         // Arrange
-        const postData = zocker(postDto).generate();
-        const postId = postData.id;
-        const userId = postData.userId;
-        const profileId = postData.profileId;
-        const mockPost = {
-            id: postId,
-            user: { id: userId },
-            profile: { id: profileId },
-            content: postData.content,
-            repliedPost: null,
-            quotedPost: null,
-            createdAt: postData.createdAt,
-            updatedAt: postData.updatedAt
-        } as any;
+        const post = {
+            ...zocker(postDto).generate(),
+            repliedPost: undefined,
+            quotedPost: undefined,
+            user: { id: zocker(idDto).generate() },
+            profile: { id: zocker(idDto).generate() }
+        } 
 
-        mockPostRepository.findOne = mock(() => Promise.resolve(mockPost));
+        mockPostRepository.findOne = mock(() => Promise.resolve(post as Post));
 
         // Act
-        const result = await handler.handle(postId);
+        const result = await handler.handle(post.id);
 
         // Assert
-        expect(result.id).toBe(postId);
-        expect(result.content).toBe(postData.content);
+        expect(result.id).toBe(post.id);
+        expect(result.content).toBe(post.content);
         expect(mockPostRepository.findOne).toHaveBeenCalledWith({
-            where: { id: postId },
+            where: { id: post.id },
             relations: ['quotedPost']
         });
     });

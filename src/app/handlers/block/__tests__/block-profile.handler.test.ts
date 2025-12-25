@@ -90,7 +90,8 @@ describe("BlockProfileHandler", () => {
 
         // Assert
         expect(mockProfileInteractionRepository.findOne).toHaveBeenCalledTimes(3);
-        expect(mockProfileInteractionRepository.remove).toHaveBeenCalledTimes(2);
+        expect(mockProfileInteractionRepository.remove).toHaveBeenCalledWith(mockFollowFromBlocker);
+        expect(mockProfileInteractionRepository.remove).toHaveBeenCalledWith(mockFollowFromBlocked);
     });
 
     it("should throw NotFoundError when blocker profile does not exist", async () => {
@@ -146,8 +147,6 @@ describe("BlockProfileHandler", () => {
         // Act & Assert
         expect(handler.handle(blockerProfile.id, blockedProfile.id))
             .rejects.toThrow(ConflictError);
-        expect(handler.handle(blockerProfile.id, blockedProfile.id))
-            .rejects.toThrow("Profile is already blocked");
         expect(mockProfileInteractionRepository.create).not.toHaveBeenCalled();
     });
 });

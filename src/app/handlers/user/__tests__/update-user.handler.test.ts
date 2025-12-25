@@ -5,6 +5,7 @@ import { UpdateUserHandler } from "../update-user.handler";
 import { User } from "@/database/entities/user";
 import { NotFoundError, AlreadyExistsError } from "@/app/errors";
 import { updateUserDto, userDto } from "@/app/dtos/user.dtos";
+import { idDto } from "@/app/dtos/common.dtos";
 
 describe("UpdateUserHandler", () => {
     let handler: UpdateUserHandler;
@@ -55,7 +56,7 @@ describe("UpdateUserHandler", () => {
 
     it("should throw NotFoundError when user does not exist", async () => {
         // Arrange
-        const userId = "123e4567-e89b-12d3-a456-426614174000";
+        const userId = zocker(idDto).generate();
         const updateDataRaw = zocker(updateUserDto).generate();
         
         // Filter out undefined values from partial data
@@ -71,7 +72,7 @@ describe("UpdateUserHandler", () => {
 
     it("should throw AlreadyExistsError when email already exists", async () => {
         // Arrange
-        const userId = "123e4567-e89b-12d3-a456-426614174000";
+        const userId = zocker(idDto).generate();
         const updateDataRaw = zocker(updateUserDto).generate();
         
         // Filter out undefined values from partial data and ensure email is defined
@@ -175,30 +176,22 @@ describe("UpdateUserHandler", () => {
 
     it("should throw AlreadyExistsError when phone already exists", async () => {
         // Arrange
-        const userId = "123e4567-e89b-12d3-a456-426614174000";
+        const user = zocker(userDto).generate();
+
         const updateData = {
             phone: "+1234567890123",
         };
-        
-        const existingUserData = zocker(userDto).generate();
-        const existingUser = {
-            ...existingUserData,
-            id: userId,
-            passwordHash: "hashedpassword",
-        } as User;
 
-        const conflictingUserData = zocker(userDto).generate();
         const conflictingUser = {
-            ...conflictingUserData,
+            ...zocker(userDto).generate(),
             id: "different-id",
-            phone: updateData.phone,
-            passwordHash: "hashedpassword",
+            phone: updateData.phone
         } as User;
 
-        mockRepository.findOneBy.mockReturnValue(Promise.resolve(existingUser));
+        mockRepository.findOneBy.mockReturnValue(Promise.resolve(user));
         mockRepository.findOne.mockReturnValue(Promise.resolve(conflictingUser));
 
         // Act & Assert
-        expect(handler.handle(userId, updateData)).rejects.toThrow(AlreadyExistsError);
+        expect(handler.handle(user.id, updateData)).rejects.toThrow(AlreadyExistsError);
     });
 });

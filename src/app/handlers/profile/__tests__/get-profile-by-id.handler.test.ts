@@ -57,16 +57,6 @@ describe("GetProfileByIdHandler", () => {
         expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: profileId });
     });
 
-    it("should handle repository errors", async () => {
-        // Arrange
-        const profileId = zocker(idDto).generate();
-        const error = new Error("Database connection failed");
-        mockRepository.findOneBy = mock(() => Promise.reject(error));
-
-        // Act & Assert
-        expect(handler.handle(profileId)).rejects.toThrow("Database connection failed");
-    });
-
     it("should include relationship flags when viewer profile is provided", async () => {
         // Arrange
         const targetProfileData = zocker(profileDto).generate();

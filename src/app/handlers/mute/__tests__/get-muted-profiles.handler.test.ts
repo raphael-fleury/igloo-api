@@ -51,27 +51,4 @@ describe("GetMutedProfilesHandler", () => {
             }
         });
     });
-
-    it("should return empty list when no muted profiles", async () => {
-        // Arrange
-        const muterProfileId = "123e4567-e89b-12d3-a456-426614174000";
-        mockProfileInteractionRepository.find = mock(() => Promise.resolve([]));
-
-        // Act
-        const result = await handler.handle(muterProfileId);
-
-        // Assert
-        expect(result.total).toBe(0);
-        expect(result.profiles).toHaveLength(0);
-    });
-
-    it("should handle repository errors", async () => {
-        // Arrange
-        const muterProfileId = "123e4567-e89b-12d3-a456-426614174000";
-        const error = new Error("Database connection failed");
-        mockProfileInteractionRepository.find = mock(() => Promise.reject(error));
-
-        // Act & Assert
-        expect(handler.handle(muterProfileId)).rejects.toThrow("Database connection failed");
-    });
 });

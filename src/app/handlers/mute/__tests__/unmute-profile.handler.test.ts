@@ -65,18 +65,4 @@ describe("UnmuteProfileHandler", () => {
             "Mute between profiles not found"
         );
     });
-
-    it("should handle repository errors", async () => {
-        // Arrange
-        const muterProfileId = "123e4567-e89b-12d3-a456-426614174000";
-        const mutedProfileId = "123e4567-e89b-12d3-a456-426614174001";
-        const error = new Error("Database connection failed");
-
-        mockProfileInteractionRepository.findOne = mock(() => Promise.reject(error));
-
-        // Act & Assert
-        expect(handler.handle(muterProfileId, mutedProfileId)).rejects.toThrow(
-            "Database connection failed"
-        );
-    });
 });

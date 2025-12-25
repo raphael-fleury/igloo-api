@@ -27,7 +27,7 @@ describe("UnlikePostHandler", () => {
         const profileId = zocker(idDto).generate();
         const postId = zocker(idDto).generate();
         
-        const user = { id: "b316b948-8f6c-4284-8b38-a68ca4d3dee0" } as User;
+        const user = { id: zocker(idDto).generate() } as User;
         const profile = { id: profileId } as Profile;
         const post = { id: postId } as Post;
 
