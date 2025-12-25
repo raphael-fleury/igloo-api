@@ -1,6 +1,5 @@
 import z from "zod";
 import Elysia from "elysia";
-import { UnauthorizedError } from "@/app/errors";
 import { GetProfileByIdHandler } from "@/app/handlers/profile/get-profile-by-id.handler";
 import { GetFollowersHandler } from "@/app/handlers/follow/get-followers.handler";
 import { GetFollowingHandler } from "@/app/handlers/follow/get-following.handler";
@@ -10,8 +9,8 @@ import { MuteProfileHandler } from "@/app/handlers/mute/mute-profile.handler";
 import { UnmuteProfileHandler } from "@/app/handlers/mute/unmute-profile.handler";
 import { FollowProfileHandler } from "@/app/handlers/follow/follow-profile.handler";
 import { UnfollowProfileHandler } from "@/app/handlers/follow/unfollow-profile.handler";
+import { requireProfileMiddleware } from "../middlewares/require-profile.middleware";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
-import { authMiddleware } from "../middlewares/auth.middleware";
 
 const profileIdParam = z.object({
     id: z.uuid()
@@ -41,11 +40,7 @@ export const profileController = (
     })
 
     .group('/:id', (app) => app
-        .use(authMiddleware)
-        .onBeforeHandle(async ({ profile }) => {
-            if (!profile)
-                throw new UnauthorizedError("You must be logged in a profile to do this action");
-        })
+        .use(requireProfileMiddleware)
         .get('/followers', async ({ params }) => {
             return await getFollowersHandler.handle(params.id);
         }, {
@@ -61,7 +56,7 @@ export const profileController = (
         })
 
         .post('/block', async ({ profile, params, status }) => {
-            await blockProfileHandler.handle(profile!.id, params.id);
+            await blockProfileHandler.handle(profile.id, params.id);
             return status("No Content");
         }, {
             detail: { summary: "Block a profile" },
@@ -69,7 +64,7 @@ export const profileController = (
         })
 
         .delete('/block', async ({ profile, params, status }) => {
-            await unblockProfileHandler.handle(profile!.id, params.id);
+            await unblockProfileHandler.handle(profile.id, params.id);
             return status("No Content");
         }, {
             detail: { summary: "Unblock a profile" },
@@ -77,7 +72,7 @@ export const profileController = (
         })
 
         .post('/mute', async ({ profile, params, status }) => {
-            await muteProfileHandler.handle(profile!.id, params.id);
+            await muteProfileHandler.handle(profile.id, params.id);
             return status("No Content");
         }, {
             detail: { summary: "Mute a profile" },
@@ -85,7 +80,7 @@ export const profileController = (
         })
 
         .delete('/mute', async ({ profile, params, status }) => {
-            await unmuteProfileHandler.handle(profile!.id, params.id);
+            await unmuteProfileHandler.handle(profile.id, params.id);
             return status("No Content");
         }, {
             detail: { summary: "Unmute a profile" },
@@ -93,7 +88,7 @@ export const profileController = (
         })
 
         .post('/follow', async ({ profile, params, status }) => {
-            await followProfileHandler.handle(profile!.id, params.id);
+            await followProfileHandler.handle(profile.id, params.id);
             return status("No Content");
         }, {
             detail: { summary: "Follow a profile" },
@@ -101,7 +96,7 @@ export const profileController = (
         })
 
         .delete('/follow', async ({ profile, params, status }) => {
-            await unfollowProfileHandler.handle(profile!.id, params.id);
+            await unfollowProfileHandler.handle(profile.id, params.id);
             return status("No Content");
         }, {
             detail: { summary: "Unfollow a profile" },

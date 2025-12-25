@@ -1,7 +1,6 @@
 import z from "zod";
 import Elysia, { status } from "elysia";
 import { createPostDto, postDto } from "@/app/dtos/post.dtos";
-import { UnauthorizedError } from "@/app/errors";
 import { CreatePostHandler } from "@/app/handlers/post/create-post.handler";
 import { GetPostByIdHandler } from "@/app/handlers/post/get-post-by-id.handler";
 import { DeletePostHandler } from "@/app/handlers/post/delete-post.handler";
@@ -10,7 +9,7 @@ import { UnlikePostHandler } from "@/app/handlers/like/unlike-post.handler";
 import { RepostPostHandler } from "@/app/handlers/repost/repost-post.handler";
 import { UnrepostPostHandler } from "@/app/handlers/repost/unrepost-post.handler";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
-import { authMiddleware } from "../middlewares/auth.middleware";
+import { requireProfileMiddleware } from "../middlewares/require-profile.middleware";
 
 const postIdParam = z.object({
     id: z.uuid()
@@ -44,13 +43,9 @@ export const postController = (
     })
 
     .group('', (app) => app
-        .use(authMiddleware)
-        .onBeforeHandle(async ({ profile }) => {
-            if (!profile)
-                throw new UnauthorizedError("You must be logged in a profile to do this action");
-        })
+        .use(requireProfileMiddleware)
         .post('/', async ({ body, user, profile }) => {
-            const post = await createPostHandler.handle(body, user, profile!);
+            const post = await createPostHandler.handle(body, user, profile);
             return status(201, post);
         }, {
             detail: { summary: "Create a new post" },
@@ -65,7 +60,7 @@ export const postController = (
 
         .group('/:id', (app) => app
             .delete('/', async ({ profile, params }) => {
-                return await deletePostHandler.handle(params.id, profile!.id);
+                return await deletePostHandler.handle(params.id, profile.id);
             }, {
                 detail: { summary: "Delete post by ID" },
                 params: postIdParam,
@@ -84,7 +79,7 @@ export const postController = (
             })
 
             .post('/like', async ({ user, profile, params, status }) => {
-                await likePostHandler.handle(params.id, user, profile!);
+                await likePostHandler.handle(params.id, user, profile);
                 return status("No Content");
             }, {
                 detail: { summary: "Like a post" },
@@ -92,7 +87,7 @@ export const postController = (
             })
 
             .delete('/like', async ({ profile, params }) => {
-                await unlikePostHandler.handle(profile!.id, params.id);
+                await unlikePostHandler.handle(profile.id, params.id);
                 return status("No Content");
             }, {
                 detail: { summary: "Unlike a post" },
@@ -100,7 +95,7 @@ export const postController = (
             })
 
             .post('/repost', async ({ user, profile, params, status }) => {
-                await repostPostHandler.handle(params.id, user, profile!);
+                await repostPostHandler.handle(params.id, user, profile);
                 return status("No Content");
             }, {
                 detail: { summary: "Repost a post" },
@@ -108,7 +103,7 @@ export const postController = (
             })
 
             .delete('/repost', async ({ profile, params, status }) => {
-                await unrepostPostHandler.handle(profile!.id, params.id);
+                await unrepostPostHandler.handle(profile.id, params.id);
                 return status("No Content");
             }, {
                 detail: { summary: "Unrepost a post" },

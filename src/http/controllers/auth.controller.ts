@@ -1,11 +1,11 @@
 import z from "zod";
 import Elysia, { status } from "elysia";
+import { loginDto } from "@/app/dtos/auth.dtos";
 import { createUserDto } from "@/app/dtos/user.dtos";
+import { LoginHandler } from "@/app/handlers/auth/login.handler";
 import { CreateUserHandler } from "@/app/handlers/user/create-user.handler";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { jwtMiddleware } from "../middlewares/jwt.middleware";
-import { LoginHandler } from "@/app/handlers/auth/login.handler";
-import { loginDto } from "@/app/dtos/auth.dtos";
 
 export const authController = (
     createUserHandler = CreateUserHandler.default,
