@@ -1,11 +1,12 @@
 import z from "zod";
 import { Elysia } from "elysia";
 import { openapi } from "@elysiajs/openapi";
+import { appDataSource } from "./database/data-source";
 import { authController } from "@/http/controllers/auth.controller";
-import { meController } from "@/http/controllers/me.controller";
 import { profileController } from "@/http/controllers/profile.controller";
 import { postController } from "@/http/controllers/post.controller";
-import { appDataSource } from "./database/data-source";
+import { currentUserController } from "./http/controllers/current-user.controller";
+import { currentProfileController } from "./http/controllers/current-profile.controller";
 
 try {
     await appDataSource.initialize();
@@ -21,7 +22,8 @@ const app = new Elysia()
         }
     }))
     .use(authController())
-    .use(meController())
+    .use(currentUserController())
+    .use(currentProfileController())
     .use(profileController())
     .use(postController())
     .listen(3000);
