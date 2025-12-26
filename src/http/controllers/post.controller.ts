@@ -1,6 +1,7 @@
 import z from "zod";
 import Elysia, { status } from "elysia";
-import { createPostDto, postDto } from "@/app/dtos/post.dtos";
+import { createPostDto, postDto, postQueryDto } from "@/app/dtos/post.dtos";
+import { FindPostsHandler } from "@/app/handlers/post/find-posts.handler";
 import { CreatePostHandler } from "@/app/handlers/post/create-post.handler";
 import { GetPostByIdHandler } from "@/app/handlers/post/get-post-by-id.handler";
 import { DeletePostHandler } from "@/app/handlers/post/delete-post.handler";
@@ -16,8 +17,9 @@ const postIdParam = z.object({
 });
 
 export const postController = (
-    createPostHandler = CreatePostHandler.default,
+    findPostsHandler = FindPostsHandler.default,
     getPostByIdHandler = GetPostByIdHandler.default,
+    createPostHandler = CreatePostHandler.default,
     deletePostHandler = DeletePostHandler.default,
     likePostHandler = LikePostHandler.default,
     unlikePostHandler = UnlikePostHandler.default,
@@ -27,6 +29,16 @@ export const postController = (
     .use(onErrorMiddleware)
     .guard({
         detail: { tags: ['Posts'] }
+    })
+
+    .get('/', async ({ query }) => {
+        return await findPostsHandler.handle(query);
+    }, {
+        detail: { summary: "Find posts" },
+        query: postQueryDto,
+        response: {
+            200: z.array(postDto)
+        }
     })
 
     .get('/:id', async ({ params }) => {
