@@ -13,7 +13,9 @@
   "scripts": {
     "test": "bun test",
     "test:watch": "bun test --watch",
-    "dev": "bun run --watch src/index.ts"
+    "dev": "bun run --watch src/index.ts",
+    "db:seed": "bun run src/database/seed.ts",
+    "db:clear": "bun run src/database/clear.ts"
   },
   "devDependencies": {
     "@elysiajs/eden": "^1.4.1",
