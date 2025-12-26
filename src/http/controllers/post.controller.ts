@@ -1,6 +1,6 @@
 import z from "zod";
 import Elysia, { status } from "elysia";
-import { createPostDto, postDto, postQueryDto } from "@/app/dtos/post.dtos";
+import { createPostDto, postDetailedDto, postDto, postQueryDto } from "@/app/dtos/post.dtos";
 import { FindPostsHandler } from "@/app/handlers/post/find-posts.handler";
 import { CreatePostHandler } from "@/app/handlers/post/create-post.handler";
 import { GetPostByIdHandler } from "@/app/handlers/post/get-post-by-id.handler";
@@ -47,7 +47,7 @@ export const postController = (
         detail: { summary: "Get post by ID (public)" },
         params: postIdParam,
         response: {
-            200: postDto,
+            200: postDetailedDto,
             404: z.object({
                 message: z.string()
             })

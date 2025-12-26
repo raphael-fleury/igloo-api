@@ -7,7 +7,7 @@ export class Post {
     @PrimaryGeneratedColumn("uuid")
     id!: string;
 
-    @ManyToOne("User", { eager: true })
+    @ManyToOne("User")
     @JoinColumn({ name: "userId" })
     user!: User;
 

@@ -1,5 +1,6 @@
 import z from "zod";
 import { idDto } from "./common.dtos";
+import { profileDto } from "./profile.dtos";
 
 const MAX_POST_CONTENT_LENGTH = 300;
 
@@ -7,13 +8,25 @@ const basePostDto = z.object({
     content: z.string().min(1).max(MAX_POST_CONTENT_LENGTH)
 });
 
-export const postDto = basePostDto.extend({
+const createdPostDto = basePostDto.extend({
     id: idDto,
-    repliedPostId: idDto.nullable().optional(),
-    quotedPostId: idDto.nullable().optional(),
     createdAt: z.date(),
     updatedAt: z.date()
 });
+
+export const postDto = createdPostDto.extend({
+    profile: profileDto,
+    repliedPostId: idDto.nullable().optional(),
+    quotedPostId: idDto.nullable().optional()
+});
+
+export const postDetailedDto = createdPostDto.extend({
+    profile: profileDto,
+    repliedPost: postDto.nullable().optional(),
+    quotedPost: postDto.nullable().optional(),
+    likes: z.int(),
+    reposts: z.int()
+})
 
 export const createPostDto = basePostDto.extend({
     repliedPostId: idDto.nullable().optional(),
@@ -32,5 +45,6 @@ export const postQueryDto = z.object({
 }).partial();
 
 export type PostDto = z.infer<typeof postDto>;
+export type PostDetailedDto = z.infer<typeof postDetailedDto>;
 export type CreatePostDto = z.infer<typeof createPostDto>;
 export type PostQueryDto = z.infer<typeof postQueryDto>;
