@@ -32,7 +32,10 @@ describe("GetAuthInfoHandler", () => {
 
     it("should return user and profile when profileId is present", async () => {
         // Arrange
-        const payload = zocker(tokenPayloadDto).generate();
+        const payload = {
+            userId: zocker(idDto).generate(),
+            profileId: zocker(idDto).generate()
+        }
         const mockUser = zocker(userDto).generate() as User;
         const mockProfile = zocker(profileDto).generate() as Profile;
         const mockUserProfile = {
@@ -96,7 +99,10 @@ describe("GetAuthInfoHandler", () => {
 
     it("should throw UnauthorizedError when UserProfile relation does not exists", async () => {
         // Arrange
-        const payload = zocker(tokenPayloadDto).generate();
+        const payload = {
+            userId: zocker(idDto).generate(),
+            profileId: zocker(idDto).generate()
+        }
         mockUserProfileRepository.findOne = mock(() => Promise.resolve(null));
 
         // Act & Assert
