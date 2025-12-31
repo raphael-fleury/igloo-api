@@ -7,10 +7,15 @@ import { CreateUserHandler } from "@/app/handlers/user/create-user.handler";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { jwtMiddleware } from "../middlewares/jwt.middleware";
 
-export const authController = (
-    createUserHandler = CreateUserHandler.default,
-    loginHandler = LoginHandler.default
-) => new Elysia({ prefix: "/auth" })
+const getDefaultProps = () => ({
+    handlers: {
+        createUser: CreateUserHandler.default,
+        login: LoginHandler.default
+    }
+})
+
+export const authController = ({ handlers } = getDefaultProps()) =>
+    new Elysia({ prefix: "/auth" })
     .use(onErrorMiddleware)
     .use(jwtMiddleware)
     .guard({
@@ -18,7 +23,7 @@ export const authController = (
     })
 
     .post('/register', async ({ body, jwt }) => {
-        const userWithProfile = await createUserHandler.handle(body);
+        const userWithProfile = await handlers.createUser.handle(body);
 
         const token = await jwt.sign({
             userId: userWithProfile.id,
@@ -40,7 +45,7 @@ export const authController = (
     })
 
     .post('/login', async ({ body, jwt }) => {
-        const { userId, profileId } = await loginHandler.handle(body);
+        const { userId, profileId } = await handlers.login.handle(body);
         const token = await jwt.sign({ userId, profileId });
         return { token };
     }, {

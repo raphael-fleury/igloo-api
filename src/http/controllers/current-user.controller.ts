@@ -5,9 +5,12 @@ import { UpdateUserHandler } from "@/app/handlers/user/update-user.handler";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { authMiddleware } from "../middlewares/auth.middleware";
 
-export const currentUserController = (
-    updateUserHandler = UpdateUserHandler.default,
-) => new Elysia({ prefix: "/me" })
+const getDefaultProps = () => ({
+    handlers: { updateUser: UpdateUserHandler.default }
+})
+
+export const currentUserController = ({ handlers } = getDefaultProps()) =>
+    new Elysia({ prefix: "/me" })
     .use(onErrorMiddleware)
     .use(authMiddleware)
     .guard({
@@ -24,7 +27,7 @@ export const currentUserController = (
     })
 
     .patch('/', async ({ user, body }) => {
-        return await updateUserHandler.handle(user.id, body);
+        return await handlers.updateUser.handle(user.id, body);
     }, {
         detail: { summary: "Update current user" },
         body: updateUserDto,

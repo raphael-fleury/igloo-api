@@ -8,13 +8,18 @@ import { GetMutedProfilesHandler } from "@/app/handlers/mute/get-muted-profiles.
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { requireProfileMiddleware } from "../middlewares/require-profile.middleware";
 
-export const currentProfileController = (
-    updateProfileHandler = UpdateProfileHandler.default,
-    getBlockedProfilesHandler = GetBlockedProfilesHandler.default,
-    getFollowersHandler = GetFollowersHandler.default,
-    getFollowingHandler = GetFollowingHandler.default,
-    getMutedProfilesHandler = GetMutedProfilesHandler.default,
-) => new Elysia({ prefix: "/me/profile" })
+const getDefaultProps = () => ({
+    handlers: {
+        updateProfile: UpdateProfileHandler.default,
+        getBlockedProfiles: GetBlockedProfilesHandler.default,
+        getFollowers: GetFollowersHandler.default,
+        getFollowing: GetFollowingHandler.default,
+        getMutedProfiles: GetMutedProfilesHandler.default,
+    }
+})
+
+export const currentProfileController = ({ handlers } = getDefaultProps()) =>
+    new Elysia({ prefix: "/me/profile" })
     .use(onErrorMiddleware)
     .use(requireProfileMiddleware)
     .guard({
@@ -28,32 +33,32 @@ export const currentProfileController = (
     })
 
     .patch('/', async ({ profile, body }) => {
-        return await updateProfileHandler.handle(profile.id, body);
+        return await handlers.updateProfile.handle(profile.id, body);
     }, {
         detail: { summary: "Update current profile" },
         body: updateProfileDto
     })
 
     .get('/blocks', async ({ profile }) => {
-        return await getBlockedProfilesHandler.handle(profile.id);
+        return await handlers.getBlockedProfiles.handle(profile.id);
     }, {
         detail: { summary: "Get all profiles blocked by current profile" }
     })
 
     .get('/followers', async ({ profile }) => {
-        return await getFollowersHandler.handle(profile.id);
+        return await handlers.getFollowers.handle(profile.id);
     }, {
         detail: { summary: "Get all followers of current profile" }
     })
 
     .get('/following', async ({ profile }) => {
-        return await getFollowingHandler.handle(profile.id);
+        return await handlers.getFollowing.handle(profile.id);
     }, {
         detail: { summary: "Get all profiles that current profile is following" }
     })
 
     .get('/mutes', async ({ profile }) => {
-        return await getMutedProfilesHandler.handle(profile.id);
+        return await handlers.getMutedProfiles.handle(profile.id);
     }, {
         detail: { summary: "Get all profiles muted by current profile" }
     });

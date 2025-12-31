@@ -16,24 +16,29 @@ const profileIdParam = z.object({
     id: z.uuid()
 });
 
-export const profileController = (
-    getProfileByIdHandler = GetProfileByIdHandler.default,
-    getFollowersHandler = GetFollowersHandler.default,
-    getFollowingHandler = GetFollowingHandler.default,
-    blockProfileHandler = BlockProfileHandler.default,
-    unblockProfileHandler = UnblockProfileHandler.default,
-    muteProfileHandler = MuteProfileHandler.default,
-    unmuteProfileHandler = UnmuteProfileHandler.default,
-    followProfileHandler = FollowProfileHandler.default,
-    unfollowProfileHandler = UnfollowProfileHandler.default,
-) => new Elysia({ prefix: "/profiles" })
+const getDefaultProps = () => ({
+    handlers: {
+        getProfileById: GetProfileByIdHandler.default,
+        getFollowers: GetFollowersHandler.default,
+        getFollowing: GetFollowingHandler.default,
+        blockProfile: BlockProfileHandler.default,
+        unblockProfile: UnblockProfileHandler.default,
+        muteProfile: MuteProfileHandler.default,
+        unmuteProfile: UnmuteProfileHandler.default,
+        followProfile: FollowProfileHandler.default,
+        unfollowProfile: UnfollowProfileHandler.default,
+    }
+})
+
+export const profileController = ({ handlers } = getDefaultProps()) =>
+    new Elysia({ prefix: "/profiles" })
     .use(onErrorMiddleware)
     .guard({
         detail: { tags: ['Profiles'] }
     })
 
     .get('/:id', async ({ params }) => {
-        return await getProfileByIdHandler.handle(params.id);
+        return await handlers.getProfileById.handle(params.id);
     }, {
         detail: { summary: "Get profile by ID (public)" },
         params: profileIdParam
@@ -42,21 +47,21 @@ export const profileController = (
     .group('/:id', (app) => app
         .use(requireProfileMiddleware)
         .get('/followers', async ({ params }) => {
-            return await getFollowersHandler.handle(params.id);
+            return await handlers.getFollowers.handle(params.id);
         }, {
             detail: { summary: "Get followers of a profile" },
             params: profileIdParam
         })
 
         .get('/following', async ({ params }) => {
-            return await getFollowingHandler.handle(params.id);
+            return await handlers.getFollowing.handle(params.id);
         }, {
             detail: { summary: "Get all profiles followed by this one" },
             params: profileIdParam
         })
 
         .post('/block', async ({ profile, params, status }) => {
-            await blockProfileHandler.handle(profile.id, params.id);
+            await handlers.blockProfile.handle(profile.id, params.id);
             return status("No Content");
         }, {
             detail: { summary: "Block a profile" },
@@ -64,7 +69,7 @@ export const profileController = (
         })
 
         .delete('/block', async ({ profile, params, status }) => {
-            await unblockProfileHandler.handle(profile.id, params.id);
+            await handlers.unblockProfile.handle(profile.id, params.id);
             return status("No Content");
         }, {
             detail: { summary: "Unblock a profile" },
@@ -72,7 +77,7 @@ export const profileController = (
         })
 
         .post('/mute', async ({ profile, params, status }) => {
-            await muteProfileHandler.handle(profile.id, params.id);
+            await handlers.muteProfile.handle(profile.id, params.id);
             return status("No Content");
         }, {
             detail: { summary: "Mute a profile" },
@@ -80,7 +85,7 @@ export const profileController = (
         })
 
         .delete('/mute', async ({ profile, params, status }) => {
-            await unmuteProfileHandler.handle(profile.id, params.id);
+            await handlers.unmuteProfile.handle(profile.id, params.id);
             return status("No Content");
         }, {
             detail: { summary: "Unmute a profile" },
@@ -88,7 +93,7 @@ export const profileController = (
         })
 
         .post('/follow', async ({ profile, params, status }) => {
-            await followProfileHandler.handle(profile.id, params.id);
+            await handlers.followProfile.handle(profile.id, params.id);
             return status("No Content");
         }, {
             detail: { summary: "Follow a profile" },
@@ -96,7 +101,7 @@ export const profileController = (
         })
 
         .delete('/follow', async ({ profile, params, status }) => {
-            await unfollowProfileHandler.handle(profile.id, params.id);
+            await handlers.unfollowProfile.handle(profile.id, params.id);
             return status("No Content");
         }, {
             detail: { summary: "Unfollow a profile" },

@@ -16,23 +16,28 @@ const postIdParam = z.object({
     id: z.uuid()
 });
 
-export const postController = (
-    findPostsHandler = FindPostsHandler.default,
-    getPostByIdHandler = GetPostByIdHandler.default,
-    createPostHandler = CreatePostHandler.default,
-    deletePostHandler = DeletePostHandler.default,
-    likePostHandler = LikePostHandler.default,
-    unlikePostHandler = UnlikePostHandler.default,
-    repostPostHandler = RepostPostHandler.default,
-    unrepostPostHandler = UnrepostPostHandler.default,
-) => new Elysia({ prefix: "/posts" })
+const getDefaultProps = () => ({
+    handlers: {
+        findPosts: FindPostsHandler.default,
+        getPostById: GetPostByIdHandler.default,
+        createPost: CreatePostHandler.default,
+        deletePost: DeletePostHandler.default,
+        likePost: LikePostHandler.default,
+        unlikePost: UnlikePostHandler.default,
+        repostPost: RepostPostHandler.default,
+        unrepostPost: UnrepostPostHandler.default
+    }
+})
+
+export const postController = ({ handlers } = getDefaultProps()) =>
+    new Elysia({ prefix: "/posts" })
     .use(onErrorMiddleware)
     .guard({
         detail: { tags: ['Posts'] }
     })
 
     .get('/', async ({ query }) => {
-        return await findPostsHandler.handle(query);
+        return await handlers.findPosts.handle(query);
     }, {
         detail: { summary: "Find posts" },
         query: postQueryDto,
@@ -42,7 +47,7 @@ export const postController = (
     })
 
     .get('/:id', async ({ params }) => {
-        return await getPostByIdHandler.handle(params.id);
+        return await handlers.getPostById.handle(params.id);
     }, {
         detail: { summary: "Get post by ID (public)" },
         params: postIdParam,
@@ -57,7 +62,7 @@ export const postController = (
     .group('', (app) => app
         .use(requireProfileMiddleware)
         .post('/', async ({ body, user, profile }) => {
-            const post = await createPostHandler.handle(body, user, profile);
+            const post = await handlers.createPost.handle(body, user, profile);
             return status(201, post);
         }, {
             detail: { summary: "Create a new post" },
@@ -72,7 +77,7 @@ export const postController = (
 
         .group('/:id', (app) => app
             .delete('/', async ({ profile, params }) => {
-                return await deletePostHandler.handle(params.id, profile.id);
+                return await handlers.deletePost.handle(params.id, profile.id);
             }, {
                 detail: { summary: "Delete post by ID" },
                 params: postIdParam,
@@ -91,7 +96,8 @@ export const postController = (
             })
 
             .post('/like', async ({ user, profile, params, status }) => {
-                await likePostHandler.handle(params.id, user, profile);
+                console.log(user, profile)
+                await handlers.likePost.handle(params.id, user, profile);
                 return status("No Content");
             }, {
                 detail: { summary: "Like a post" },
@@ -99,7 +105,7 @@ export const postController = (
             })
 
             .delete('/like', async ({ profile, params }) => {
-                await unlikePostHandler.handle(profile.id, params.id);
+                await handlers.unlikePost.handle(profile.id, params.id);
                 return status("No Content");
             }, {
                 detail: { summary: "Unlike a post" },
@@ -107,7 +113,7 @@ export const postController = (
             })
 
             .post('/repost', async ({ user, profile, params, status }) => {
-                await repostPostHandler.handle(params.id, user, profile);
+                await handlers.repostPost.handle(params.id, user, profile);
                 return status("No Content");
             }, {
                 detail: { summary: "Repost a post" },
@@ -115,7 +121,7 @@ export const postController = (
             })
 
             .delete('/repost', async ({ profile, params, status }) => {
-                await unrepostPostHandler.handle(profile.id, params.id);
+                await handlers.unrepostPost.handle(profile.id, params.id);
                 return status("No Content");
             }, {
                 detail: { summary: "Unrepost a post" },
