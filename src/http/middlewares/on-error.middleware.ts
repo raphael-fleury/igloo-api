@@ -40,6 +40,7 @@ export const onErrorMiddleware = (app: Elysia) => app
                 break;
             case 'UNKNOWN':
             case 'INTERNAL_SERVER_ERROR':
+                console.error(error);
                 set.status = 500;
                 break;
             default:
