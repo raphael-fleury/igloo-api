@@ -1,6 +1,5 @@
 import { Repository } from "typeorm";
-import { postDto, postDetailedDto } from "@/app/dtos/post.dtos";
-import { profileDto } from "@/app/dtos/profile.dtos";
+import { postDetailedDto } from "@/app/dtos/post.dtos";
 import { NotFoundError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { Post } from "@/database/entities/post";
@@ -8,38 +7,54 @@ import { PostInteraction, InteractionType } from "@/database/entities/post-inter
 
 export class GetPostByIdHandler {
     constructor(
-        private readonly postRepository: Repository<Post>,
-        private readonly postInteractionRepository: Repository<PostInteraction>
+        private readonly postRepository: Repository<Post>
     ) { }
 
     static get default() {
         return new GetPostByIdHandler(
-            appDataSource.getRepository(Post),
-            appDataSource.getRepository(PostInteraction)
+            appDataSource.getRepository(Post)
         );
     }
 
     async handle(id: string) {
-        const post = await this.postRepository.findOne({
-            where: { id },
-            relations: ['profile', 'repliedPost', 'quotedPost']
-        });
-        
-        if (!post) {
+        const qb = this.postRepository
+            .createQueryBuilder("post")
+            .leftJoinAndSelect("post.profile", "profile")
+            .leftJoinAndSelect("post.repliedPost", "repliedPost")
+            .leftJoinAndSelect("post.quotedPost", "quotedPost")
+            .leftJoin(
+                PostInteraction,
+                "interaction",
+                "interaction.postId = post.id"
+            )
+            .addSelect([
+                `COUNT(CASE WHEN interaction.interactionType = :like THEN 1 END) AS likes`,
+                `COUNT(CASE WHEN interaction.interactionType = :repost THEN 1 END) AS reposts`,
+            ])
+            .where("post.id = :id", { id })
+            .setParameters({
+                like: InteractionType.Like,
+                repost: InteractionType.Repost,
+            })
+            .groupBy("post.id")
+            .addGroupBy("profile.id")
+            .addGroupBy("repliedPost.id")
+            .addGroupBy("quotedPost.id");
+
+        const { entities, raw } = await qb.getRawAndEntities();
+        console.log(entities, raw);
+
+        if (!entities[0]) {
             throw new NotFoundError(`Post with id ${id} not found`);
         }
 
-        const likes = await this.postInteractionRepository.count({
-            where: { post: { id }, interactionType: InteractionType.Like }
-        });
-        const reposts = await this.postInteractionRepository.count({
-            where: { post: { id }, interactionType: InteractionType.Repost }
-        });
+        const post = entities[0];
+        const metrics = raw[0];
 
         return postDetailedDto.parse({
             ...post,
-            likes,
-            reposts
+            likes: Number(metrics.likes),
+            reposts: Number(metrics.reposts),
         });
     }
 }

@@ -5,22 +5,35 @@ import { zocker } from "zocker";
 import { idDto } from "@/app/dtos/common.dtos";
 import { NotFoundError } from "@/app/errors";
 import { Post } from "@/database/entities/post";
-import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
+import { InteractionType } from "@/database/entities/post-interaction";
 
 describe("GetPostByIdHandler", () => {
     let handler: GetPostByIdHandler;
     let mockPostRepository: Repository<Post>;
-    let mockPostInteractionRepository: Repository<PostInteraction>;
+    let qb: any;
+    let rawEntitiesReturn: { entities: any[]; raw: any[] };
+    let capturedParameters: any;
 
     beforeEach(() => {
+        rawEntitiesReturn = { entities: [], raw: [] };
+        capturedParameters = undefined;
+
+        qb = {
+            leftJoinAndSelect: () => qb,
+            leftJoin: () => qb,
+            addSelect: () => qb,
+            where: () => qb,
+            setParameters: (params: any) => { capturedParameters = params; return qb; },
+            groupBy: () => qb,
+            addGroupBy: () => qb,
+            getRawAndEntities: () => Promise.resolve(rawEntitiesReturn),
+        };
+
         mockPostRepository = {
-            findOne: mock(() => Promise.resolve(null))
-        } as any;
-        mockPostInteractionRepository = {
-            count: mock(() => Promise.resolve(0))
+            createQueryBuilder: mock(() => qb),
         } as any;
 
-        handler = new GetPostByIdHandler(mockPostRepository, mockPostInteractionRepository);
+        handler = new GetPostByIdHandler(mockPostRepository);
     });
 
     it("should return post when post exists", async () => {
@@ -36,12 +49,10 @@ describe("GetPostByIdHandler", () => {
             updatedAt: new Date()
         }
 
-        mockPostRepository.findOne = mock(() => Promise.resolve(post as Post));
-        (mockPostInteractionRepository.count as any) = mock((args: any) => {
-            if (args.where.interactionType === InteractionType.Like) return Promise.resolve(3);
-            if (args.where.interactionType === InteractionType.Repost) return Promise.resolve(2);
-            return Promise.resolve(0);
-        });
+        rawEntitiesReturn = {
+            entities: [post as Post],
+            raw: [{ likes: 3, reposts: 2 }],
+        };
 
         // Act
         const result = await handler.handle(post.id);
@@ -52,11 +63,9 @@ describe("GetPostByIdHandler", () => {
         expect(result.profile.id).toBe(profileId);
         expect(result.likes).toBe(3);
         expect(result.reposts).toBe(2);
-        expect(mockPostRepository.findOne).toHaveBeenCalledWith({
-            where: { id: post.id },
-            relations: ['profile', 'repliedPost', 'quotedPost']
-        });
-        expect(mockPostInteractionRepository.count).toHaveBeenCalledTimes(2);
+        expect((mockPostRepository as any).createQueryBuilder).toHaveBeenCalledWith("post");
+        expect(capturedParameters.like).toBe(InteractionType.Like);
+        expect(capturedParameters.repost).toBe(InteractionType.Repost);
     });
 
     it("should throw NotFoundError when post does not exist", async () => {
