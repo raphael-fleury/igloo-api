@@ -14,11 +14,11 @@ export class ProfileInteraction {
     id!: string;
 
     @ManyToOne(() => Profile)
-    @JoinColumn({ name: "sourceProfileId" })
+    @JoinColumn({ name: "source_profile_id" })
     sourceProfile!: Profile;
 
     @ManyToOne(() => Profile)
-    @JoinColumn({ name: "targetProfileId" })
+    @JoinColumn({ name: "target_profile_id" })
     targetProfile!: Profile;
 
     @Column({

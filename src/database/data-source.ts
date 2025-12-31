@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { env } from "../env";
+import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 
 export const appDataSource = new DataSource({
     type: "postgres",
@@ -12,4 +13,5 @@ export const appDataSource = new DataSource({
     entities: ["src/database/entities/*.ts"],
     synchronize: true,
     logging: true,
+    namingStrategy: new SnakeNamingStrategy() 
 });

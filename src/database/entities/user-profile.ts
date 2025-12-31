@@ -8,12 +8,12 @@ export class UserProfile {
     @PrimaryGeneratedColumn("uuid")
     id!: string;
 
-    @ManyToOne(() => User, "userProfiles", { onDelete: "CASCADE" })
-    @JoinColumn({ name: "userId" })
+    @ManyToOne(() => User, "user_profiles", { onDelete: "CASCADE" })
+    @JoinColumn({ name: "user_id" })
     user!: any;
 
-    @ManyToOne(() => Profile, "userProfiles", { onDelete: "CASCADE" })
-    @JoinColumn({ name: "profileId" })
+    @ManyToOne(() => Profile, "user_profiles", { onDelete: "CASCADE" })
+    @JoinColumn({ name: "profile_id" })
     profile!: any;
 
     @CreateDateColumn()

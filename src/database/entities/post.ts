@@ -8,11 +8,11 @@ export class Post {
     id!: string;
 
     @ManyToOne(() => User)
-    @JoinColumn({ name: "userId" })
+    @JoinColumn({ name: "user_id" })
     user!: User;
 
     @ManyToOne(() => Profile)
-    @JoinColumn({ name: "profileId" })
+    @JoinColumn({ name: "profile_id" })
     profile!: Profile;
 
     @Column({ type: "text", nullable: false })
@@ -21,7 +21,7 @@ export class Post {
     @ManyToOne(() => Post, post => post.replies, {
         nullable: true,
     })
-    @JoinColumn({ name: "repliedPostId" })
+    @JoinColumn({ name: "replied_post_id" })
     repliedPost?: Post;
 
     @OneToMany(() => Post, post => post.repliedPost)
@@ -30,7 +30,7 @@ export class Post {
     @ManyToOne(() => Post, post => post.quotes, {
         nullable: true,
     })
-    @JoinColumn({ name: "quotedPostId" })
+    @JoinColumn({ name: "quoted_post_id" })
     quotedPost?: Post;
 
     @OneToMany(() => Post, post => post.quotedPost)
