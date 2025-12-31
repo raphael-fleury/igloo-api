@@ -14,15 +14,15 @@ export class PostInteraction {
     @PrimaryGeneratedColumn("uuid")
     id!: string;
 
-    @ManyToOne("User")
+    @ManyToOne(() => User)
     @JoinColumn({ name: "userId" })
     user!: User;
 
-    @ManyToOne("Profile")
+    @ManyToOne(() => Profile)
     @JoinColumn({ name: "profileId" })
     profile!: Profile;
 
-    @ManyToOne("Post")
+    @ManyToOne(() => Post)
     @JoinColumn({ name: "postId" })
     post!: Post;
 

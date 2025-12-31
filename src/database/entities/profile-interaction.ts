@@ -13,11 +13,11 @@ export class ProfileInteraction {
     @PrimaryGeneratedColumn("uuid")
     id!: string;
 
-    @ManyToOne("Profile", { eager: true })
+    @ManyToOne(() => Profile)
     @JoinColumn({ name: "sourceProfileId" })
     sourceProfile!: Profile;
 
-    @ManyToOne("Profile", { eager: true })
+    @ManyToOne(() => Profile)
     @JoinColumn({ name: "targetProfileId" })
     targetProfile!: Profile;
 

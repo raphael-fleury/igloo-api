@@ -96,7 +96,6 @@ export const postController = ({ handlers } = getDefaultProps()) =>
             })
 
             .post('/like', async ({ user, profile, params, status }) => {
-                console.log(user, profile)
                 await handlers.likePost.handle(params.id, user, profile);
                 return status("No Content");
             }, {
