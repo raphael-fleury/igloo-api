@@ -21,7 +21,9 @@ export class GetPostByIdHandler {
             .createQueryBuilder("post")
             .leftJoinAndSelect("post.profile", "profile")
             .leftJoinAndSelect("post.repliedPost", "repliedPost")
+            .leftJoinAndSelect("repliedPost.profile", "repliedProfile")
             .leftJoinAndSelect("post.quotedPost", "quotedPost")
+            .leftJoinAndSelect("quotedPost.profile", "quotedProfile")
             .leftJoin(
                 PostInteraction,
                 "interaction",
@@ -39,7 +41,9 @@ export class GetPostByIdHandler {
             .groupBy("post.id")
             .addGroupBy("profile.id")
             .addGroupBy("repliedPost.id")
-            .addGroupBy("quotedPost.id");
+            .addGroupBy("repliedProfile.id")
+            .addGroupBy("quotedPost.id")
+            .addGroupBy("quotedProfile.id");
 
         const { entities, raw } = await qb.getRawAndEntities();
         console.log(entities, raw);
