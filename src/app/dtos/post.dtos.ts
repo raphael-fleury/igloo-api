@@ -25,7 +25,9 @@ export const postDetailedDto = createdPostDto.extend({
     repliedPost: postDto.nullable().optional(),
     quotedPost: postDto.nullable().optional(),
     likes: z.int(),
-    reposts: z.int()
+    reposts: z.int(),
+    replies: z.int(),
+    quotes: z.int()
 })
 
 export const createPostDto = basePostDto.extend({

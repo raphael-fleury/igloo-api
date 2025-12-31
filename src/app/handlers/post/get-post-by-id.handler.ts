@@ -20,24 +20,33 @@ export class GetPostByIdHandler {
         const qb = this.postRepository
             .createQueryBuilder("post")
             .leftJoinAndSelect("post.profile", "profile")
+
+            // Quotes and Replies
+            .leftJoin(Post, "reply", "reply.repliedPostId = post.id")
+            .leftJoin(Post, "quote", "quote.quotedPostId = post.id")
+
+            // Quoted & Replied posts + profiles
             .leftJoinAndSelect("post.repliedPost", "repliedPost")
             .leftJoinAndSelect("repliedPost.profile", "repliedProfile")
             .leftJoinAndSelect("post.quotedPost", "quotedPost")
             .leftJoinAndSelect("quotedPost.profile", "quotedProfile")
-            .leftJoin(
-                PostInteraction,
-                "interaction",
-                "interaction.postId = post.id"
-            )
+
+            // Interactions
+            .leftJoin(PostInteraction, "interaction", "interaction.postId = post.id")
+
             .addSelect([
-                `COUNT(CASE WHEN interaction.interactionType = :like THEN 1 END) AS likes`,
-                `COUNT(CASE WHEN interaction.interactionType = :repost THEN 1 END) AS reposts`,
+                `COUNT(DISTINCT reply.id) AS replies`,
+                `COUNT(DISTINCT quote.id) AS quotes`,
+                `COUNT(DISTINCT CASE WHEN interaction.interactionType = :like THEN interaction.id END) AS likes`,
+                `COUNT(DISTINCT CASE WHEN interaction.interactionType = :repost THEN interaction.id END) AS reposts`,
             ])
+
             .where("post.id = :id", { id })
             .setParameters({
                 like: InteractionType.Like,
                 repost: InteractionType.Repost,
             })
+
             .groupBy("post.id")
             .addGroupBy("profile.id")
             .addGroupBy("repliedPost.id")
@@ -46,7 +55,6 @@ export class GetPostByIdHandler {
             .addGroupBy("quotedProfile.id");
 
         const { entities, raw } = await qb.getRawAndEntities();
-        console.log(entities, raw);
 
         if (!entities[0]) {
             throw new NotFoundError(`Post with id ${id} not found`);
@@ -59,6 +67,8 @@ export class GetPostByIdHandler {
             ...post,
             likes: Number(metrics.likes),
             reposts: Number(metrics.reposts),
+            replies: Number(metrics.replies),
+            quotes: Number(metrics.quotes),
         });
     }
 }

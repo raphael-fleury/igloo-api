@@ -51,7 +51,7 @@ describe("GetPostByIdHandler", () => {
 
         rawEntitiesReturn = {
             entities: [post as Post],
-            raw: [{ likes: 3, reposts: 2 }],
+            raw: [{ likes: 3, reposts: 2, quotes: 0, replies: 0 }],
         };
 
         // Act
