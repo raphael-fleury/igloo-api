@@ -31,8 +31,8 @@ export const postDetailedDto = createdPostDto.extend({
 })
 
 export const createPostDto = basePostDto.extend({
-    repliedPostId: idDto.nullable().optional(),
-    quotedPostId: idDto.nullable().optional()
+    repliedPostId: idDto.nullable().optional().default(null),
+    quotedPostId: idDto.nullable().optional().default(null)
 });
 
 export const postQueryDto = z.object({
