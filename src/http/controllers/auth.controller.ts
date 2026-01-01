@@ -19,7 +19,8 @@ export const authController = ({ handlers } = getDefaultProps()) =>
     .use(onErrorMiddleware)
     .use(jwtMiddleware)
     .guard({
-        detail: { tags: ['Auth'] }
+        detail: { tags: ['Auth'] },
+        security: []
     })
 
     .post('/register', async ({ body, jwt }) => {
@@ -32,7 +33,7 @@ export const authController = ({ handlers } = getDefaultProps()) =>
 
         return status(201, { token });
     }, {
-        detail: { summary: "Register a new user" },
+        detail: { summary: "Register a new user 🌍" },
         body: createUserDto,
         response: {
             201: z.object({
@@ -49,7 +50,7 @@ export const authController = ({ handlers } = getDefaultProps()) =>
         const token = await jwt.sign({ userId, profileId });
         return { token };
     }, {
-        detail: { summary: "Login" },
+        detail: { summary: "Login 🌍" },
         body: loginDto,
         response: {
             200: z.object({

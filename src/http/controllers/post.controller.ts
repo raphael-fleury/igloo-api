@@ -49,7 +49,10 @@ export const postController = ({ handlers } = getDefaultProps()) =>
     .get('/:id', async ({ params }) => {
         return await handlers.getPostById.handle(params.id);
     }, {
-        detail: { summary: "Get post by ID (public)" },
+        detail: {
+            summary: "Get post by ID 🌍",
+            security: []
+        },
         params: postIdParam,
         response: {
             200: postDetailedDto,
