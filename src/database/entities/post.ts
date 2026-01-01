@@ -11,7 +11,7 @@ export class Post {
     @JoinColumn({ name: "user_id" })
     user!: User;
 
-    @ManyToOne(() => Profile)
+    @ManyToOne(() => Profile, { eager: true })
     @JoinColumn({ name: "profile_id" })
     profile!: Profile;
 
