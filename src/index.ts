@@ -19,6 +19,18 @@ const app = new Elysia()
     .use(openapi({
         mapJsonSchema: {
             zod: z.toJSONSchema
+        },
+        documentation: {
+            components: {
+                securitySchemes: {
+                    BearerAuth: {
+                        type: "http",
+                        scheme: "bearer",
+                        bearerFormat: "JWT"
+                    }
+                }
+            },
+            security: [{ BearerAuth: [] }]
         }
     }))
     .use(authController())
