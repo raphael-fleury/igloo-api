@@ -22,8 +22,8 @@ export class GetPostByIdHandler {
             .leftJoinAndSelect("post.profile", "profile")
 
             // Quotes and Replies
-            .leftJoin(Post, "reply", "reply.repliedPostId = post.id")
-            .leftJoin(Post, "quote", "quote.quotedPostId = post.id")
+            .leftJoin(Post, "reply", "reply.replied_post_id = post.id")
+            .leftJoin(Post, "quote", "quote.quoted_post_id = post.id")
 
             // Quoted & Replied posts + profiles
             .leftJoinAndSelect("post.repliedPost", "repliedPost")
@@ -32,13 +32,13 @@ export class GetPostByIdHandler {
             .leftJoinAndSelect("quotedPost.profile", "quotedProfile")
 
             // Interactions
-            .leftJoin(PostInteraction, "interaction", "interaction.postId = post.id")
+            .leftJoin(PostInteraction, "interaction", "interaction.post_id = post.id")
 
             .addSelect([
                 `COUNT(DISTINCT reply.id) AS replies`,
                 `COUNT(DISTINCT quote.id) AS quotes`,
-                `COUNT(DISTINCT CASE WHEN interaction.interactionType = :like THEN interaction.id END) AS likes`,
-                `COUNT(DISTINCT CASE WHEN interaction.interactionType = :repost THEN interaction.id END) AS reposts`,
+                `COUNT(DISTINCT CASE WHEN interaction.interaction_type = :like THEN interaction.id END) AS likes`,
+                `COUNT(DISTINCT CASE WHEN interaction.interaction_type = :repost THEN interaction.id END) AS reposts`,
             ])
 
             .where("post.id = :id", { id })
