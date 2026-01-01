@@ -36,22 +36,27 @@ async function createUsersWithProfile() {
     );
 }
 
+function getRandom<T>(array: T[]) {
+    const index = Math.floor(Math.random() * array.length);
+    return array[index];
+}
+
 async function createPosts(users: UserWithProfile[]) {
     const posts: PostDto[] = [];
     const postDtos = zocker(createPostDto)
-        .supply(createPostDto.shape.repliedPostId, () => {
-            const p = posts[Math.floor(Math.random() * posts.length)];
-            return p && Math.random() < 0.5 ? p.id : null;
-        })
-        .supply(createPostDto.shape.quotedPostId, () => {
-            const p = posts[Math.floor(Math.random() * posts.length)];
-            return p && Math.random() < 0.5 ? p.id : null;
-        })
+        .supply(createPostDto.shape.repliedPostId, null)
+        .supply(createPostDto.shape.quotedPostId, null)
         .setSeed(123)
         .generateMany(20);
 
     for (const dto of postDtos) {
         const user = users[Math.floor(Math.random() * users.length)];
+        if (Math.random() < 0.5) {
+            dto.repliedPostId = getRandom(posts)?.id || null;
+        }
+        if (Math.random() < 0.5) {
+            dto.quotedPostId = getRandom(posts)?.id || null;
+        }
         const created = await CreatePostHandler.default.handle(dto, user, user.profile);
         posts.push(created);
     }
