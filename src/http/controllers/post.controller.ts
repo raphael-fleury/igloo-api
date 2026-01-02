@@ -42,7 +42,7 @@ export const postController = ({ handlers } = getDefaultProps()) =>
         detail: { summary: "Find posts" },
         query: postQueryDto,
         response: {
-            200: z.array(postDto)
+            200: z.array(postDetailedDto)
         }
     })
 

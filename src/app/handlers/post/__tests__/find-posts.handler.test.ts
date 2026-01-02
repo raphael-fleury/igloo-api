@@ -1,20 +1,35 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
-import { Repository, Like } from "typeorm";
+import { Repository } from "typeorm";
 import { zocker } from "zocker";
 import { FindPostsHandler } from "../find-posts.handler";
 import { postDto } from "@/app/dtos/post.dtos";
 import { Post } from "@/database/entities/post";
-import { Profile } from "@/database/entities/profile";
-import { User } from "@/database/entities/user";
 
 describe("FindPostsHandler", () => {
     let handler: FindPostsHandler;
     let mockRepository: Repository<Post>;
+    let qb: any;
+    let rawEntitiesReturn: { entities: any[]; raw: any[] };
 
     beforeEach(() => {
+        rawEntitiesReturn = { entities: [], raw: [] };
+
+        qb = {
+            leftJoinAndSelect: mock(() => qb),
+            leftJoin: mock(() => qb),
+            addSelect: mock(() => qb),
+            setParameters: mock(() => qb),
+            groupBy: mock(() => qb),
+            addGroupBy: mock(() => qb),
+            orderBy: mock(() => qb),
+            andWhere: mock(() => qb),
+            getRawAndEntities: mock(() => Promise.resolve(rawEntitiesReturn)),
+        };
+
         mockRepository = {
-            find: mock(() => Promise.resolve([])),
+            createQueryBuilder: mock(() => qb),
         } as any;
+
         handler = new FindPostsHandler(mockRepository);
     });
 
@@ -22,23 +37,28 @@ describe("FindPostsHandler", () => {
         // Arrange
         const p1Data = zocker(postDto).generate();
         const p2Data = zocker(postDto).generate();
+        
+        // Mock entities returned by TypeORM
         const p1 = {
-            id: p1Data.id,
-            user: { id: "user-1" } as User,
-            profile: { id: "profile-1" } as Profile,
-            content: p1Data.content,
-            createdAt: p1Data.createdAt,
-            updatedAt: p1Data.updatedAt
-        } as Post;
+            ...p1Data,
+            user: { id: "user-1" },
+            profile: { ...p1Data.profile, createdAt: new Date(), updatedAt: new Date() },
+            repliedPost: undefined,
+            quotedPost: undefined,
+        };
         const p2 = {
-            id: p2Data.id,
-            user: { id: "user-2" } as User,
-            profile: { id: "profile-2" } as Profile,
-            content: p2Data.content,
-            createdAt: p2Data.createdAt,
-            updatedAt: p2Data.updatedAt
-        } as Post;
-        mockRepository.find = mock(() => Promise.resolve([p1, p2]));
+            ...p2Data,
+            user: { id: "user-2" },
+            profile: { ...p2Data.profile, createdAt: new Date(), updatedAt: new Date() },
+            repliedPost: undefined,
+            quotedPost: undefined,
+        };
+
+        rawEntitiesReturn.entities = [p1, p2];
+        rawEntitiesReturn.raw = [
+            { likes: "10", reposts: "5", replies: "2", quotes: "1" },
+            { likes: "0", reposts: "0", replies: "0", quotes: "0" }
+        ];
 
         // Act
         const result = await handler.handle({});
@@ -46,127 +66,70 @@ describe("FindPostsHandler", () => {
         // Assert
         expect(result.length).toBe(2);
         expect(result[0].id).toBe(p1.id);
+        expect(result[0].likes).toBe(10);
         expect(result[1].id).toBe(p2.id);
-        expect(mockRepository.find).toHaveBeenCalledWith({
-            where: {},
-            relations: {
-                user: true,
-                profile: true,
-                repliedPost: { profile: true },
-                quotedPost: { profile: true }
-            },
-            order: { createdAt: "DESC" }
-        });
+        expect(result[1].likes).toBe(0);
+        
+        expect(mockRepository.createQueryBuilder).toHaveBeenCalledWith("post");
+        expect(qb.orderBy).toHaveBeenCalledWith("post.createdAt", "DESC");
     });
 
     it("should apply content and profile filters", async () => {
         // Arrange
-        const q = { content: "hello", from: "profile-1" };
-        const postData = zocker(postDto).generate();
-        const post = {
-            id: postData.id,
-            user: { id: "user-1" } as User,
-            profile: { id: q.from } as Profile,
-            content: "say hello world",
-            createdAt: postData.createdAt,
-            updatedAt: postData.updatedAt
-        } as Post;
-        mockRepository.find = mock(() => Promise.resolve([post]));
-
+        const q = { content: "hello", from: "alice" };
+        
         // Act
-        const result = await handler.handle(q as any);
+        await handler.handle(q);
 
         // Assert
-        expect(result.length).toBe(1);
-        expect(mockRepository.find).toHaveBeenCalledWith({
-            where: {
-                content: Like(`%${q.content}%`),
-                profile: { id: q.from }
-            },
-            relations: {
-                user: true,
-                profile: true,
-                repliedPost: { profile: true },
-                quotedPost: { profile: true }
-            },
-            order: { createdAt: "DESC" }
-        });
+        expect(qb.andWhere).toHaveBeenCalledWith("post.content ILIKE :content", { content: `%${q.content}%` });
+        expect(qb.andWhere).toHaveBeenCalledWith("profile.username = :from", { from: q.from });
+    });
+
+    it("should apply date filters", async () => {
+        // Arrange
+        const since = new Date("2023-01-01");
+        const until = new Date("2023-12-31");
+        const q = { since, until };
+        
+        // Act
+        await handler.handle(q);
+
+        // Assert
+        expect(qb.andWhere).toHaveBeenCalledWith("post.created_at >= :since", { since });
+        expect(qb.andWhere).toHaveBeenCalledWith("post.created_at <= :until", { until });
     });
 
     it("should filter by repliedPost and quotedPost", async () => {
         // Arrange
         const repliedId = "replied-id";
         const quotedId = "quoted-id";
-        const postData = zocker(postDto).generate();
-        const post = {
-            id: postData.id,
-            user: { id: "user-1" } as User,
-            profile: { id: "profile-1" } as Profile,
-            content: postData.content,
-            repliedPost: { id: repliedId } as Post,
-            quotedPost: { id: quotedId } as Post,
-            createdAt: postData.createdAt,
-            updatedAt: postData.updatedAt
-        } as Post;
-        mockRepository.find = mock(() => Promise.resolve([post]));
-
+        
         // Act
-        const result = await handler.handle({ repliedPostId: repliedId, quotedPostId: quotedId } as any);
+        await handler.handle({ repliedPostId: repliedId, quotedPostId: quotedId });
 
         // Assert
-        expect(result.length).toBe(1);
-        expect(mockRepository.find).toHaveBeenCalledWith({
-            where: {
-                repliedPost: { id: repliedId },
-                quotedPost: { id: quotedId }
-            },
-            relations: {
-                user: true,
-                profile: true,
-                repliedPost: { profile: true },
-                quotedPost: { profile: true }
-            },
-            order: { createdAt: "DESC" }
-        });
+        expect(qb.andWhere).toHaveBeenCalledWith("repliedPost.id = :repliedPostId", { repliedPostId: repliedId });
+        expect(qb.andWhere).toHaveBeenCalledWith("quotedPost.id = :quotedPostId", { quotedPostId: quotedId });
     });
 
-    it("should filter by repliedProfile and quotedProfile via relations", async () => {
+    it("should filter by repliedProfile and quotedProfile", async () => {
         // Arrange
-        const repliedProfileId = "rp-1";
-        const quotedProfileId = "qp-1";
-        const postData = zocker(postDto).generate();
-        const post = {
-            id: postData.id,
-            user: { id: "user-1" } as User,
-            profile: { id: "profile-1" } as Profile,
-            content: postData.content,
-            repliedPost: { id: "replied", profile: { id: repliedProfileId } as Profile } as Post,
-            quotedPost: { id: "quoted", profile: { id: quotedProfileId } as Profile } as Post,
-            createdAt: postData.createdAt,
-            updatedAt: postData.updatedAt
-        } as Post;
-        mockRepository.find = mock(() => Promise.resolve([post]));
-
+        const repliedUsername = "replied_user";
+        const quotedUsername = "quoted_user";
+        
         // Act
-        const result = await handler.handle({
-            repliedProfileUsername: repliedProfileId,
-            quotedProfileUsername: quotedProfileId
-        } as any);
+        await handler.handle({
+            repliedProfileUsername: repliedUsername,
+            quotedProfileUsername: quotedUsername
+        });
 
         // Assert
-        expect(result.length).toBe(1);
-        expect(mockRepository.find).toHaveBeenCalledWith({
-            where: {
-                repliedPost: { profile: { username: repliedProfileId } },
-                quotedPost: { profile: { username: quotedProfileId } }
-            },
-            relations: {
-                user: true,
-                profile: true,
-                repliedPost: { profile: true },
-                quotedPost: { profile: true }
-            },
-            order: { createdAt: "DESC" }
+        expect(qb.andWhere).toHaveBeenCalledWith("repliedProfile.username = :repliedProfileUsername", {
+            repliedProfileUsername: repliedUsername
+        });
+        expect(qb.andWhere).toHaveBeenCalledWith("quotedProfile.username = :quotedProfileUsername", {
+            quotedProfileUsername: quotedUsername
         });
     });
 });
