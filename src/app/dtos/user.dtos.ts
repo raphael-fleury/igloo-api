@@ -1,9 +1,9 @@
 import z from "zod";
-import { idDto, phoneDto } from "./common.dtos";
+import { idDto } from "./common.dtos";
 import { createProfileDto } from "./profile.dtos";
 
 const baseUserDto = z.object({
-    phone: phoneDto,
+    phone: z.e164(),
     email: z.email()
 });
 
