@@ -16,14 +16,38 @@ describe("GetPostByIdHandler", () => {
 
     beforeEach(() => {
         rawEntitiesReturn = { entities: [], raw: [] };
-        capturedParameters = undefined;
+        capturedParameters = {};
+
+        const mockSubQb = {
+            select: () => mockSubQb,
+            from: () => mockSubQb,
+            where: (query: string, params?: any) => {
+                if (params) Object.assign(capturedParameters, params);
+                return mockSubQb;
+            },
+            andWhere: (query: string, params?: any) => {
+                if (params) Object.assign(capturedParameters, params);
+                return mockSubQb;
+            }
+        };
 
         qb = {
             leftJoinAndSelect: () => qb,
             leftJoin: () => qb,
-            addSelect: () => qb,
-            where: () => qb,
-            setParameters: (params: any) => { capturedParameters = params; return qb; },
+            addSelect: (selection: any, alias: string) => {
+                if (typeof selection === 'function') {
+                    selection(mockSubQb);
+                }
+                return qb;
+            },
+            where: (query: string, params?: any) => {
+                if (params) Object.assign(capturedParameters, params);
+                return qb;
+            },
+            setParameters: (params: any) => {
+                if (params) Object.assign(capturedParameters, params);
+                return qb;
+            },
             groupBy: () => qb,
             addGroupBy: () => qb,
             getRawAndEntities: () => Promise.resolve(rawEntitiesReturn),

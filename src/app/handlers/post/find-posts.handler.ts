@@ -2,7 +2,7 @@ import { Repository } from "typeorm";
 import { appDataSource } from "@/database/data-source";
 import { Post } from "@/database/entities/post";
 import { postDetailedDto, PostQueryDto, postsPageDto } from "@/app/dtos/post.dtos";
-import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
+import { countPostLikes, countPostQuotes, countPostReplies, countPostReposts } from "@/database/queries/post.queries";
 
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 20;
@@ -29,44 +29,11 @@ export class FindPostsHandler {
             .leftJoinAndSelect("post.quotedPost", "quotedPost")
             .leftJoinAndSelect("quotedPost.profile", "quotedProfile")
 
-            // Replies count
-            .addSelect(subQuery => {
-                return subQuery
-                    .select("COUNT(*)")
-                    .from(Post, "p")
-                    .where("p.replied_post_id = post.id");
-            }, "replies")
-
-            // Quotes count
-            .addSelect(subQuery => {
-                return subQuery
-                    .select("COUNT(*)")
-                    .from(Post, "p")
-                    .where("p.quoted_post_id = post.id");
-            }, "quotes")
-
-            // Likes count
-            .addSelect(subQuery => {
-                return subQuery
-                    .select("COUNT(*)")
-                    .from(PostInteraction, "i")
-                    .where("i.post_id = post.id")
-                    .andWhere("i.interaction_type = :like");
-            }, "likes")
-
-            // Reposts count
-            .addSelect(subQuery => {
-                return subQuery
-                    .select("COUNT(*)")
-                    .from(PostInteraction, "i")
-                    .where("i.post_id = post.id")
-                    .andWhere("i.interaction_type = :repost");
-            }, "reposts")
-
-            .setParameters({
-                like: InteractionType.Like,
-                repost: InteractionType.Repost,
-            })
+            // Replies & Quotes count
+            .addSelect(countPostReplies, "replies")
+            .addSelect(countPostQuotes, "quotes")
+            .addSelect(countPostLikes, "likes")
+            .addSelect(countPostReposts, "reposts")
 
             .orderBy("post.createdAt", "DESC")
             .take(limit + 1);

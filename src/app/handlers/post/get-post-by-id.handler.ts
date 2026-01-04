@@ -3,7 +3,7 @@ import { postDetailedDto } from "@/app/dtos/post.dtos";
 import { NotFoundError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { Post } from "@/database/entities/post";
-import { PostInteraction, InteractionType } from "@/database/entities/post-interaction";
+import { countPostLikes, countPostQuotes, countPostReplies, countPostReposts } from "@/database/queries/post.queries";
 
 export class GetPostByIdHandler {
     constructor(
@@ -29,45 +29,13 @@ export class GetPostByIdHandler {
             .leftJoinAndSelect("post.quotedPost", "quotedPost")
             .leftJoinAndSelect("quotedPost.profile", "quotedProfile")
 
-            // Replies count
-            .addSelect(subQuery => {
-                return subQuery
-                    .select("COUNT(*)")
-                    .from(Post, "p")
-                    .where("p.replied_post_id = post.id");
-            }, "replies")
-
-            // Quotes count
-            .addSelect(subQuery => {
-                return subQuery
-                    .select("COUNT(*)")
-                    .from(Post, "p")
-                    .where("p.quoted_post_id = post.id");
-            }, "quotes")
-
-            // Likes count
-            .addSelect(subQuery => {
-                return subQuery
-                    .select("COUNT(*)")
-                    .from(PostInteraction, "i")
-                    .where("i.post_id = post.id")
-                    .andWhere("i.interaction_type = :like");
-            }, "likes")
-
-            // Reposts count
-            .addSelect(subQuery => {
-                return subQuery
-                    .select("COUNT(*)")
-                    .from(PostInteraction, "i")
-                    .where("i.post_id = post.id")
-                    .andWhere("i.interaction_type = :repost");
-            }, "reposts")
+            // Replies & Quotes count
+            .addSelect(countPostReplies, "replies")
+            .addSelect(countPostQuotes, "quotes")
+            .addSelect(countPostLikes, "likes")
+            .addSelect(countPostReposts, "reposts")
 
             .where("post.id = :id", { id })
-            .setParameters({
-                like: InteractionType.Like,
-                repost: InteractionType.Repost,
-            })
 
             .groupBy("post.id")
             .addGroupBy("profile.id")
