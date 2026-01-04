@@ -4,6 +4,9 @@ import { Post } from "@/database/entities/post";
 import { postDetailedDto, PostQueryDto, postsPageDto } from "@/app/dtos/post.dtos";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
 
+const DEFAULT_LIMIT = 10;
+const MAX_LIMIT = 20;
+
 export class FindPostsHandler {
     constructor(private readonly postRepository: Repository<Post>) { }
 
@@ -12,6 +15,8 @@ export class FindPostsHandler {
     }
 
     async handle(query: PostQueryDto) {
+        const limit = Math.min(MAX_LIMIT, query.limit ?? DEFAULT_LIMIT);
+
         const qb = this.postRepository
             .createQueryBuilder("post")
             .leftJoinAndSelect("post.profile", "profile")
@@ -64,7 +69,7 @@ export class FindPostsHandler {
             })
 
             .orderBy("post.createdAt", "DESC")
-            .take(query.limit + 1);
+            .take(limit + 1);
 
         if (query.content) {
             qb.andWhere("post.content ILIKE :content", { content: `%${query.content}%` });
@@ -107,7 +112,7 @@ export class FindPostsHandler {
         }
 
         const { entities, raw } = await qb.getRawAndEntities();
-        const hasNextPage = entities.length > query.limit;
+        const hasNextPage = entities.length > limit;
 
         if (hasNextPage) {
             entities.pop();

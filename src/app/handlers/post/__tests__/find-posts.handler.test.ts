@@ -62,7 +62,7 @@ describe("FindPostsHandler", () => {
         ];
 
         // Act
-        const result = await handler.handle({ limit: 10 });
+        const result = await handler.handle({});
 
         // Assert
         expect(result.items.length).toBe(2);
@@ -79,7 +79,7 @@ describe("FindPostsHandler", () => {
 
     it("should apply content and profile filters", async () => {
         // Arrange
-        const q = { content: "hello", from: "alice", limit: 10 };
+        const q = { content: "hello", from: "alice" };
         
         // Act
         await handler.handle(q);
@@ -93,7 +93,7 @@ describe("FindPostsHandler", () => {
         // Arrange
         const since = new Date("2023-01-01");
         const until = new Date("2023-12-31");
-        const q = { since, until, limit: 10 };
+        const q = { since, until };
         
         // Act
         await handler.handle(q);
