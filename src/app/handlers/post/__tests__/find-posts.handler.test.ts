@@ -23,6 +23,7 @@ describe("FindPostsHandler", () => {
             addGroupBy: mock(() => qb),
             orderBy: mock(() => qb),
             andWhere: mock(() => qb),
+            take: mock(() => qb),
             getRawAndEntities: mock(() => Promise.resolve(rawEntitiesReturn)),
         };
 
@@ -61,14 +62,16 @@ describe("FindPostsHandler", () => {
         ];
 
         // Act
-        const result = await handler.handle({});
+        const result = await handler.handle({ limit: 10 });
 
         // Assert
-        expect(result.length).toBe(2);
-        expect(result[0].id).toBe(p1.id);
-        expect(result[0].likes).toBe(10);
-        expect(result[1].id).toBe(p2.id);
-        expect(result[1].likes).toBe(0);
+        expect(result.items.length).toBe(2);
+        expect(result.items[0].id).toBe(p1.id);
+        expect(result.items[0].likes).toBe(10);
+        expect(result.items[1].id).toBe(p2.id);
+        expect(result.items[1].likes).toBe(0);
+        expect(result.hasNextPage).toBe(false);
+        expect(result.count).toBe(2);
         
         expect(mockRepository.createQueryBuilder).toHaveBeenCalledWith("post");
         expect(qb.orderBy).toHaveBeenCalledWith("post.createdAt", "DESC");
@@ -76,7 +79,7 @@ describe("FindPostsHandler", () => {
 
     it("should apply content and profile filters", async () => {
         // Arrange
-        const q = { content: "hello", from: "alice" };
+        const q = { content: "hello", from: "alice", limit: 10 };
         
         // Act
         await handler.handle(q);
@@ -90,7 +93,7 @@ describe("FindPostsHandler", () => {
         // Arrange
         const since = new Date("2023-01-01");
         const until = new Date("2023-12-31");
-        const q = { since, until };
+        const q = { since, until, limit: 10 };
         
         // Act
         await handler.handle(q);
@@ -106,7 +109,7 @@ describe("FindPostsHandler", () => {
         const quotedId = "quoted-id";
         
         // Act
-        await handler.handle({ repliedPostId: repliedId, quotedPostId: quotedId });
+        await handler.handle({ repliedPostId: repliedId, quotedPostId: quotedId, limit: 10 });
 
         // Assert
         expect(qb.andWhere).toHaveBeenCalledWith("repliedPost.id = :repliedPostId", { repliedPostId: repliedId });
@@ -121,7 +124,8 @@ describe("FindPostsHandler", () => {
         // Act
         await handler.handle({
             repliedProfileUsername: repliedUsername,
-            quotedProfileUsername: quotedUsername
+            quotedProfileUsername: quotedUsername,
+            limit: 10
         });
 
         // Assert
@@ -131,5 +135,47 @@ describe("FindPostsHandler", () => {
         expect(qb.andWhere).toHaveBeenCalledWith("quotedProfile.username = :quotedProfileUsername", {
             quotedProfileUsername: quotedUsername
         });
+    });
+
+    it("should support pagination with cursor and limit", async () => {
+        // Arrange
+        const cursor = "some-cursor-id";
+        const limit = 5;
+        const q = { cursor, limit };
+
+        // Act
+        await handler.handle(q);
+
+        // Assert
+        expect(qb.andWhere).toHaveBeenCalledWith("post.id < :cursor", { cursor });
+        expect(qb.take).toHaveBeenCalledWith(limit + 1);
+    });
+
+    it("should return correct pagination metadata", async () => {
+        // Arrange
+        const limit = 2;
+        const p1Data = zocker(postDto).generate();
+        const p2Data = zocker(postDto).generate();
+        const p3Data = zocker(postDto).generate();
+
+        const p1 = { ...p1Data, user: { id: "user-1" }, profile: { ...p1Data.profile, createdAt: new Date(), updatedAt: new Date() }, repliedPost: undefined, quotedPost: undefined };
+        const p2 = { ...p2Data, user: { id: "user-2" }, profile: { ...p2Data.profile, createdAt: new Date(), updatedAt: new Date() }, repliedPost: undefined, quotedPost: undefined };
+        const p3 = { ...p3Data, user: { id: "user-3" }, profile: { ...p3Data.profile, createdAt: new Date(), updatedAt: new Date() }, repliedPost: undefined, quotedPost: undefined };
+
+        rawEntitiesReturn.entities = [p1, p2, p3]; // 3 items returned for limit 2
+        rawEntitiesReturn.raw = [
+            { likes: 0, reposts: 0, replies: 0, quotes: 0 },
+            { likes: 0, reposts: 0, replies: 0, quotes: 0 },
+            { likes: 0, reposts: 0, replies: 0, quotes: 0 }
+        ];
+
+        // Act
+        const result = await handler.handle({ limit });
+
+        // Assert
+        expect(result.items.length).toBe(2);
+        expect(result.hasNextPage).toBe(true);
+        expect(result.nextCursor).toBe(p2.id);
+        expect(result.count).toBe(2);
     });
 });

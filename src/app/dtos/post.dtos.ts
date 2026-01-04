@@ -1,5 +1,5 @@
 import z from "zod";
-import { idDto } from "./common.dtos";
+import { idDto, pageDto, pageQueryDto } from "./common.dtos";
 import { profileDto } from "./profile.dtos";
 
 const MAX_POST_CONTENT_LENGTH = 300;
@@ -44,7 +44,11 @@ export const postQueryDto = z.object({
     quotedPostId: idDto,
     repliedProfileUsername: z.string(),
     quotedProfileUsername: z.string()
-}).partial();
+}).partial().extend(pageQueryDto.shape);
+
+export const postsPageDto = pageDto.extend({
+    items: z.array(postDetailedDto)
+});
 
 export type PostDto = z.infer<typeof postDto>;
 export type PostDetailedDto = z.infer<typeof postDetailedDto>;

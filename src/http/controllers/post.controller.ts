@@ -1,6 +1,6 @@
 import z from "zod";
 import Elysia, { status } from "elysia";
-import { createPostDto, postDetailedDto, postDto, postQueryDto } from "@/app/dtos/post.dtos";
+import { createPostDto, postDetailedDto, postDto, postQueryDto, postsPageDto } from "@/app/dtos/post.dtos";
 import { FindPostsHandler } from "@/app/handlers/post/find-posts.handler";
 import { CreatePostHandler } from "@/app/handlers/post/create-post.handler";
 import { GetPostByIdHandler } from "@/app/handlers/post/get-post-by-id.handler";
@@ -42,7 +42,7 @@ export const postController = ({ handlers } = getDefaultProps()) =>
         detail: { summary: "Find posts" },
         query: postQueryDto,
         response: {
-            200: z.array(postDetailedDto)
+            200: postsPageDto
         }
     })
 

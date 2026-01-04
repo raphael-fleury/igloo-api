@@ -1,7 +1,7 @@
 import { Repository } from "typeorm";
 import { appDataSource } from "@/database/data-source";
 import { Post } from "@/database/entities/post";
-import { postDetailedDto, PostQueryDto } from "@/app/dtos/post.dtos";
+import { postDetailedDto, PostQueryDto, postsPageDto } from "@/app/dtos/post.dtos";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
 
 export class FindPostsHandler {
@@ -63,7 +63,8 @@ export class FindPostsHandler {
                 repost: InteractionType.Repost,
             })
 
-            .orderBy("post.createdAt", "DESC");
+            .orderBy("post.createdAt", "DESC")
+            .take(query.limit + 1);
 
         if (query.content) {
             qb.andWhere("post.content ILIKE :content", { content: `%${query.content}%` });
@@ -101,16 +102,31 @@ export class FindPostsHandler {
             });
         }
 
-        const { entities, raw } = await qb.getRawAndEntities();
+        if (query.cursor) {
+            qb.andWhere("post.id < :cursor", { cursor: query.cursor });
+        }
 
-        return entities.map((post, i) =>
-            postDetailedDto.parse({
-                ...post,
-                likes: Number(raw[i].likes),
-                reposts: Number(raw[i].reposts),
-                replies: Number(raw[i].replies),
-                quotes: Number(raw[i].quotes),
-            })
-        );
+        const { entities, raw } = await qb.getRawAndEntities();
+        const hasNextPage = entities.length > query.limit;
+
+        if (hasNextPage) {
+            entities.pop();
+            raw.pop();
+        }
+
+        return postsPageDto.parse({
+            hasNextPage,
+            nextCursor: hasNextPage ? entities[entities.length - 1].id : undefined,
+            count: entities.length,
+            items: entities.map((post, i) =>
+                postDetailedDto.parse({
+                    ...post,
+                    likes: Number(raw[i].likes),
+                    reposts: Number(raw[i].reposts),
+                    replies: Number(raw[i].replies),
+                    quotes: Number(raw[i].quotes),
+                })
+            ),
+        });
     }
 }
