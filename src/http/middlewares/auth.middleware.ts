@@ -2,9 +2,11 @@ import { Elysia, status } from "elysia";
 import { GetAuthInfoHandler } from "@/app/handlers/auth/get-auth-info.handler";
 import { jwtMiddleware } from "./jwt.middleware";
 
-export function buildAuthMiddleware(
-    getAuthInfoHandler = GetAuthInfoHandler.default
-) {
+const getDefaultProps = () => ({
+    handlers: { getAuthInfo: GetAuthInfoHandler.default }
+})
+
+export function buildAuthMiddleware({ handlers } = getDefaultProps()) {
     return (app: Elysia) => app
         .use(jwtMiddleware)
         .derive(async ({ headers }) => {
@@ -20,8 +22,8 @@ export function buildAuthMiddleware(
             if (!payload)
                 return status(401, { message: "Invalid token" });
 
-            return await getAuthInfoHandler.handle(payload);
+            return await handlers.getAuthInfo.handle(payload);
         })
 }
 
-export const authMiddleware = buildAuthMiddleware();
+export const authMiddleware = (app: Elysia) => buildAuthMiddleware()(app);
