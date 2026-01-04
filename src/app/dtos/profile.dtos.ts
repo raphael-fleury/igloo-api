@@ -1,11 +1,12 @@
 import z from "zod";
 import { idDto } from "./common.dtos";
 
+export const USERNAME_MIN_LENGTH = 3;
 export const USERNAME_MAX_LENGTH = 15;
 export const DISPLAYNAME_MAX_LENGTH = 50;
 export const BIO_MAX_LENGTH = 160;
 
-const usernameRegex = new RegExp(String.raw`^\w{1,${USERNAME_MAX_LENGTH}}$`);
+const usernameRegex = new RegExp(String.raw`^\w{${USERNAME_MIN_LENGTH},${USERNAME_MAX_LENGTH}}$`);
 
 export const createProfileDto = z.object({
     username: z.string().regex(usernameRegex),
