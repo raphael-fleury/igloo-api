@@ -16,36 +16,52 @@ export class FindPostsHandler {
             .createQueryBuilder("post")
             .leftJoinAndSelect("post.profile", "profile")
 
-            // Quotes and Replies
-            .leftJoin(Post, "reply", "reply.replied_post_id = post.id")
-            .leftJoin(Post, "quote", "quote.quoted_post_id = post.id")
-
-            // Quoted & Replied posts + profiles
+            // Replied post + profile
             .leftJoinAndSelect("post.repliedPost", "repliedPost")
             .leftJoinAndSelect("repliedPost.profile", "repliedProfile")
+
+            // Quoted post + profile
             .leftJoinAndSelect("post.quotedPost", "quotedPost")
             .leftJoinAndSelect("quotedPost.profile", "quotedProfile")
 
-            // Interactions
-            .leftJoin(PostInteraction, "interaction", "interaction.post_id = post.id")
+            // Replies count
+            .addSelect(subQuery => {
+                return subQuery
+                    .select("COUNT(*)")
+                    .from(Post, "p")
+                    .where("p.replied_post_id = post.id");
+            }, "replies")
 
-            .addSelect([
-                `COUNT(DISTINCT reply.id) AS replies`,
-                `COUNT(DISTINCT quote.id) AS quotes`,
-                `COUNT(DISTINCT CASE WHEN interaction.interaction_type = 'like' THEN interaction.id END) AS likes`,
-                `COUNT(DISTINCT CASE WHEN interaction.interaction_type = 'repost' THEN interaction.id END) AS reposts`,
-            ])
+            // Quotes count
+            .addSelect(subQuery => {
+                return subQuery
+                    .select("COUNT(*)")
+                    .from(Post, "p")
+                    .where("p.quoted_post_id = post.id");
+            }, "quotes")
+
+            // Likes count
+            .addSelect(subQuery => {
+                return subQuery
+                    .select("COUNT(*)")
+                    .from(PostInteraction, "i")
+                    .where("i.post_id = post.id")
+                    .andWhere("i.interaction_type = :like");
+            }, "likes")
+
+            // Reposts count
+            .addSelect(subQuery => {
+                return subQuery
+                    .select("COUNT(*)")
+                    .from(PostInteraction, "i")
+                    .where("i.post_id = post.id")
+                    .andWhere("i.interaction_type = :repost");
+            }, "reposts")
+
             .setParameters({
                 like: InteractionType.Like,
                 repost: InteractionType.Repost,
             })
-
-            .groupBy("post.id")
-            .addGroupBy("profile.id")
-            .addGroupBy("repliedPost.id")
-            .addGroupBy("repliedProfile.id")
-            .addGroupBy("quotedPost.id")
-            .addGroupBy("quotedProfile.id")
 
             .orderBy("post.createdAt", "DESC");
 
