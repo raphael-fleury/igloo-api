@@ -1,19 +1,24 @@
 import { Repository } from "typeorm";
 import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
-import { profileDto } from "@/app/dtos/profile.dtos";
+import { FollowsDto, profileDto } from "@/app/dtos/profile.dtos";
+import { CommandHandler } from "@/app/cqrs";
 
-export class GetFollowingHandler {
+type GetFollowingCommand = {
+    sourceProfileId: string;
+}
+
+export class GetFollowingHandler implements CommandHandler<GetFollowingCommand, FollowsDto> {
     constructor(private readonly profileInteractionRepository: Repository<ProfileInteraction>) { }
 
     static get default() {
         return new GetFollowingHandler(appDataSource.getRepository(ProfileInteraction));
     }
 
-    async handle(followerProfileId: string) {
+    async handle({ sourceProfileId }: GetFollowingCommand) {
         const follows = await this.profileInteractionRepository.find({
             where: {
-                sourceProfile: { id: followerProfileId },
+                sourceProfile: { id: sourceProfileId },
                 interactionType: ProfileInteractionType.Follow
             },
             relations: ["targetProfile"],

@@ -5,8 +5,9 @@ import { UserProfile } from "@/database/entities/user-profile";
 import { LoginDto } from "@/app/dtos/auth.dtos";
 import { NotFoundError } from "@/app/errors";
 import { PasswordHashService } from "@/app/services/password-hash.service";
+import { CommandHandler } from "@/app/cqrs";
 
-export class LoginHandler {
+export class LoginHandler implements CommandHandler<LoginDto, { userId: string; profileId: string }> {
     constructor(
         private readonly userRepository: Repository<User>,
         private readonly userProfileRepository: Repository<UserProfile>,

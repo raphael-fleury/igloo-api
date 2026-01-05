@@ -3,8 +3,14 @@ import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 import { ConflictError } from "@/app/errors";
+import { CommandHandler } from "@/app/cqrs";
 
-export class FollowProfileHandler {
+type FollowProfileCommand = {
+    sourceProfileId: string;
+    targetProfileId: string;
+}
+
+export class FollowProfileHandler implements CommandHandler<FollowProfileCommand, void> {
     constructor(
         private readonly profileInteractionRepository: Repository<ProfileInteraction>,
         private readonly interactionValidator: InteractionValidator
@@ -17,18 +23,18 @@ export class FollowProfileHandler {
         );
     }
 
-    async handle(followerProfileId: string, followedProfileId: string) {
+    async handle({ sourceProfileId, targetProfileId }: FollowProfileCommand) {
         // Validations
-        await this.interactionValidator.assertProfilesAreNotSame(followerProfileId, followedProfileId);
-        await this.interactionValidator.assertProfilesDoesNotBlockEachOther(followerProfileId, followedProfileId);
+        await this.interactionValidator.assertProfilesAreNotSame(sourceProfileId, targetProfileId);
+        await this.interactionValidator.assertProfilesDoesNotBlockEachOther(sourceProfileId, targetProfileId);
 
-        const followerProfile = await this.interactionValidator.assertProfileExists(followerProfileId);
-        const followedProfile = await this.interactionValidator.assertProfileExists(followedProfileId);
+        const sourceProfile = await this.interactionValidator.assertProfileExists(sourceProfileId);
+        const targetProfile = await this.interactionValidator.assertProfileExists(targetProfileId);
 
         const existingFollow = await this.profileInteractionRepository.findOne({
             where: {
-                sourceProfile: { id: followerProfileId },
-                targetProfile: { id: followedProfileId },
+                sourceProfile: { id: sourceProfileId },
+                targetProfile: { id: targetProfileId },
                 interactionType: ProfileInteractionType.Follow
             }
         });
@@ -39,8 +45,8 @@ export class FollowProfileHandler {
 
         // Creation
         const follow = this.profileInteractionRepository.create({
-            sourceProfile: followerProfile,
-            targetProfile: followedProfile,
+            sourceProfile: sourceProfile,
+            targetProfile: targetProfile,
             interactionType: ProfileInteractionType.Follow
         });
 

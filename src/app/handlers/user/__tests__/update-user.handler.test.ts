@@ -46,7 +46,7 @@ describe("UpdateUserHandler", () => {
         mockRepository.save.mockReturnValue(Promise.resolve(updatedUser));
 
         // Act
-        const result = await handler.handle(userId, updateData);
+        const result = await handler.handle({ id: userId, data: updateData });
 
         // Assert
         expect(result.email).toBe(updateData.email || existingUserData.email);
@@ -67,7 +67,7 @@ describe("UpdateUserHandler", () => {
         mockRepository.findOneBy.mockReturnValue(Promise.resolve(null));
 
         // Act & Assert
-        expect(handler.handle(userId, updateData)).rejects.toThrow(NotFoundError);
+        expect(handler.handle({ id: userId, data: updateData })).rejects.toThrow(NotFoundError);
     });
 
     it("should throw AlreadyExistsError when email already exists", async () => {
@@ -104,7 +104,7 @@ describe("UpdateUserHandler", () => {
         mockRepository.findOne.mockReturnValue(Promise.resolve(conflictingUser));
 
         // Act & Assert
-        expect(handler.handle(userId, updateData)).rejects.toThrow(AlreadyExistsError);
+        expect(handler.handle({ id: userId, data: updateData })).rejects.toThrow(AlreadyExistsError);
     });
 
     it("should update user successfully when email is not being changed", async () => {
@@ -131,7 +131,7 @@ describe("UpdateUserHandler", () => {
         mockRepository.save.mockReturnValue(Promise.resolve(updatedUser));
 
         // Act
-        const result = await handler.handle(userId, updateData);
+        const result = await handler.handle({ id: userId, data: updateData });
 
         // Assert
         expect(result.email).toBe(existingUserData.email);
@@ -164,7 +164,7 @@ describe("UpdateUserHandler", () => {
         mockRepository.save.mockReturnValue(Promise.resolve(updatedUser));
 
         // Act
-        const result = await handler.handle(userId, updateData);
+        const result = await handler.handle({ id: userId, data: updateData });
 
         // Assert
         expect(result.email).toBe(updateData.email);
@@ -192,6 +192,6 @@ describe("UpdateUserHandler", () => {
         mockRepository.findOne.mockReturnValue(Promise.resolve(conflictingUser));
 
         // Act & Assert
-        expect(handler.handle(user.id, updateData)).rejects.toThrow(AlreadyExistsError);
+        expect(handler.handle({ id: user.id, data: updateData })).rejects.toThrow(AlreadyExistsError);
     });
 });

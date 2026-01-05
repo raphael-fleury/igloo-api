@@ -19,12 +19,12 @@ describe("GetMutedProfilesHandler", () => {
 
     it("should return muted profiles successfully", async () => {
         // Arrange
-        const muterProfileId = zocker(idDto).generate();
-        const mutedProfile = zocker(profileDto).generate();
+        const sourceProfileId = zocker(idDto).generate();
+        const targetProfile = zocker(profileDto).generate();
         const mute = {
             id: "mute-id-1",
-            sourceProfile: { id: muterProfileId },
-            targetProfile: mutedProfile,
+            sourceProfile: { id: sourceProfileId },
+            targetProfile: targetProfile,
             interactionType: ProfileInteractionType.Mute,
             createdAt: new Date(),
             updatedAt: new Date()
@@ -33,16 +33,16 @@ describe("GetMutedProfilesHandler", () => {
         mockProfileInteractionRepository.find = mock(() => Promise.resolve([mute]));
 
         // Act
-        const result = await handler.handle(muterProfileId);
+        const result = await handler.handle({ sourceProfileId });
 
         // Assert
         expect(result.total).toBe(1);
         expect(result.profiles).toHaveLength(1);
-        expect(result.profiles[0].username).toBe(mutedProfile.username);
+        expect(result.profiles[0].username).toBe(targetProfile.username);
         expect(result.profiles[0].mutedAt).toEqual(mute.createdAt);
         expect(mockProfileInteractionRepository.find).toHaveBeenCalledWith({
             where: {
-                sourceProfile: { id: muterProfileId },
+                sourceProfile: { id: sourceProfileId },
                 interactionType: ProfileInteractionType.Mute
             },
             relations: ["targetProfile"],

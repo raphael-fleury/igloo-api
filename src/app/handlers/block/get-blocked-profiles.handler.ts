@@ -1,19 +1,24 @@
 import { Repository } from "typeorm";
 import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
-import { profileDto } from "@/app/dtos/profile.dtos";
+import { BlockedProfilesDto, profileDto } from "@/app/dtos/profile.dtos";
+import { CommandHandler } from "@/app/cqrs";
 
-export class GetBlockedProfilesHandler {
+type GetBlockedProfilesCommand = {
+    sourceProfileId: string;
+}
+
+export class GetBlockedProfilesHandler implements CommandHandler<GetBlockedProfilesCommand, BlockedProfilesDto> {
     constructor(private readonly profileInteractionRepository: Repository<ProfileInteraction>) { }
 
     static get default() {
         return new GetBlockedProfilesHandler(appDataSource.getRepository(ProfileInteraction));
     }
 
-    async handle(blockerProfileId: string) {
+    async handle({ sourceProfileId }: GetBlockedProfilesCommand) {
         const blocks = await this.profileInteractionRepository.find({
             where: {
-                sourceProfile: { id: blockerProfileId },
+                sourceProfile: { id: sourceProfileId },
                 interactionType: ProfileInteractionType.Block
             },
             relations: ["targetProfile"],

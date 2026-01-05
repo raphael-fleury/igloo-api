@@ -6,8 +6,15 @@ import { Post } from "@/database/entities/post";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 import { UserDto } from "@/app/dtos/user.dtos";
 import { ProfileDto } from "@/app/dtos/profile.dtos";
+import { CommandHandler } from "@/app/cqrs";
 
-export class RepostPostHandler {
+export type RepostPostCommand = {
+    postId: string;
+    user: UserDto;
+    profile: ProfileDto;
+}
+
+export class RepostPostHandler implements CommandHandler<RepostPostCommand, void> {
     constructor(
         private readonly postInteractionRepository: Repository<PostInteraction>,
         private readonly postRepository: Repository<Post>,
@@ -22,7 +29,7 @@ export class RepostPostHandler {
         );
     }
 
-    async handle(postId: string, user: UserDto, profile: ProfileDto) {
+    async handle({ postId, user, profile }: RepostPostCommand) {
         // Validations
         const post = await this.postRepository.findOne({
             where: { id: postId },

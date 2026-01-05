@@ -44,7 +44,7 @@ describe("UnlikePostHandler", () => {
         mockPostInteractionRepository.findOne = mock(() => Promise.resolve(existingLike));
 
         // Act
-        await handler.handle(profileId, postId);
+        await handler.handle({ profileId, postId });
 
         // Assert
         expect(mockPostInteractionRepository.findOne).toHaveBeenCalledWith({
@@ -65,9 +65,9 @@ describe("UnlikePostHandler", () => {
         mockPostInteractionRepository.findOne = mock(() => Promise.resolve(null));
 
         // Act & Assert
-        expect(handler.handle(profileId, postId))
+        expect(handler.handle({ profileId, postId }))
             .rejects.toThrow(ConflictError);
-        expect(handler.handle(profileId, postId))
+        expect(handler.handle({ profileId, postId }))
             .rejects.toThrow("Like for this post not found");
         expect(mockPostInteractionRepository.remove).not.toHaveBeenCalled();
     });

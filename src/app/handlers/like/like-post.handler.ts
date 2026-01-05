@@ -6,8 +6,15 @@ import { Post } from "@/database/entities/post";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 import { UserDto } from "@/app/dtos/user.dtos";
 import { ProfileDto } from "@/app/dtos/profile.dtos";
+import { CommandHandler } from "@/app/cqrs";
 
-export class LikePostHandler {
+export type LikePostCommand = {
+    postId: string;
+    user: UserDto;
+    profile: ProfileDto;
+}
+
+export class LikePostHandler implements CommandHandler<LikePostCommand, void> {
     constructor(
         private readonly postInteractionRepository: Repository<PostInteraction>,
         private readonly postRepository: Repository<Post>,
@@ -22,7 +29,7 @@ export class LikePostHandler {
         );
     }
 
-    async handle(postId: string, user: UserDto, profile: ProfileDto) {
+    async handle({ postId, user, profile }: LikePostCommand) {
         // Validations
         const post = await this.postRepository.findOne({
             where: { id: postId },

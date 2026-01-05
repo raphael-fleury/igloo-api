@@ -47,21 +47,21 @@ export const profileController = ({ handlers } = getDefaultProps()) =>
     .group('/:id', (app) => app
         .use(requireProfileMiddleware)
         .get('/followers', async ({ params }) => {
-            return await handlers.getFollowers.handle(params.id);
+            return await handlers.getFollowers.handle({ targetProfileId: params.id });
         }, {
             detail: { summary: "Get followers of a profile" },
             params: profileIdParam
         })
 
         .get('/following', async ({ params }) => {
-            return await handlers.getFollowing.handle(params.id);
+            return await handlers.getFollowing.handle({ sourceProfileId: params.id });
         }, {
             detail: { summary: "Get all profiles followed by this one" },
             params: profileIdParam
         })
 
         .post('/block', async ({ profile, params, status }) => {
-            await handlers.blockProfile.handle(profile.id, params.id);
+            await handlers.blockProfile.handle({ sourceProfileId: profile.id, targetProfileId: params.id });
             return status("No Content");
         }, {
             detail: { summary: "Block a profile" },
@@ -69,7 +69,7 @@ export const profileController = ({ handlers } = getDefaultProps()) =>
         })
 
         .delete('/block', async ({ profile, params, status }) => {
-            await handlers.unblockProfile.handle(profile.id, params.id);
+            await handlers.unblockProfile.handle({ sourceProfileId: profile.id, targetProfileId: params.id });
             return status("No Content");
         }, {
             detail: { summary: "Unblock a profile" },
@@ -77,7 +77,10 @@ export const profileController = ({ handlers } = getDefaultProps()) =>
         })
 
         .post('/mute', async ({ profile, params, status }) => {
-            await handlers.muteProfile.handle(profile.id, params.id);
+            await handlers.muteProfile.handle({
+                sourceProfileId: profile.id,
+                targetProfileId: params.id
+            });
             return status("No Content");
         }, {
             detail: { summary: "Mute a profile" },
@@ -85,7 +88,10 @@ export const profileController = ({ handlers } = getDefaultProps()) =>
         })
 
         .delete('/mute', async ({ profile, params, status }) => {
-            await handlers.unmuteProfile.handle(profile.id, params.id);
+            await handlers.unmuteProfile.handle({
+                sourceProfileId: profile.id,
+                targetProfileId: params.id
+            });
             return status("No Content");
         }, {
             detail: { summary: "Unmute a profile" },
@@ -93,7 +99,10 @@ export const profileController = ({ handlers } = getDefaultProps()) =>
         })
 
         .post('/follow', async ({ profile, params, status }) => {
-            await handlers.followProfile.handle(profile.id, params.id);
+            await handlers.followProfile.handle({
+                sourceProfileId: profile.id,
+                targetProfileId: params.id
+            });
             return status("No Content");
         }, {
             detail: { summary: "Follow a profile" },
@@ -101,7 +110,10 @@ export const profileController = ({ handlers } = getDefaultProps()) =>
         })
 
         .delete('/follow', async ({ profile, params, status }) => {
-            await handlers.unfollowProfile.handle(profile.id, params.id);
+            await handlers.unfollowProfile.handle({
+                sourceProfileId: profile.id,
+                targetProfileId: params.id
+            });
             return status("No Content");
         }, {
             detail: { summary: "Unfollow a profile" },

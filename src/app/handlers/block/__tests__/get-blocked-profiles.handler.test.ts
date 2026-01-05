@@ -20,20 +20,20 @@ describe("GetBlockedProfilesHandler", () => {
 
     it("should return blocked profiles successfully", async () => {
         // Arrange
-        const blockerProfileId = zocker(idDto).generate();
-        const mockBlockedProfile1 = zocker(profileDto).generate();
-        const mockBlockedProfile2 = zocker(profileDto).generate();
+        const sourceProfileId = zocker(idDto).generate();
+        const mockTargetProfile1 = zocker(profileDto).generate();
+        const mockTargetProfile2 = zocker(profileDto).generate();
 
         const mockBlocks = [
             {
                 id: "block-1",
-                targetProfile: mockBlockedProfile1,
+                targetProfile: mockTargetProfile1,
                 interactionType: ProfileInteractionType.Block,
                 createdAt: new Date("2023-01-01")
             },
             {
                 id: "block-2",
-                targetProfile: mockBlockedProfile2,
+                targetProfile: mockTargetProfile2,
                 interactionType: ProfileInteractionType.Block,
                 createdAt: new Date("2023-01-02")
             }
@@ -42,16 +42,16 @@ describe("GetBlockedProfilesHandler", () => {
         mockProfileInteractionRepository.find = mock(() => Promise.resolve(mockBlocks));
 
         // Act
-        const result = await handler.handle(blockerProfileId);
+        const result = await handler.handle({ sourceProfileId });
 
         // Assert
         expect(result.total).toBe(mockBlocks.length);
         expect(result.profiles).toHaveLength(2);
-        expect(result.profiles[0]).toEqual({ ...mockBlockedProfile1, blockedAt: new Date("2023-01-01") });
-        expect(result.profiles[1]).toEqual({ ...mockBlockedProfile2, blockedAt: new Date("2023-01-02") });
+        expect(result.profiles[0]).toEqual({ ...mockTargetProfile1, blockedAt: new Date("2023-01-01") });
+        expect(result.profiles[1]).toEqual({ ...mockTargetProfile2, blockedAt: new Date("2023-01-02") });
         expect(mockProfileInteractionRepository.find).toHaveBeenCalledWith({
             where: {
-                sourceProfile: { id: blockerProfileId },
+                sourceProfile: { id: sourceProfileId },
                 interactionType: ProfileInteractionType.Block
             },
             relations: ["targetProfile"],

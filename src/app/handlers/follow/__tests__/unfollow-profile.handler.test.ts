@@ -21,16 +21,18 @@ describe("UnfollowProfileHandler", () => {
 
     it("should unfollow profile successfully when follow exists", async () => {
         // Arrange
-        const followerProfileId = "123e4567-e89b-12d3-a456-426614174000";
-        const followedProfileId = "123e4567-e89b-12d3-a456-426614174001";
+        const sourceProfileId = "123e4567-e89b-12d3-a456-426614174000";
+        const targetProfileId = "123e4567-e89b-12d3-a456-426614174001";
         
-        const followerProfile = zocker(profileDto).generate();
-        const followedProfile = zocker(profileDto).generate();
+        const sourceProfile = zocker(profileDto).generate();
+        const targetProfile = zocker(profileDto).generate();
+        sourceProfile.id = sourceProfileId;
+        targetProfile.id = targetProfileId;
 
         const existingFollow = {
             id: "follow-id",
-            sourceProfile: followerProfile,
-            targetProfile: followedProfile,
+            sourceProfile: sourceProfile,
+            targetProfile: targetProfile,
             interactionType: ProfileInteractionType.Follow,
             createdAt: new Date(),
             updatedAt: new Date()
@@ -39,14 +41,14 @@ describe("UnfollowProfileHandler", () => {
         mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(existingFollow));
 
         // Act
-        await handler.handle(followerProfileId, followedProfileId);
+        await handler.handle({ sourceProfileId, targetProfileId });
 
         // Assert
         expect(mockProfileInteractionRepository.remove).toHaveBeenCalledWith(existingFollow);
         expect(mockProfileInteractionRepository.findOne).toHaveBeenCalledWith({
             where: {
-                sourceProfile: { id: followerProfileId },
-                targetProfile: { id: followedProfileId },
+                sourceProfile: { id: sourceProfileId },
+                targetProfile: { id: targetProfileId },
                 interactionType: ProfileInteractionType.Follow
             }
         });
@@ -54,14 +56,14 @@ describe("UnfollowProfileHandler", () => {
 
     it("should throw ConflictError when follow relationship does not exist", async () => {
         // Arrange
-        const followerProfileId = "123e4567-e89b-12d3-a456-426614174000";
-        const followedProfileId = "123e4567-e89b-12d3-a456-426614174001";
+        const sourceProfileId = "123e4567-e89b-12d3-a456-426614174000";
+        const targetProfileId = "123e4567-e89b-12d3-a456-426614174001";
 
         mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(null));
 
         // Act & Assert
-        expect(handler.handle(followerProfileId, followedProfileId)).rejects.toThrow(ConflictError);
-        expect(handler.handle(followerProfileId, followedProfileId)).rejects.toThrow(
+        expect(handler.handle({ sourceProfileId, targetProfileId })).rejects.toThrow(ConflictError);
+        expect(handler.handle({ sourceProfileId, targetProfileId })).rejects.toThrow(
             "Follow between profiles not found"
         );
         expect(mockProfileInteractionRepository.remove).not.toHaveBeenCalled();

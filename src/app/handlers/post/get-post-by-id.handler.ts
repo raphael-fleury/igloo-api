@@ -1,11 +1,12 @@
 import { Repository } from "typeorm";
-import { postDetailedDto } from "@/app/dtos/post.dtos";
+import { postDetailedDto, PostDetailedDto } from "@/app/dtos/post.dtos";
 import { NotFoundError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { Post } from "@/database/entities/post";
 import { countPostLikes, countPostQuotes, countPostReplies, countPostReposts } from "@/database/queries/post.queries";
+import { CommandHandler } from "@/app/cqrs";
 
-export class GetPostByIdHandler {
+export class GetPostByIdHandler implements CommandHandler<string, PostDetailedDto> {
     constructor(
         private readonly postRepository: Repository<Post>
     ) { }

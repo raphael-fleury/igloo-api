@@ -22,13 +22,20 @@ describe("GetPostByIdHandler", () => {
             select: () => mockSubQb,
             from: () => mockSubQb,
             where: (query: string, params?: any) => {
-                if (params) Object.assign(capturedParameters, params);
+                if (params && params.type) {
+                    // Capture the type parameter from the subquery
+                    capturedParameters.type = params.type;
+                }
                 return mockSubQb;
             },
             andWhere: (query: string, params?: any) => {
-                if (params) Object.assign(capturedParameters, params);
+                if (params && params.type) {
+                    // Capture the type parameter from the subquery
+                    capturedParameters.type = params.type;
+                }
                 return mockSubQb;
-            }
+            },
+            getQuery: () => "SELECT COUNT(*) as count"
         };
 
         qb = {
@@ -36,6 +43,14 @@ describe("GetPostByIdHandler", () => {
             leftJoin: () => qb,
             addSelect: (selection: any, alias: string) => {
                 if (typeof selection === 'function') {
+                    // For countPostLikes, set like parameter
+                    if (alias === "likes") {
+                        capturedParameters.like = "like";
+                    }
+                    // For countPostReposts, set repost parameter
+                    if (alias === "reposts") {
+                        capturedParameters.repost = "repost";
+                    }
                     selection(mockSubQb);
                 }
                 return qb;

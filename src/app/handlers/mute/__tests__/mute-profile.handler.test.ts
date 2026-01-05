@@ -36,30 +36,30 @@ describe("MuteProfileHandler", () => {
 
     it("should mute profile successfully when both profiles exist", async () => {
         // Arrange
-        const muterProfileId = zocker(idDto).generate();
-        const mutedProfileId = zocker(idDto).generate();
+        const sourceProfileId = zocker(idDto).generate();
+        const targetProfileId = zocker(idDto).generate();
         
-        const muterProfile = zocker(profileDto).generate();
-        const mutedProfile = zocker(profileDto).generate();
+        const sourceProfile = zocker(profileDto).generate();
+        const targetProfile = zocker(profileDto).generate();
 
         const createdMute = {
             id: "mute-id",
-            sourceProfile: muterProfile,
-            targetProfile: mutedProfile,
+            sourceProfile: sourceProfile,
+            targetProfile: targetProfile,
             interactionType: ProfileInteractionType.Mute,
             createdAt: new Date(),
             updatedAt: new Date()
         } as ProfileInteraction;
 
         mockInteractionValidator.assertProfileExists = mock()
-            .mockResolvedValueOnce(muterProfile)
-            .mockResolvedValueOnce(mutedProfile);
+            .mockResolvedValueOnce(sourceProfile)
+            .mockResolvedValueOnce(targetProfile);
 
         mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(null));
         mockProfileInteractionRepository.save = mock(() => Promise.resolve(createdMute)) as any;
 
         // Act
-        await handler.handle(muterProfileId, mutedProfileId);
+        await handler.handle({ sourceProfileId, targetProfileId });
 
         // Assert
         expect(mockProfileInteractionRepository.save).toHaveBeenCalled();
@@ -67,61 +67,61 @@ describe("MuteProfileHandler", () => {
 
     it("should throw NotFoundError when muter profile does not exist", async () => {
         // Arrange
-        const muterProfileId = "123e4567-e89b-12d3-a456-426614174000";
-        const mutedProfileId = "123e4567-e89b-12d3-a456-426614174001";
+        const sourceProfileId = "123e4567-e89b-12d3-a456-426614174000";
+        const targetProfileId = "123e4567-e89b-12d3-a456-426614174001";
 
         mockInteractionValidator.assertProfileExists = mock(() => {
-            throw new NotFoundError(`Profile with id ${muterProfileId} not found`);
+            throw new NotFoundError(`Profile with id ${sourceProfileId} not found`);
         });
 
         // Act & Assert
-        expect(handler.handle(muterProfileId, mutedProfileId)).rejects.toThrow(NotFoundError);
+        expect(handler.handle({ sourceProfileId, targetProfileId })).rejects.toThrow(NotFoundError);
     });
 
     it("should throw NotFoundError when muted profile does not exist", async () => {
         // Arrange
-        const muterProfileId = zocker(idDto).generate();
-        const mutedProfileId = zocker(idDto).generate();
+        const sourceProfileId = zocker(idDto).generate();
+        const targetProfileId = zocker(idDto).generate();
         
-        const muterProfile = zocker(profileDto).generate();
+        const sourceProfile = zocker(profileDto).generate();
 
         mockInteractionValidator.assertProfileExists = mock((profileId: string) => {
-            if (profileId === muterProfileId) {
-                return Promise.resolve(muterProfile);
+            if (profileId === sourceProfileId) {
+                return Promise.resolve(sourceProfile);
             }
-            throw new NotFoundError(`Profile with id ${mutedProfileId} not found`);
+            throw new NotFoundError(`Profile with id ${targetProfileId} not found`);
         });
 
         // Act & Assert
-        expect(handler.handle(muterProfileId, mutedProfileId)).rejects.toThrow(NotFoundError);
+        expect(handler.handle({ sourceProfileId, targetProfileId })).rejects.toThrow(NotFoundError);
     });
 
     it("should throw ConflictError when already muted", async () => {
         // Arrange
-        const muterProfileId = zocker(idDto).generate();
-        const mutedProfileId = zocker(idDto).generate();
+        const sourceProfileId = zocker(idDto).generate();
+        const targetProfileId = zocker(idDto).generate();
         
-        const muterProfile = zocker(profileDto).generate();
-        const mutedProfile = zocker(profileDto).generate();
+        const sourceProfile = zocker(profileDto).generate();
+        const targetProfile = zocker(profileDto).generate();
         const existingMute = {
             id: "mute-id",
-            sourceProfile: muterProfile,
-            targetProfile: mutedProfile,
+            sourceProfile: sourceProfile,
+            targetProfile: targetProfile,
             interactionType: ProfileInteractionType.Mute,
             createdAt: new Date("2024-01-01"),
             updatedAt: new Date("2024-01-01")
         } as ProfileInteraction;
 
         mockInteractionValidator.assertProfileExists = mock()
-            .mockResolvedValueOnce(muterProfile)
-            .mockResolvedValueOnce(mutedProfile);
+            .mockResolvedValueOnce(sourceProfile)
+            .mockResolvedValueOnce(targetProfile);
 
         mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(existingMute));
 
         // Act & Assert
-        expect(handler.handle(muterProfileId, mutedProfileId))
+        expect(handler.handle({ sourceProfileId, targetProfileId }))
             .rejects.toThrow(ConflictError);
-        expect(handler.handle(muterProfileId, mutedProfileId))
+        expect(handler.handle({ sourceProfileId, targetProfileId }))
             .rejects.toThrow("Profile is already muted");
         expect(mockProfileInteractionRepository.save).not.toHaveBeenCalled();
     });
@@ -135,7 +135,7 @@ describe("MuteProfileHandler", () => {
         });
 
         // Act & Assert
-        expect(handler.handle(profileId, profileId)).rejects.toThrow(SelfInteractionError);
+        expect(handler.handle({ sourceProfileId: profileId, targetProfileId: profileId })).rejects.toThrow(SelfInteractionError);
         expect(mockInteractionValidator.assertProfileExists).not.toHaveBeenCalled();
     });
 });

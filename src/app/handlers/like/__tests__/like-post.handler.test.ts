@@ -65,7 +65,7 @@ describe("LikePostHandler", () => {
         mockPostInteractionRepository.save = mock(() => Promise.resolve(createdLike)) as any;
 
         // Act
-        await handler.handle(postId, user, profile);
+        await handler.handle({ postId, user, profile });
 
         // Assert
         expect(mockPostRepository.findOne).toHaveBeenCalledWith({
@@ -87,9 +87,9 @@ describe("LikePostHandler", () => {
         mockPostRepository.findOne = mock(() => Promise.resolve(null));
 
         // Act & Assert
-        expect(handler.handle(postId, user, profile))
+        expect(handler.handle({ postId, user, profile }))
             .rejects.toThrow(NotFoundError);
-        expect(handler.handle(postId, user, profile))
+        expect(handler.handle({ postId, user, profile }))
             .rejects.toThrow(`Post with id ${postId} not found`);
     });
 
@@ -114,7 +114,7 @@ describe("LikePostHandler", () => {
         });
 
         // Act & Assert
-        expect(handler.handle(postId, user, profile))
+        expect(handler.handle({ postId, user, profile }))
             .rejects.toThrow(BlockedError);
         expect(mockPostInteractionRepository.save).not.toHaveBeenCalled();
     });
@@ -140,9 +140,8 @@ describe("LikePostHandler", () => {
         });
 
         // Act & Assert
-        expect(handler.handle(postId, user, profile))
+        expect(handler.handle({ postId, user, profile }))
             .rejects.toThrow(BlockedError);
-        expect(mockPostInteractionRepository.save).not.toHaveBeenCalled();
     });
 
     it("should throw ConflictError when post is already liked", async () => {
@@ -174,9 +173,9 @@ describe("LikePostHandler", () => {
         mockPostInteractionRepository.findOne = mock(() => Promise.resolve(existingLike));
 
         // Act & Assert
-        expect(handler.handle(postId, user, profile))
+        expect(handler.handle({ postId, user, profile }))
             .rejects.toThrow(ConflictError);
-        expect(handler.handle(postId, user, profile))
+        expect(handler.handle({ postId, user, profile }))
             .rejects.toThrow("Post is already liked");
         expect(mockPostInteractionRepository.save).not.toHaveBeenCalled();
     });

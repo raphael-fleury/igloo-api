@@ -1,13 +1,20 @@
 import { Repository } from "typeorm";
-import { CreatePostDto, postDto } from "@/app/dtos/post.dtos";
+import { CreatePostDto, PostDto, postDto } from "@/app/dtos/post.dtos";
 import { NotFoundError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { Post } from "@/database/entities/post";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 import { UserDto } from "@/app/dtos/user.dtos";
 import { ProfileDto } from "@/app/dtos/profile.dtos";
+import { CommandHandler } from "@/app/cqrs";
 
-export class CreatePostHandler {
+type CreatePostCommand = {
+    data: CreatePostDto;
+    user: UserDto;
+    profile: ProfileDto;
+}
+
+export class CreatePostHandler implements CommandHandler<CreatePostCommand, PostDto> {
     constructor(
         private readonly postRepository: Repository<Post>,
         private readonly interactionValidator: InteractionValidator
@@ -20,7 +27,7 @@ export class CreatePostHandler {
         );
     }
 
-    async handle(data: CreatePostDto, user: UserDto, profile: ProfileDto) {
+    async handle({ data, user, profile }: CreatePostCommand) {
         // Validations
         let repliedPost = null;
         if (data.repliedPostId) {

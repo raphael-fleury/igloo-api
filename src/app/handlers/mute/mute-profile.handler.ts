@@ -5,7 +5,14 @@ import { Profile } from "@/database/entities/profile";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 import { ConflictError } from "@/app/errors";
 
-export class MuteProfileHandler {
+import { CommandHandler } from "@/app/cqrs";
+
+type MuteProfileCommand = {
+    sourceProfileId: string;
+    targetProfileId: string;
+}
+
+export class MuteProfileHandler implements CommandHandler<MuteProfileCommand, void> {
     constructor(
         private readonly profileInteractionRepository: Repository<ProfileInteraction>,
         private readonly profileRepository: Repository<Profile>,
@@ -20,17 +27,17 @@ export class MuteProfileHandler {
         );
     }
 
-    async handle(muterProfileId: string, mutedProfileId: string) {
+    async handle({ sourceProfileId, targetProfileId }: MuteProfileCommand) {
         // Validations
-        await this.interactionValidator.assertProfilesAreNotSame(muterProfileId, mutedProfileId);
-        const muterProfile = await this.interactionValidator.assertProfileExists(muterProfileId);
-        const mutedProfile = await this.interactionValidator.assertProfileExists(mutedProfileId);
+        await this.interactionValidator.assertProfilesAreNotSame(sourceProfileId, targetProfileId);
+        const sourceProfile = await this.interactionValidator.assertProfileExists(sourceProfileId);
+        const targetProfile = await this.interactionValidator.assertProfileExists(targetProfileId);
 
 
         const existingMute = await this.profileInteractionRepository.findOne({
             where: {
-                sourceProfile: { id: muterProfileId },
-                targetProfile: { id: mutedProfileId },
+                sourceProfile: { id: sourceProfileId },
+                targetProfile: { id: targetProfileId },
                 interactionType: ProfileInteractionType.Mute
             }
         });
@@ -41,8 +48,8 @@ export class MuteProfileHandler {
 
         // Creation
         const mute = this.profileInteractionRepository.create({
-            sourceProfile: muterProfile,
-            targetProfile: mutedProfile,
+            sourceProfile: sourceProfile,
+            targetProfile: targetProfile,
             interactionType: ProfileInteractionType.Mute
         });
 

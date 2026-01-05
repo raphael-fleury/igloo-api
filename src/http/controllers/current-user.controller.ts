@@ -27,7 +27,7 @@ export const currentUserController = ({ handlers } = getDefaultProps()) =>
     })
 
     .patch('/', async ({ user, body }) => {
-        return await handlers.updateUser.handle(user.id, body);
+        return await handlers.updateUser.handle({ id: user.id, data: body });
     }, {
         detail: { summary: "Update current user" },
         body: updateUserDto,

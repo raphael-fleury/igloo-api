@@ -48,7 +48,11 @@ describe("CreatePostHandler", () => {
         } as any));
 
         // Act
-        const result = await handler.handle(createPostData, user, profile);
+        const result = await handler.handle({
+            data: createPostData,
+            user,
+            profile
+        });
 
         // Assert
         expect(result.content).toBe("This is a test post");
@@ -74,7 +78,11 @@ describe("CreatePostHandler", () => {
 
         // Act & Assert
         expect(async () => {
-            await handler.handle(createPostData, user, profile);
+            await handler.handle({
+                data: createPostData,
+                user,
+                profile
+            });
         }).toThrow(NotFoundError);
     });
 
@@ -100,7 +108,7 @@ describe("CreatePostHandler", () => {
         });
 
         // Act & Assert
-        expect(handler.handle(createPostData, user, profile))
+        expect(handler.handle({ data: createPostData, user, profile }))
             .rejects.toThrow(BlockedError);
     });
 
@@ -125,7 +133,7 @@ describe("CreatePostHandler", () => {
         });
 
         // Act & Assert
-        expect(handler.handle(createPostData, user, profile))
+        expect(handler.handle({ data: createPostData, user, profile }))
             .rejects.toThrow(BlockedError);
     });
 
@@ -141,7 +149,11 @@ describe("CreatePostHandler", () => {
 
         // Act & Assert
         expect(async () => {
-            await handler.handle(createPostData, user, profile);
+            await handler.handle({
+                data: createPostData,
+                user,
+                profile
+            });
         }).toThrow(NotFoundError);
     });
 
@@ -167,7 +179,7 @@ describe("CreatePostHandler", () => {
         });
 
         // Act & Assert
-        expect(handler.handle(createPostData, user, profile))
+        expect(handler.handle({ data: createPostData, user, profile }))
             .rejects.toThrow(BlockedError);
     });
 
@@ -191,7 +203,7 @@ describe("CreatePostHandler", () => {
         });
 
         // Act & Assert
-        expect(handler.handle(createPostData, user, profile))
+        expect(handler.handle({ data: createPostData, user, profile }))
             .rejects.toThrow(BlockedError);
     });
 
@@ -228,7 +240,7 @@ describe("CreatePostHandler", () => {
         };
 
         // Act
-        const result = await handler.handle(createPostData, user, profile);
+        const result = await handler.handle({ data: createPostData, user, profile });
 
         // Assert
         expect(result.content).toBe("This is a quote");

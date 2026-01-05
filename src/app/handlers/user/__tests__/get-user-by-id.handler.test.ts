@@ -24,7 +24,7 @@ describe("GetUserByIdHandler", () => {
         mockRepository.findOneBy = mock(() => Promise.resolve(user as User));
 
         // Act
-        const result = await handler.handle(user.id);
+        const result = await handler.handle({ id: user.id });
 
         // Assert
         expect(result).toEqual(user);
@@ -36,7 +36,7 @@ describe("GetUserByIdHandler", () => {
         mockRepository.findOneBy = mock(() => Promise.resolve(null));
 
         // Act & Assert
-        expect(handler.handle(userId)).rejects.toThrow(NotFoundError);
-        expect(handler.handle(userId)).rejects.toThrow(`User with id ${userId} not found`);
+        expect(handler.handle({ id: userId })).rejects.toThrow(NotFoundError);
+        expect(handler.handle({ id: userId })).rejects.toThrow(`User with id ${userId} not found`);
     });
 });

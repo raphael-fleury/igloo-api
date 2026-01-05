@@ -42,7 +42,7 @@ describe("UpdateProfileHandler", () => {
         mockRepository.save.mockReturnValue(Promise.resolve(updatedProfile));
 
         // Act
-        const result = await handler.handle(profileId, updateData);
+        const result = await handler.handle({ id: profileId, data: updateData });
 
         // Assert
         expect(result.username).toBe(updateData.username || existingProfileData.username);
@@ -64,7 +64,7 @@ describe("UpdateProfileHandler", () => {
         mockRepository.findOneBy.mockReturnValue(Promise.resolve(null));
 
         // Act & Assert
-        expect(handler.handle(profileId, updateData)).rejects.toThrow(NotFoundError);
+        expect(handler.handle({ id: profileId, data: updateData })).rejects.toThrow(NotFoundError);
     });
 
     it("should throw AlreadyExistsError when username already exists", async () => {
@@ -99,7 +99,7 @@ describe("UpdateProfileHandler", () => {
         mockRepository.findOne.mockReturnValue(Promise.resolve(conflictingProfile));
 
         // Act & Assert
-        expect(handler.handle(profileId, updateData)).rejects.toThrow(AlreadyExistsError);
+        expect(handler.handle({ id: profileId, data: updateData })).rejects.toThrow(AlreadyExistsError);
     });
 
     it("should update profile successfully when username is not being changed", async () => {
@@ -122,7 +122,7 @@ describe("UpdateProfileHandler", () => {
         mockRepository.save.mockReturnValue(Promise.resolve(updatedProfile));
 
         // Act
-        const result = await handler.handle(profileId, updateData);
+        const result = await handler.handle({ id: profileId, data: updateData });
 
         // Assert
         expect(result.username).toBe(existingProfileData.username);
@@ -153,7 +153,7 @@ describe("UpdateProfileHandler", () => {
         mockRepository.save.mockReturnValue(Promise.resolve(updatedProfile));
 
         // Act
-        const result = await handler.handle(profileId, updateData);
+        const result = await handler.handle({ id: profileId, data: updateData });
 
         // Assert
         expect(result.username).toBe(updateData.username);

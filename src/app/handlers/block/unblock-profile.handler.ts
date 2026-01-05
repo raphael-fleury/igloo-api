@@ -2,20 +2,26 @@ import { Repository } from "typeorm";
 import { ConflictError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
+import { CommandHandler } from "@/app/cqrs";
 
-export class UnblockProfileHandler {
+type UnblockProfileCommand = {
+    sourceProfileId: string;
+    targetProfileId: string;
+}
+
+export class UnblockProfileHandler implements CommandHandler<UnblockProfileCommand, void> {
     constructor(private readonly profileInteractionRepository: Repository<ProfileInteraction>) { }
 
     static get default() {
         return new UnblockProfileHandler(appDataSource.getRepository(ProfileInteraction));
     }
 
-    async handle(blockerProfileId: string, blockedProfileId: string) {
+    async handle({ sourceProfileId, targetProfileId }: UnblockProfileCommand) {
         // Find the existing block
         const block = await this.profileInteractionRepository.findOne({
             where: {
-                sourceProfile: { id: blockerProfileId },
-                targetProfile: { id: blockedProfileId },
+                sourceProfile: { id: sourceProfileId },
+                targetProfile: { id: targetProfileId },
                 interactionType: ProfileInteractionType.Block
             }
         });

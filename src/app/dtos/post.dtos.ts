@@ -31,8 +31,8 @@ export const postDetailedDto = createdPostDto.extend({
 })
 
 export const createPostDto = basePostDto.extend({
-    repliedPostId: idDto.nullable().optional().default(null),
-    quotedPostId: idDto.nullable().optional().default(null)
+    repliedPostId: idDto.nullish(),
+    quotedPostId: idDto.nullish()
 });
 
 export const postQueryDto = z.object({
@@ -54,3 +54,4 @@ export type PostDto = z.infer<typeof postDto>;
 export type PostDetailedDto = z.infer<typeof postDetailedDto>;
 export type CreatePostDto = z.infer<typeof createPostDto>;
 export type PostQueryDto = z.infer<typeof postQueryDto>;
+export type PostsPageDto = z.infer<typeof postsPageDto>;

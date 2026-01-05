@@ -20,7 +20,7 @@ describe("GetFollowingHandler", () => {
 
     it("should return all profiles being followed successfully", async () => {
         // Arrange
-        const followerProfileId = zocker(idDto).generate();
+        const sourceProfileId = zocker(idDto).generate();
         
         const followed1 = zocker(profileDto).generate();
         const followed2 = zocker(profileDto).generate();
@@ -47,7 +47,7 @@ describe("GetFollowingHandler", () => {
         mockProfileInteractionRepository.find = mock(() => Promise.resolve(follows));
 
         // Act
-        const result = await handler.handle(followerProfileId);
+        const result = await handler.handle({ sourceProfileId });
 
         // Assert
         expect(result.profiles).toHaveLength(2);
@@ -56,7 +56,7 @@ describe("GetFollowingHandler", () => {
         expect(result.profiles[1].id).toEqual(followed2.id);
         expect(mockProfileInteractionRepository.find).toHaveBeenCalledWith({
             where: {
-                sourceProfile: { id: followerProfileId },
+                sourceProfile: { id: sourceProfileId },
                 interactionType: ProfileInteractionType.Follow
             },
             relations: ["targetProfile"],

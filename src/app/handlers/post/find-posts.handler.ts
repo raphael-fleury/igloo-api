@@ -1,13 +1,14 @@
 import { Repository } from "typeorm";
 import { appDataSource } from "@/database/data-source";
 import { Post } from "@/database/entities/post";
-import { postDetailedDto, PostQueryDto, postsPageDto } from "@/app/dtos/post.dtos";
+import { postDetailedDto, PostQueryDto, postsPageDto, PostsPageDto } from "@/app/dtos/post.dtos";
 import { countPostLikes, countPostQuotes, countPostReplies, countPostReposts } from "@/database/queries/post.queries";
+import { CommandHandler } from "@/app/cqrs";
 
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 20;
 
-export class FindPostsHandler {
+export class FindPostsHandler implements CommandHandler<PostQueryDto, PostsPageDto> {
     constructor(private readonly postRepository: Repository<Post>) { }
 
     static get default() {

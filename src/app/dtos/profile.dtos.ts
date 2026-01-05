@@ -30,7 +30,23 @@ export const detailedProfileDto = profileDto.extend({
     muted: z.boolean()
 })
 
+export const blockedProfilesDto = z.object({
+    profiles: z.array(profileDto.extend({
+        blockedAt: z.date()
+    })),
+    total: z.number().int().nonnegative()
+});
+
+export const followsDto = z.object({
+    profiles: z.array(profileDto.extend({
+        followedAt: z.date()
+    })),
+    total: z.number().int().nonnegative()
+});
+
 export type CreateProfileDto = z.infer<typeof createProfileDto>;
 export type UpdateProfileDto = z.infer<typeof updateProfileDto>;
 export type ProfileDto = z.infer<typeof profileDto>;
 export type DetailedProfileDto = z.infer<typeof detailedProfileDto>;
+export type BlockedProfilesDto = z.infer<typeof blockedProfilesDto>;
+export type FollowsDto = z.infer<typeof followsDto>;

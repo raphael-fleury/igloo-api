@@ -19,14 +19,14 @@ describe("UnblockProfileHandler", () => {
 
     it("should unblock profile successfully when block exists", async () => {
         // Arrange
-        const blockerProfileId = "blocker-id";
-        const blockedProfileId = "blocked-id";
+        const sourceProfileId = "blocker-id";
+        const targetProfileId = "blocked-id";
         const existingBlock = { id: "block-id" } as ProfileInteraction;
 
         mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(existingBlock));
 
         // Act
-        await handler.handle(blockerProfileId, blockedProfileId);
+        await handler.handle({ sourceProfileId, targetProfileId });
 
         // Assert
         expect(mockProfileInteractionRepository.remove).toHaveBeenCalledWith(existingBlock);
@@ -34,14 +34,14 @@ describe("UnblockProfileHandler", () => {
 
     it("should throw ConflictError when block does not exist", async () => {
         // Arrange
-        const blockerProfileId = "blocker-id";
-        const blockedProfileId = "blocked-id";
+        const sourceProfileId = "blocker-id";
+        const targetProfileId = "blocked-id";
 
         mockProfileInteractionRepository.findOne = mock(() => Promise.resolve(null));
 
         // Act & Assert
         expect(async () => {
-            await handler.handle(blockerProfileId, blockedProfileId);
+            await handler.handle({ sourceProfileId, targetProfileId });
         }).toThrow(ConflictError);
     });
 });

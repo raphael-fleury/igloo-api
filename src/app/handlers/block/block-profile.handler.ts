@@ -3,8 +3,14 @@ import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 import { ConflictError } from "@/app/errors";
+import { CommandHandler } from "@/app/cqrs";
 
-export class BlockProfileHandler {
+type BlockProfileCommand = {
+    sourceProfileId: string
+    targetProfileId: string
+}
+
+export class BlockProfileHandler implements CommandHandler<BlockProfileCommand, void> {
     constructor(
         private readonly profileInteractionRepository: Repository<ProfileInteraction>,
         private readonly interactionValidator: InteractionValidator
@@ -17,14 +23,14 @@ export class BlockProfileHandler {
         );
     }
 
-    async handle(blockerProfileId: string, blockedProfileId: string) {
-        const blockerProfile = await this.interactionValidator.assertProfileExists(blockerProfileId);
-        const blockedProfile = await this.interactionValidator.assertProfileExists(blockedProfileId);
+    async handle({ sourceProfileId, targetProfileId }: BlockProfileCommand) {
+        const sourceProfile = await this.interactionValidator.assertProfileExists(sourceProfileId);
+        const targetProfile = await this.interactionValidator.assertProfileExists(targetProfileId);
 
         const followerFollow = await this.profileInteractionRepository.findOne({
             where: {
-                sourceProfile: { id: blockerProfileId },
-                targetProfile: { id: blockedProfileId },
+                sourceProfile: { id: sourceProfileId },
+                targetProfile: { id: targetProfileId },
                 interactionType: ProfileInteractionType.Follow
             }
         });
@@ -35,8 +41,8 @@ export class BlockProfileHandler {
 
         const followedByFollow = await this.profileInteractionRepository.findOne({
             where: {
-                sourceProfile: { id: blockedProfileId },
-                targetProfile: { id: blockerProfileId },
+                sourceProfile: { id: targetProfileId },
+                targetProfile: { id: sourceProfileId },
                 interactionType: ProfileInteractionType.Follow
             }
         });
@@ -47,8 +53,8 @@ export class BlockProfileHandler {
 
         const existingBlock = await this.profileInteractionRepository.findOne({
             where: {
-                sourceProfile: { id: blockerProfileId },
-                targetProfile: { id: blockedProfileId },
+                sourceProfile: { id: sourceProfileId },
+                targetProfile: { id: targetProfileId },
                 interactionType: ProfileInteractionType.Block
             }
         });
@@ -58,8 +64,8 @@ export class BlockProfileHandler {
         }
 
         const block = this.profileInteractionRepository.create({
-            sourceProfile: blockerProfile,
-            targetProfile: blockedProfile,
+            sourceProfile: sourceProfile,
+            targetProfile: targetProfile,
             interactionType: ProfileInteractionType.Block
         });
 

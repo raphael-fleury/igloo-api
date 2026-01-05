@@ -1,14 +1,17 @@
 import { DataSource } from "typeorm";
-import { profileDto } from "@/app/dtos/profile.dtos";
-import { CreateUserDto, userDto } from "@/app/dtos/user.dtos";
+import { profileDto, ProfileDto } from "@/app/dtos/profile.dtos";
+import { CreateUserDto, userDto, UserDto } from "@/app/dtos/user.dtos";
 import { AlreadyExistsError } from "@/app/errors";
 import { PasswordHashService } from "@/app/services/password-hash.service";
 import { Profile } from "@/database/entities/profile";
 import { User } from "@/database/entities/user";
 import { UserProfile } from "@/database/entities/user-profile";
 import { appDataSource } from "@/database/data-source";
+import { CommandHandler } from "@/app/cqrs";
 
-export class CreateUserHandler {
+type CreateUserResult = UserDto & { profile: ProfileDto };
+
+export class CreateUserHandler implements CommandHandler<CreateUserDto, CreateUserResult> {
     constructor(
         private readonly dataSource: DataSource,
         private readonly passwordHashService: PasswordHashService

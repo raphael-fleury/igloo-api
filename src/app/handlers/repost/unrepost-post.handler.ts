@@ -2,15 +2,21 @@ import { Repository } from "typeorm";
 import { ConflictError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
+import { CommandHandler } from "@/app/cqrs";
 
-export class UnrepostPostHandler {
+export type UnrepostPostCommand = {
+    profileId: string;
+    postId: string;
+}
+
+export class UnrepostPostHandler implements CommandHandler<UnrepostPostCommand, void> {
     constructor(private readonly postInteractionRepository: Repository<PostInteraction>) { }
 
     static get default() {
         return new UnrepostPostHandler(appDataSource.getRepository(PostInteraction));
     }
 
-    async handle(profileId: string, postId: string) {
+    async handle({ profileId, postId }: UnrepostPostCommand) {
         // Find the existing repost
         const repost = await this.postInteractionRepository.findOne({
             where: {

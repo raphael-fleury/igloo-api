@@ -3,19 +3,26 @@ import { ConflictError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 
-export class UnmuteProfileHandler {
+import { CommandHandler } from "@/app/cqrs";
+
+type UnmuteProfileCommand = {
+    sourceProfileId: string;
+    targetProfileId: string;
+}
+
+export class UnmuteProfileHandler implements CommandHandler<UnmuteProfileCommand, void> {
     constructor(private readonly profileInteractionRepository: Repository<ProfileInteraction>) { }
 
     static get default() {
         return new UnmuteProfileHandler(appDataSource.getRepository(ProfileInteraction));
     }
 
-    async handle(muterProfileId: string, mutedProfileId: string) {
+    async handle({ sourceProfileId, targetProfileId }: UnmuteProfileCommand) {
         // Find the existing mute
         const mute = await this.profileInteractionRepository.findOne({
             where: {
-                sourceProfile: { id: muterProfileId },
-                targetProfile: { id: mutedProfileId },
+                sourceProfile: { id: sourceProfileId },
+                targetProfile: { id: targetProfileId },
                 interactionType: ProfileInteractionType.Mute
             }
         });

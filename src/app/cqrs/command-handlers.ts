@@ -1,0 +1,61 @@
+import { LoginHandler } from "../handlers/auth/login.handler";
+import { BlockProfileHandler } from "../handlers/block/block-profile.handler";
+import { GetBlockedProfilesHandler } from "../handlers/block/get-blocked-profiles.handler";
+import { UnblockProfileHandler } from "../handlers/block/unblock-profile.handler";
+import { FollowProfileHandler } from "../handlers/follow/follow-profile.handler";
+import { GetFollowersHandler } from "../handlers/follow/get-followers.handler";
+import { GetFollowingHandler } from "../handlers/follow/get-following.handler";
+import { UnfollowProfileHandler } from "../handlers/follow/unfollow-profile.handler";
+import { LikePostHandler } from "../handlers/like/like-post.handler";
+import { UnlikePostHandler } from "../handlers/like/unlike-post.handler";
+import { GetMutedProfilesHandler } from "../handlers/mute/get-muted-profiles.handler";
+import { MuteProfileHandler } from "../handlers/mute/mute-profile.handler";
+import { UnmuteProfileHandler } from "../handlers/mute/unmute-profile.handler";
+import { CreatePostHandler } from "../handlers/post/create-post.handler";
+import { DeletePostHandler } from "../handlers/post/delete-post.handler";
+import { FindPostsHandler } from "../handlers/post/find-posts.handler";
+import { GetPostByIdHandler } from "../handlers/post/get-post-by-id.handler";
+import { GetProfileByIdHandler } from "../handlers/profile/get-profile-by-id.handler";
+import { UpdateProfileHandler } from "../handlers/profile/update-profile.handler";
+import { RepostPostHandler } from "../handlers/repost/repost-post.handler";
+import { UnrepostPostHandler } from "../handlers/repost/unrepost-post.handler";
+import { CreateUserHandler } from "../handlers/user/create-user.handler";
+import { UpdateUserHandler } from "../handlers/user/update-user.handler";
+
+export const getCommandHandlers = () => ({
+    // Auth
+    createUser: CreateUserHandler.default,
+    login: LoginHandler.default,
+
+    // Current Profile
+    updateProfile: UpdateProfileHandler.default,
+    getBlockedProfiles: GetBlockedProfilesHandler.default,
+    getMutedProfiles: GetMutedProfilesHandler.default,
+
+    // Current User
+    updateUser: UpdateUserHandler.default,
+
+    // Post
+    findPosts: FindPostsHandler.default,
+    getPostById: GetPostByIdHandler.default,
+    createPost: CreatePostHandler.default,
+    deletePost: DeletePostHandler.default,
+    likePost: LikePostHandler.default,
+    unlikePost: UnlikePostHandler.default,
+    repostPost: RepostPostHandler.default,
+    unrepostPost: UnrepostPostHandler.default,
+
+    // Profile
+    getProfileById: GetProfileByIdHandler.default,
+    getFollowers: GetFollowersHandler.default,
+    getFollowing: GetFollowingHandler.default,
+    blockProfile: BlockProfileHandler.default,
+    unblockProfile: UnblockProfileHandler.default,
+    muteProfile: MuteProfileHandler.default,
+    unmuteProfile: UnmuteProfileHandler.default,
+    followProfile: FollowProfileHandler.default,
+    unfollowProfile: UnfollowProfileHandler.default,
+})
+
+export type Handlers = ReturnType<typeof getCommandHandlers>;
+export type CommandName = keyof Handlers;

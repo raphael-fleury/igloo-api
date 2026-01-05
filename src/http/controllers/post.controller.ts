@@ -65,7 +65,9 @@ export const postController = ({ handlers } = getDefaultProps()) =>
     .group('', (app) => app
         .use(requireProfileMiddleware)
         .post('/', async ({ body, user, profile }) => {
-            const post = await handlers.createPost.handle(body, user, profile);
+            const post = await handlers.createPost.handle({
+                data: body, user, profile
+            });
             return status(201, post);
         }, {
             detail: { summary: "Create a new post" },
@@ -80,7 +82,10 @@ export const postController = ({ handlers } = getDefaultProps()) =>
 
         .group('/:id', (app) => app
             .delete('/', async ({ profile, params }) => {
-                return await handlers.deletePost.handle(params.id, profile.id);
+                return await handlers.deletePost.handle({
+                    id: params.id,
+                    profileId: profile.id
+                });
             }, {
                 detail: { summary: "Delete post by ID" },
                 params: postIdParam,
@@ -99,7 +104,7 @@ export const postController = ({ handlers } = getDefaultProps()) =>
             })
 
             .post('/like', async ({ user, profile, params, status }) => {
-                await handlers.likePost.handle(params.id, user, profile);
+                await handlers.likePost.handle({ postId: params.id, user, profile });
                 return status("No Content");
             }, {
                 detail: { summary: "Like a post" },
@@ -107,7 +112,7 @@ export const postController = ({ handlers } = getDefaultProps()) =>
             })
 
             .delete('/like', async ({ profile, params }) => {
-                await handlers.unlikePost.handle(profile.id, params.id);
+                await handlers.unlikePost.handle({ profileId: profile.id, postId: params.id });
                 return status("No Content");
             }, {
                 detail: { summary: "Unlike a post" },
@@ -115,7 +120,7 @@ export const postController = ({ handlers } = getDefaultProps()) =>
             })
 
             .post('/repost', async ({ user, profile, params, status }) => {
-                await handlers.repostPost.handle(params.id, user, profile);
+                await handlers.repostPost.handle({ postId: params.id, user, profile });
                 return status("No Content");
             }, {
                 detail: { summary: "Repost a post" },
@@ -123,7 +128,7 @@ export const postController = ({ handlers } = getDefaultProps()) =>
             })
 
             .delete('/repost', async ({ profile, params, status }) => {
-                await handlers.unrepostPost.handle(profile.id, params.id);
+                await handlers.unrepostPost.handle({ profileId: profile.id, postId: params.id });
                 return status("No Content");
             }, {
                 detail: { summary: "Unrepost a post" },

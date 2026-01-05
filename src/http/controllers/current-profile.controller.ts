@@ -33,32 +33,32 @@ export const currentProfileController = ({ handlers } = getDefaultProps()) =>
     })
 
     .patch('/', async ({ profile, body }) => {
-        return await handlers.updateProfile.handle(profile.id, body);
+        return await handlers.updateProfile.handle({ id: profile.id, data: body });
     }, {
         detail: { summary: "Update current profile" },
         body: updateProfileDto
     })
 
     .get('/blocks', async ({ profile }) => {
-        return await handlers.getBlockedProfiles.handle(profile.id);
+        return await handlers.getBlockedProfiles.handle({ sourceProfileId: profile.id });
     }, {
         detail: { summary: "Get all profiles blocked by current profile" }
     })
 
     .get('/followers', async ({ profile }) => {
-        return await handlers.getFollowers.handle(profile.id);
+        return await handlers.getFollowers.handle({ targetProfileId: profile.id });
     }, {
         detail: { summary: "Get all followers of current profile" }
     })
 
     .get('/following', async ({ profile }) => {
-        return await handlers.getFollowing.handle(profile.id);
+        return await handlers.getFollowing.handle({ sourceProfileId: profile.id });
     }, {
         detail: { summary: "Get all profiles that current profile is following" }
     })
 
     .get('/mutes', async ({ profile }) => {
-        return await handlers.getMutedProfiles.handle(profile.id);
+        return await handlers.getMutedProfiles.handle({ sourceProfileId: profile.id });
     }, {
         detail: { summary: "Get all profiles muted by current profile" }
     });

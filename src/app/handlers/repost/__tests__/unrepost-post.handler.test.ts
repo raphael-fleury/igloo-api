@@ -44,7 +44,7 @@ describe("UnrepostPostHandler", () => {
         mockPostInteractionRepository.findOne = mock(() => Promise.resolve(existingRepost));
 
         // Act
-        await handler.handle(profileId, postId);
+        await handler.handle({ profileId, postId });
 
         // Assert
         expect(mockPostInteractionRepository.findOne).toHaveBeenCalledWith({
@@ -65,9 +65,9 @@ describe("UnrepostPostHandler", () => {
         mockPostInteractionRepository.findOne = mock(() => Promise.resolve(null));
 
         // Act & Assert
-        expect(handler.handle(profileId, postId))
+        expect(handler.handle({ profileId, postId }))
             .rejects.toThrow(ConflictError);
-        expect(handler.handle(profileId, postId))
+        expect(handler.handle({ profileId, postId }))
             .rejects.toThrow("Repost for this post not found");
         expect(mockPostInteractionRepository.remove).not.toHaveBeenCalled();
     });

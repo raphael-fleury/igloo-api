@@ -4,7 +4,6 @@ import { zocker } from "zocker";
 import { GetAuthInfoHandler } from "../get-auth-info.handler";
 import { UserDto, userDto } from "@/app/dtos/user.dtos";
 import { ProfileDto, profileDto } from "@/app/dtos/profile.dtos";
-import { tokenPayloadDto } from "@/app/dtos/auth.dtos";
 import { idDto } from "@/app/dtos/common.dtos";
 import { UnauthorizedError } from "@/app/errors";
 import { User } from "@/database/entities/user";

@@ -3,7 +3,6 @@ import { Repository } from "typeorm";
 import { DeletePostHandler } from "../delete-post.handler";
 import { zocker } from "zocker";
 import { idDto } from "@/app/dtos/common.dtos";
-import { profileDto } from "@/app/dtos/profile.dtos";
 import { Post } from "@/database/entities/post";
 import { NotFoundError, UnauthorizedError } from "@/app/errors";
 
@@ -35,7 +34,7 @@ describe("DeletePostHandler", () => {
         mockPostRepository.findOneBy = mock(() => Promise.resolve(mockPost));
 
         // Act
-        const result = await handler.handle(postId, profileId);
+        const result = await handler.handle({ id: postId, profileId });
 
         // Assert
         expect(result.message).toBe("Post deleted successfully");
@@ -50,7 +49,7 @@ describe("DeletePostHandler", () => {
 
         // Act & Assert
         expect(async () => {
-            await handler.handle(postId, profileId);
+            await handler.handle({ id: postId, profileId });
         }).toThrow(NotFoundError);
     });
 
@@ -72,7 +71,7 @@ describe("DeletePostHandler", () => {
 
         // Act & Assert
         expect(async () => {
-            await handler.handle(postId, otherProfileId);
+            await handler.handle({ id: postId, profileId: otherProfileId });
         }).toThrow(UnauthorizedError);
     });
 });

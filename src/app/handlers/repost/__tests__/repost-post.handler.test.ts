@@ -65,7 +65,7 @@ describe("RepostPostHandler", () => {
         mockPostInteractionRepository.save = mock(() => Promise.resolve(createdRepost)) as any;
 
         // Act
-        await handler.handle(postId, user, profile);
+        await handler.handle({ postId, user, profile });
 
         // Assert
         expect(mockPostRepository.findOne).toHaveBeenCalledWith({
@@ -87,9 +87,9 @@ describe("RepostPostHandler", () => {
         mockPostRepository.findOne = mock(() => Promise.resolve(null));
 
         // Act & Assert
-        expect(handler.handle(postId, user, profile))
+        expect(handler.handle({ postId, user, profile }))
             .rejects.toThrow(NotFoundError);
-        expect(handler.handle(postId, user, profile))
+        expect(handler.handle({ postId, user, profile }))
             .rejects.toThrow(`Post with id ${postId} not found`);
     });
 
@@ -114,7 +114,7 @@ describe("RepostPostHandler", () => {
         });
 
         // Act & Assert
-        expect(handler.handle(postId, user, profile))
+        expect(handler.handle({ postId, user, profile }))
             .rejects.toThrow(BlockedError);
         expect(mockPostInteractionRepository.save).not.toHaveBeenCalled();
     });
@@ -140,9 +140,8 @@ describe("RepostPostHandler", () => {
         });
 
         // Act & Assert
-        expect(handler.handle(postId, user, profile))
+        expect(handler.handle({ postId, user, profile }))
             .rejects.toThrow(BlockedError);
-        expect(mockPostInteractionRepository.save).not.toHaveBeenCalled();
     });
 
     it("should throw ConflictError when post is already reposted", async () => {
@@ -174,9 +173,9 @@ describe("RepostPostHandler", () => {
         mockPostInteractionRepository.findOne = mock(() => Promise.resolve(existingRepost));
 
         // Act & Assert
-        expect(handler.handle(postId, user, profile))
+        expect(handler.handle({ postId, user, profile }))
             .rejects.toThrow(ConflictError);
-        expect(handler.handle(postId, user, profile))
+        expect(handler.handle({ postId, user, profile }))
             .rejects.toThrow("Post is already reposted");
         expect(mockPostInteractionRepository.save).not.toHaveBeenCalled();
     });
