@@ -1,15 +1,15 @@
 import z from "zod";
 import Elysia from "elysia";
 import { updateUserDto, userDto } from "@/app/dtos/user.dtos";
-import { UpdateUserHandler } from "@/app/handlers/user/update-user.handler";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { authMiddleware } from "../middlewares/auth.middleware";
+import { CommandBus } from "@/app/cqrs/command-bus";
 
 const getDefaultProps = () => ({
-    handlers: { updateUser: UpdateUserHandler.default }
+    bus: CommandBus.default
 })
 
-export const currentUserController = ({ handlers } = getDefaultProps()) =>
+export const currentUserController = ({ bus } = getDefaultProps()) =>
     new Elysia({ prefix: "/me" })
     .use(onErrorMiddleware)
     .use(authMiddleware)
@@ -27,7 +27,7 @@ export const currentUserController = ({ handlers } = getDefaultProps()) =>
     })
 
     .patch('/', async ({ user, body }) => {
-        return await handlers.updateUser.handle({ id: user.id, data: body });
+        return await bus.execute("updateUser", { id: user.id, data: body });
     }, {
         detail: { summary: "Update current user" },
         body: updateUserDto,

@@ -5,7 +5,7 @@ export interface CommandHandler<TInput = any, TResult = any> {
 }
 
 export type CommandInput<T extends CommandName> =
-  Parameters<Handlers[T]["handle"]>[0];
+    Parameters<Handlers[T]["handle"]>[0];
 
 export type CommandResult<T extends CommandName> =
-  Awaited<ReturnType<Handlers[T]["handle"]>>;
+    Awaited<ReturnType<Handlers[T]["handle"]>>;

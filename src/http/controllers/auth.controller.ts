@@ -2,19 +2,15 @@ import z from "zod";
 import Elysia, { status } from "elysia";
 import { loginDto } from "@/app/dtos/auth.dtos";
 import { createUserDto } from "@/app/dtos/user.dtos";
-import { LoginHandler } from "@/app/handlers/auth/login.handler";
-import { CreateUserHandler } from "@/app/handlers/user/create-user.handler";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { jwtMiddleware } from "../middlewares/jwt.middleware";
+import { CommandBus } from "@/app/cqrs/command-bus";
 
 const getDefaultProps = () => ({
-    handlers: {
-        createUser: CreateUserHandler.default,
-        login: LoginHandler.default
-    }
+    bus: CommandBus.default
 })
 
-export const authController = ({ handlers } = getDefaultProps()) =>
+export const authController = ({ bus } = getDefaultProps()) =>
     new Elysia({ prefix: "/auth" })
     .use(onErrorMiddleware)
     .use(jwtMiddleware)
@@ -24,7 +20,7 @@ export const authController = ({ handlers } = getDefaultProps()) =>
     })
 
     .post('/register', async ({ body, jwt }) => {
-        const userWithProfile = await handlers.createUser.handle(body);
+        const userWithProfile = await bus.execute("createUser", body);
 
         const token = await jwt.sign({
             userId: userWithProfile.id,
@@ -46,7 +42,7 @@ export const authController = ({ handlers } = getDefaultProps()) =>
     })
 
     .post('/login', async ({ body, jwt }) => {
-        const { userId, profileId } = await handlers.login.handle(body);
+        const { userId, profileId } = await bus.execute("login", body);
         const token = await jwt.sign({ userId, profileId });
         return { token };
     }, {
