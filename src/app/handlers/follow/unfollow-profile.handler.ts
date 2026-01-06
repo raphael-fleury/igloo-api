@@ -3,20 +3,16 @@ import { ConflictError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { CommandHandler } from "@/app/cqrs";
+import { PostInteractionDto } from "@/app/dtos/post-interaction.dto";
 
-type UnfollowProfileCommand = {
-    sourceProfileId: string;
-    targetProfileId: string;
-}
-
-export class UnfollowProfileHandler implements CommandHandler<UnfollowProfileCommand, void> {
+export class UnfollowProfileHandler implements CommandHandler<PostInteractionDto, void> {
     constructor(private readonly profileInteractionRepository: Repository<ProfileInteraction>) { }
 
     static get default() {
         return new UnfollowProfileHandler(appDataSource.getRepository(ProfileInteraction));
     }
 
-    async handle({ sourceProfileId, targetProfileId }: UnfollowProfileCommand) {
+    async handle({ sourceProfileId, targetProfileId }: PostInteractionDto) {
         // Find the existing follow
         const follow = await this.profileInteractionRepository.findOne({
             where: {

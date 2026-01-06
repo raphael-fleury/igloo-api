@@ -6,13 +6,9 @@ import { InteractionValidator } from "@/app/validators/interaction.validator";
 import { ConflictError } from "@/app/errors";
 
 import { CommandHandler } from "@/app/cqrs";
+import { PostInteractionDto } from "@/app/dtos/post-interaction.dto";
 
-type MuteProfileCommand = {
-    sourceProfileId: string;
-    targetProfileId: string;
-}
-
-export class MuteProfileHandler implements CommandHandler<MuteProfileCommand, void> {
+export class MuteProfileHandler implements CommandHandler<PostInteractionDto, void> {
     constructor(
         private readonly profileInteractionRepository: Repository<ProfileInteraction>,
         private readonly profileRepository: Repository<Profile>,
@@ -27,7 +23,7 @@ export class MuteProfileHandler implements CommandHandler<MuteProfileCommand, vo
         );
     }
 
-    async handle({ sourceProfileId, targetProfileId }: MuteProfileCommand) {
+    async handle({ sourceProfileId, targetProfileId }: PostInteractionDto) {
         // Validations
         await this.interactionValidator.assertProfilesAreNotSame(sourceProfileId, targetProfileId);
         const sourceProfile = await this.interactionValidator.assertProfileExists(sourceProfileId);

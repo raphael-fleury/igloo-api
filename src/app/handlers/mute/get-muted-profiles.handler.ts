@@ -3,24 +3,21 @@ import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { profileDto, ProfileDto } from "@/app/dtos/profile.dtos";
 import { CommandHandler } from "@/app/cqrs";
-
-type GetMutedProfilesCommand = {
-    sourceProfileId: string;
-}
+import { SourceProfileDto } from "@/app/dtos/post-interaction.dto";
 
 type MutedProfilesDto = {
     profiles: (ProfileDto & { mutedAt: Date })[];
     total: number;
 }
 
-export class GetMutedProfilesHandler implements CommandHandler<GetMutedProfilesCommand, MutedProfilesDto> {
+export class GetMutedProfilesHandler implements CommandHandler<SourceProfileDto, MutedProfilesDto> {
     constructor(private readonly profileInteractionRepository: Repository<ProfileInteraction>) { }
 
     static get default() {
         return new GetMutedProfilesHandler(appDataSource.getRepository(ProfileInteraction));
     }
 
-    async handle({ sourceProfileId }: GetMutedProfilesCommand) {
+    async handle({ sourceProfileId }: SourceProfileDto) {
         const mutes = await this.profileInteractionRepository.find({
             where: {
                 sourceProfile: { id: sourceProfileId },

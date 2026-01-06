@@ -3,20 +3,16 @@ import { ConflictError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
 import { CommandHandler } from "@/app/cqrs";
+import { PostInteractionDto } from "@/app/dtos/post-interaction.dto";
 
-type UnblockProfileCommand = {
-    sourceProfileId: string;
-    targetProfileId: string;
-}
-
-export class UnblockProfileHandler implements CommandHandler<UnblockProfileCommand, void> {
+export class UnblockProfileHandler implements CommandHandler<PostInteractionDto, void> {
     constructor(private readonly profileInteractionRepository: Repository<ProfileInteraction>) { }
 
     static get default() {
         return new UnblockProfileHandler(appDataSource.getRepository(ProfileInteraction));
     }
 
-    async handle({ sourceProfileId, targetProfileId }: UnblockProfileCommand) {
+    async handle({ sourceProfileId, targetProfileId }: PostInteractionDto) {
         // Find the existing block
         const block = await this.profileInteractionRepository.findOne({
             where: {

@@ -4,13 +4,9 @@ import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 import { ConflictError } from "@/app/errors";
 import { CommandHandler } from "@/app/cqrs";
+import { PostInteractionDto } from "@/app/dtos/post-interaction.dto";
 
-type FollowProfileCommand = {
-    sourceProfileId: string;
-    targetProfileId: string;
-}
-
-export class FollowProfileHandler implements CommandHandler<FollowProfileCommand, void> {
+export class FollowProfileHandler implements CommandHandler<PostInteractionDto, void> {
     constructor(
         private readonly profileInteractionRepository: Repository<ProfileInteraction>,
         private readonly interactionValidator: InteractionValidator
@@ -23,7 +19,7 @@ export class FollowProfileHandler implements CommandHandler<FollowProfileCommand
         );
     }
 
-    async handle({ sourceProfileId, targetProfileId }: FollowProfileCommand) {
+    async handle({ sourceProfileId, targetProfileId }: PostInteractionDto) {
         // Validations
         await this.interactionValidator.assertProfilesAreNotSame(sourceProfileId, targetProfileId);
         await this.interactionValidator.assertProfilesDoesNotBlockEachOther(sourceProfileId, targetProfileId);

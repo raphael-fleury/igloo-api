@@ -4,13 +4,9 @@ import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 import { ConflictError } from "@/app/errors";
 import { CommandHandler } from "@/app/cqrs";
+import { PostInteractionDto } from "@/app/dtos/post-interaction.dto";
 
-type BlockProfileCommand = {
-    sourceProfileId: string
-    targetProfileId: string
-}
-
-export class BlockProfileHandler implements CommandHandler<BlockProfileCommand, void> {
+export class BlockProfileHandler implements CommandHandler<PostInteractionDto, void> {
     constructor(
         private readonly profileInteractionRepository: Repository<ProfileInteraction>,
         private readonly interactionValidator: InteractionValidator
@@ -23,7 +19,7 @@ export class BlockProfileHandler implements CommandHandler<BlockProfileCommand, 
         );
     }
 
-    async handle({ sourceProfileId, targetProfileId }: BlockProfileCommand) {
+    async handle({ sourceProfileId, targetProfileId }: PostInteractionDto) {
         const sourceProfile = await this.interactionValidator.assertProfileExists(sourceProfileId);
         const targetProfile = await this.interactionValidator.assertProfileExists(targetProfileId);
 
