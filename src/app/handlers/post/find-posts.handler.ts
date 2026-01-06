@@ -36,7 +36,7 @@ export class FindPostsHandler implements CommandHandler<PostQueryDto, PostsPageD
             .addSelect(countPostLikes, "likes")
             .addSelect(countPostReposts, "reposts")
 
-            .orderBy("post.createdAt", "DESC")
+            .orderBy("post.id", "DESC")
             .take(limit + 1);
 
         if (query.content) {
