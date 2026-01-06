@@ -74,7 +74,7 @@ describe("FindPostsHandler", () => {
         expect(result.count).toBe(2);
         
         expect(mockRepository.createQueryBuilder).toHaveBeenCalledWith("post");
-        expect(qb.orderBy).toHaveBeenCalledWith("post.createdAt", "DESC");
+        expect(qb.orderBy).toHaveBeenCalledWith("post.id", "DESC");
     });
 
     it("should apply content and profile filters", async () => {

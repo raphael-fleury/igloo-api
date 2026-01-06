@@ -9,17 +9,25 @@ import { idDto } from "@/app/dtos/common.dtos";
 describe("GetFollowersHandler", () => {
     let handler: GetFollowersHandler;
     let mockProfileInteractionRepository: Repository<ProfileInteraction>;
+    let mockQueryBuilder: any;
 
     beforeEach(() => {
+        mockQueryBuilder = {
+            leftJoinAndSelect: mock(() => mockQueryBuilder),
+            where: mock(() => mockQueryBuilder),
+            andWhere: mock(() => mockQueryBuilder),
+            orderBy: mock(() => mockQueryBuilder),
+            take: mock(() => mockQueryBuilder),
+            getMany: mock(() => Promise.resolve([])),
+        };
         mockProfileInteractionRepository = {
-            find: mock(() => Promise.resolve([]))
+            createQueryBuilder: mock(() => mockQueryBuilder)
         } as any;
 
         handler = new GetFollowersHandler(mockProfileInteractionRepository);
     });
 
     it("should return all followers successfully", async () => {
-        // Arrange
         const targetProfileId = zocker(idDto).generate();
         
         const follower1 = zocker(profileDto).generate();
@@ -44,25 +52,15 @@ describe("GetFollowersHandler", () => {
             } as ProfileInteraction
         ];
 
-        mockProfileInteractionRepository.find = mock(() => Promise.resolve(follows));
+        mockQueryBuilder.getMany = mock(() => Promise.resolve([...follows, { id: "follow-id-3" } as any]));
 
-        // Act
-        const result = await handler.handle({ targetProfileId });
+        const result = await handler.handle({ targetProfileId, limit: 2 });
 
-        // Assert
-        expect(result.profiles).toHaveLength(2);
-        expect(result.total).toBe(2);
-        expect(result.profiles[0].id).toEqual(follower1.id);
-        expect(result.profiles[1].id).toEqual(follower2.id);
-        expect(mockProfileInteractionRepository.find).toHaveBeenCalledWith({
-            where: {
-                targetProfile: { id: targetProfileId },
-                interactionType: ProfileInteractionType.Follow
-            },
-            relations: ["sourceProfile"],
-            order: {
-                createdAt: "DESC"
-            }
-        });
+        expect(result.items).toHaveLength(2);
+        expect(result.count).toBe(2);
+        expect(result.items[0].id).toEqual(follower1.id);
+        expect(result.items[1].id).toEqual(follower2.id);
+        expect(result.hasNextPage).toBeTrue();
+        expect(result.nextCursor).toBe("follow-id-2");
     });
 });

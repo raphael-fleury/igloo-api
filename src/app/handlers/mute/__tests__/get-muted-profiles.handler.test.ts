@@ -9,16 +9,24 @@ import { idDto } from "@/app/dtos/common.dtos";
 describe("GetMutedProfilesHandler", () => {
     let handler: GetMutedProfilesHandler;
     let mockProfileInteractionRepository: Repository<ProfileInteraction>;
+    let mockQueryBuilder: any;
 
     beforeEach(() => {
+        mockQueryBuilder = {
+            leftJoinAndSelect: mock(() => mockQueryBuilder),
+            where: mock(() => mockQueryBuilder),
+            andWhere: mock(() => mockQueryBuilder),
+            orderBy: mock(() => mockQueryBuilder),
+            take: mock(() => mockQueryBuilder),
+            getMany: mock(() => Promise.resolve([])),
+        };
         mockProfileInteractionRepository = {
-            find: mock(() => Promise.resolve([]))
+            createQueryBuilder: mock(() => mockQueryBuilder)
         } as any;
         handler = new GetMutedProfilesHandler(mockProfileInteractionRepository);
     });
 
     it("should return muted profiles successfully", async () => {
-        // Arrange
         const sourceProfileId = zocker(idDto).generate();
         const targetProfile = zocker(profileDto).generate();
         const mute = {
@@ -30,25 +38,15 @@ describe("GetMutedProfilesHandler", () => {
             updatedAt: new Date()
         } as ProfileInteraction;
 
-        mockProfileInteractionRepository.find = mock(() => Promise.resolve([mute]));
+        mockQueryBuilder.getMany = mock(() => Promise.resolve([mute, { id: "mute-id-2" } as any]));
 
-        // Act
-        const result = await handler.handle({ sourceProfileId });
+        const result = await handler.handle({ sourceProfileId, limit: 1 });
 
-        // Assert
-        expect(result.total).toBe(1);
-        expect(result.profiles).toHaveLength(1);
-        expect(result.profiles[0].username).toBe(targetProfile.username);
-        expect(result.profiles[0].mutedAt).toEqual(mute.createdAt);
-        expect(mockProfileInteractionRepository.find).toHaveBeenCalledWith({
-            where: {
-                sourceProfile: { id: sourceProfileId },
-                interactionType: ProfileInteractionType.Mute
-            },
-            relations: ["targetProfile"],
-            order: {
-                createdAt: "DESC"
-            }
-        });
+        expect(result.count).toBe(1);
+        expect(result.items).toHaveLength(1);
+        expect(result.items[0].username).toBe(targetProfile.username);
+        expect(result.items[0].mutedAt).toEqual(mute.createdAt);
+        expect(result.hasNextPage).toBeTrue();
+        expect(result.nextCursor).toBe("mute-id-1");
     });
 });

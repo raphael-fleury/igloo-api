@@ -9,17 +9,25 @@ import { idDto } from "@/app/dtos/common.dtos";
 describe("GetBlockedProfilesHandler", () => {
     let handler: GetBlockedProfilesHandler;
     let mockProfileInteractionRepository: Repository<ProfileInteraction>;
+    let mockQueryBuilder: any;
 
     beforeEach(() => {
+        mockQueryBuilder = {
+            leftJoinAndSelect: mock(() => mockQueryBuilder),
+            where: mock(() => mockQueryBuilder),
+            andWhere: mock(() => mockQueryBuilder),
+            orderBy: mock(() => mockQueryBuilder),
+            take: mock(() => mockQueryBuilder),
+            getMany: mock(() => Promise.resolve([])),
+        };
         mockProfileInteractionRepository = {
-            find: mock(() => Promise.resolve([]))
+            createQueryBuilder: mock(() => mockQueryBuilder)
         } as any;
 
         handler = new GetBlockedProfilesHandler(mockProfileInteractionRepository);
     });
 
     it("should return blocked profiles successfully", async () => {
-        // Arrange
         const sourceProfileId = zocker(idDto).generate();
         const mockTargetProfile1 = zocker(profileDto).generate();
         const mockTargetProfile2 = zocker(profileDto).generate();
@@ -39,25 +47,15 @@ describe("GetBlockedProfilesHandler", () => {
             }
         ] as ProfileInteraction[];
 
-        mockProfileInteractionRepository.find = mock(() => Promise.resolve(mockBlocks));
+        mockQueryBuilder.getMany = mock(() => Promise.resolve([...mockBlocks, { id: "block-3" } as any]));
 
-        // Act
-        const result = await handler.handle({ sourceProfileId });
+        const result = await handler.handle({ sourceProfileId, limit: 2 });
 
-        // Assert
-        expect(result.total).toBe(mockBlocks.length);
-        expect(result.profiles).toHaveLength(2);
-        expect(result.profiles[0]).toEqual({ ...mockTargetProfile1, blockedAt: new Date("2023-01-01") });
-        expect(result.profiles[1]).toEqual({ ...mockTargetProfile2, blockedAt: new Date("2023-01-02") });
-        expect(mockProfileInteractionRepository.find).toHaveBeenCalledWith({
-            where: {
-                sourceProfile: { id: sourceProfileId },
-                interactionType: ProfileInteractionType.Block
-            },
-            relations: ["targetProfile"],
-            order: {
-                createdAt: "DESC"
-            }
-        });
+        expect(result.count).toBe(mockBlocks.length);
+        expect(result.items).toHaveLength(2);
+        expect(result.items[0]).toEqual({ ...mockTargetProfile1, blockedAt: new Date("2023-01-01") });
+        expect(result.items[1]).toEqual({ ...mockTargetProfile2, blockedAt: new Date("2023-01-02") });
+        expect(result.hasNextPage).toBeTrue();
+        expect(result.nextCursor).toBe("block-2");
     });
 });

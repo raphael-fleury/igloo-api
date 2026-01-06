@@ -9,17 +9,25 @@ import { idDto } from "@/app/dtos/common.dtos";
 describe("GetFollowingHandler", () => {
     let handler: GetFollowingHandler;
     let mockProfileInteractionRepository: Repository<ProfileInteraction>;
+    let mockQueryBuilder: any;
 
     beforeEach(() => {
+        mockQueryBuilder = {
+            leftJoinAndSelect: mock(() => mockQueryBuilder),
+            where: mock(() => mockQueryBuilder),
+            andWhere: mock(() => mockQueryBuilder),
+            orderBy: mock(() => mockQueryBuilder),
+            take: mock(() => mockQueryBuilder),
+            getMany: mock(() => Promise.resolve([])),
+        };
         mockProfileInteractionRepository = {
-            find: mock(() => Promise.resolve([]))
+            createQueryBuilder: mock(() => mockQueryBuilder)
         } as any;
 
         handler = new GetFollowingHandler(mockProfileInteractionRepository);
     });
 
     it("should return all profiles being followed successfully", async () => {
-        // Arrange
         const sourceProfileId = zocker(idDto).generate();
         
         const followed1 = zocker(profileDto).generate();
@@ -44,25 +52,15 @@ describe("GetFollowingHandler", () => {
             } as ProfileInteraction
         ];
 
-        mockProfileInteractionRepository.find = mock(() => Promise.resolve(follows));
+        mockQueryBuilder.getMany = mock(() => Promise.resolve([...follows, { id: "follow-id-3" } as any]));
 
-        // Act
-        const result = await handler.handle({ sourceProfileId });
+        const result = await handler.handle({ sourceProfileId, limit: 2 });
 
-        // Assert
-        expect(result.profiles).toHaveLength(2);
-        expect(result.total).toBe(2);
-        expect(result.profiles[0].id).toEqual(followed1.id);
-        expect(result.profiles[1].id).toEqual(followed2.id);
-        expect(mockProfileInteractionRepository.find).toHaveBeenCalledWith({
-            where: {
-                sourceProfile: { id: sourceProfileId },
-                interactionType: ProfileInteractionType.Follow
-            },
-            relations: ["targetProfile"],
-            order: {
-                createdAt: "DESC"
-            }
-        });
+        expect(result.items).toHaveLength(2);
+        expect(result.count).toBe(2);
+        expect(result.items[0].id).toEqual(followed1.id);
+        expect(result.items[1].id).toEqual(followed2.id);
+        expect(result.hasNextPage).toBeTrue();
+        expect(result.nextCursor).toBe("follow-id-2");
     });
 });
