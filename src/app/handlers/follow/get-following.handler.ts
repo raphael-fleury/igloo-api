@@ -5,6 +5,9 @@ import { FollowsDto, profileDto } from "@/app/dtos/profile.dtos";
 import { CommandHandler } from "@/app/cqrs";
 import { SourceProfileDto } from "@/app/dtos/post-interaction.dto";
 
+const DEFAULT_LIMIT = 10;
+const MAX_LIMIT = 50;
+
 export class GetFollowingHandler implements CommandHandler<SourceProfileDto, FollowsDto> {
     constructor(private readonly profileInteractionRepository: Repository<ProfileInteraction>) { }
 
@@ -12,24 +15,36 @@ export class GetFollowingHandler implements CommandHandler<SourceProfileDto, Fol
         return new GetFollowingHandler(appDataSource.getRepository(ProfileInteraction));
     }
 
-    async handle({ sourceProfileId }: SourceProfileDto) {
-        const follows = await this.profileInteractionRepository.find({
-            where: {
-                sourceProfile: { id: sourceProfileId },
-                interactionType: ProfileInteractionType.Follow
-            },
-            relations: ["targetProfile"],
-            order: {
-                createdAt: "DESC"
-            }
-        });
+    async handle({ sourceProfileId, cursor, limit }: SourceProfileDto) {
+        const pageLimit = Math.min(MAX_LIMIT, limit ?? DEFAULT_LIMIT);
+
+        const qb = this.profileInteractionRepository
+            .createQueryBuilder("interaction")
+            .leftJoinAndSelect("interaction.targetProfile", "profile")
+            .where("interaction.sourceProfile.id = :sourceProfileId", { sourceProfileId })
+            .andWhere("interaction.interactionType = :type", { type: ProfileInteractionType.Follow })
+            .orderBy("interaction.id", "DESC")
+            .take(pageLimit + 1);
+
+        if (cursor) {
+            qb.andWhere("interaction.id < :cursor", { cursor });
+        }
+
+        const follows = await qb.getMany();
+        const hasNextPage = follows.length > pageLimit;
+
+        if (hasNextPage) {
+            follows.pop();
+        }
 
         return {
-            profiles: follows.map(follow => ({
+            items: follows.map(follow => ({
                 ...profileDto.parse(follow.targetProfile),
                 followedAt: follow.createdAt
             })),
-            total: follows.length
+            count: follows.length,
+            hasNextPage,
+            nextCursor: hasNextPage ? follows[follows.length - 1].id : undefined
         };
     }
 }

@@ -3,6 +3,7 @@ import { updateProfileDto } from "@/app/dtos/profile.dtos";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { requireProfileMiddleware } from "../middlewares/require-profile.middleware";
 import { CommandBus } from "@/app/cqrs/command-bus";
+import { pageQueryDto } from "@/app/dtos/common.dtos";
 
 const getDefaultProps = () => ({
     bus: CommandBus.default
@@ -29,26 +30,30 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         body: updateProfileDto
     })
 
-    .get('/blocks', async ({ profile }) => {
-        return await bus.execute("getBlockedProfiles", { sourceProfileId: profile.id });
+    .get('/blocks', async ({ profile, query }) => {
+        return await bus.execute("getBlockedProfiles", { sourceProfileId: profile.id, ...query });
     }, {
-        detail: { summary: "Get all profiles blocked by current profile" }
+        detail: { summary: "Get all profiles blocked by current profile" },
+        query: pageQueryDto
     })
 
-    .get('/followers', async ({ profile }) => {
-        return await bus.execute("getFollowers", { targetProfileId: profile.id });
+    .get('/followers', async ({ profile, query }) => {
+        return await bus.execute("getFollowers", { targetProfileId: profile.id, ...query });
     }, {
-        detail: { summary: "Get all followers of current profile" }
+        detail: { summary: "Get all followers of current profile" },
+        query: pageQueryDto
     })
 
-    .get('/following', async ({ profile }) => {
-        return await bus.execute("getFollowing", { sourceProfileId: profile.id });
+    .get('/following', async ({ profile, query }) => {
+        return await bus.execute("getFollowing", { sourceProfileId: profile.id, ...query });
     }, {
-        detail: { summary: "Get all profiles that current profile is following" }
+        detail: { summary: "Get all profiles that current profile is following" },
+        query: pageQueryDto
     })
 
-    .get('/mutes', async ({ profile }) => {
-        return await bus.execute("getMutedProfiles", { sourceProfileId: profile.id });
+    .get('/mutes', async ({ profile, query }) => {
+        return await bus.execute("getMutedProfiles", { sourceProfileId: profile.id, ...query });
     }, {
-        detail: { summary: "Get all profiles muted by current profile" }
+        detail: { summary: "Get all profiles muted by current profile" },
+        query: pageQueryDto
     });

@@ -1,5 +1,5 @@
 import z from "zod";
-import { idDto } from "./common.dtos";
+import { idDto, pageDto } from "./common.dtos";
 
 export const USERNAME_MIN_LENGTH = 3;
 export const USERNAME_MAX_LENGTH = 15;
@@ -30,18 +30,26 @@ export const detailedProfileDto = profileDto.extend({
     muted: z.boolean()
 })
 
-export const blockedProfilesDto = z.object({
-    profiles: z.array(profileDto.extend({
+export const blockedProfilesDto = pageDto.extend({
+    items: z.array(profileDto.extend({
         blockedAt: z.date()
-    })),
-    total: z.number().int().nonnegative()
+    }))
 });
 
-export const followsDto = z.object({
-    profiles: z.array(profileDto.extend({
+export const followsDto = pageDto.extend({
+    items: z.array(profileDto.extend({
         followedAt: z.date()
-    })),
-    total: z.number().int().nonnegative()
+    }))
+});
+
+export const mutedProfilesDto = pageDto.extend({
+    items: z.array(profileDto.extend({
+        mutedAt: z.date()
+    }))
+});
+
+export const profilesPageDto = pageDto.extend({
+    items: z.array(profileDto),
 });
 
 export type CreateProfileDto = z.infer<typeof createProfileDto>;
@@ -50,3 +58,5 @@ export type ProfileDto = z.infer<typeof profileDto>;
 export type DetailedProfileDto = z.infer<typeof detailedProfileDto>;
 export type BlockedProfilesDto = z.infer<typeof blockedProfilesDto>;
 export type FollowsDto = z.infer<typeof followsDto>;
+export type MutedProfilesDto = z.infer<typeof mutedProfilesDto>;
+export type ProfilesPageDto = z.infer<typeof profilesPageDto>;

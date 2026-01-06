@@ -12,3 +12,6 @@ export const pageDto = z.object({
     nextCursor: idDto.optional(),
     count: z.int()
 })
+
+export type PageQueryDto = z.infer<typeof pageQueryDto>;
+export type PageDto = z.infer<typeof pageDto>;

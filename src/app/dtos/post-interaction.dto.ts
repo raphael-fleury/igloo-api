@@ -1,11 +1,11 @@
 import z from "zod";
-import { idDto } from "./common.dtos";
+import { idDto, pageQueryDto } from "./common.dtos";
 
-export const sourceProfileDto = z.object({
+export const sourceProfileDto = pageQueryDto.extend({
     sourceProfileId: idDto
 });
 
-export const targetProfileDto = z.object({
+export const targetProfileDto = pageQueryDto.extend({
     targetProfileId: idDto
 });
 

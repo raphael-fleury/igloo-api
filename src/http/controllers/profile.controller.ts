@@ -3,6 +3,7 @@ import Elysia from "elysia";
 import { requireProfileMiddleware } from "../middlewares/require-profile.middleware";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { CommandBus } from "@/app/cqrs/command-bus";
+import { pageQueryDto } from "@/app/dtos/common.dtos";
 
 const profileIdParam = z.object({
     id: z.uuid()
@@ -28,18 +29,20 @@ export const profileController = ({ bus } = getDefaultProps()) =>
 
     .group('/:id', (app) => app
         .use(requireProfileMiddleware)
-        .get('/followers', async ({ params }) => {
-            return await bus.execute("getFollowers", { targetProfileId: params.id });
+        .get('/followers', async ({ params, query }) => {
+            return await bus.execute("getFollowers", { targetProfileId: params.id, ...query });
         }, {
             detail: { summary: "Get followers of a profile" },
-            params: profileIdParam
+            params: profileIdParam,
+            query: pageQueryDto
         })
 
-        .get('/following', async ({ params }) => {
-            return await bus.execute("getFollowing", { sourceProfileId: params.id });
+        .get('/following', async ({ params, query }) => {
+            return await bus.execute("getFollowing", { sourceProfileId: params.id, ...query });
         }, {
             detail: { summary: "Get all profiles followed by this one" },
-            params: profileIdParam
+            params: profileIdParam,
+            query: pageQueryDto
         })
 
         .post('/block', async ({ profile, params, status }) => {
