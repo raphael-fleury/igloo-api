@@ -57,7 +57,7 @@ async function createPosts(users: UserWithProfile[]) {
         if (Math.random() < 0.5) {
             dto.quotedPostId = getRandom(posts)?.id || null;
         }
-        const created = await CreatePostHandler.default.handle(dto, user, user.profile);
+        const created = await CreatePostHandler.default.handle({ data: dto, user, profile: user.profile });
         posts.push(created);
     }
 
@@ -70,7 +70,7 @@ async function createPostInteractions(posts: PostDto[], users: UserWithProfile[]
         for (const post of posts) {
             for (const user of users) {
                 if (Math.random() < 0.5) continue;
-                await handler.default.handle(post.id, user, user.profile);
+                await handler.default.handle({ postId: post.id, user, profile: user.profile });
             }
         }
     }
@@ -84,7 +84,10 @@ async function createProfileRelationships(users: UserWithProfile[]) {
             for (const targetUser of users) {
                 if (sourceUser.id === targetUser.id) continue;
                 if (Math.random() < 0.5) continue;
-                await handler.default.handle(sourceUser.profile.id, targetUser.profile.id);
+                await handler.default.handle({
+                    sourceProfileId: sourceUser.profile.id,
+                    targetProfileId: targetUser.profile.id
+                });
             }
         }
     }
