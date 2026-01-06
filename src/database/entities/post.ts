@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn, Index } from "typeorm";
 import { Profile } from "./profile";
 import { User } from "./user";
 
@@ -22,6 +22,7 @@ export class Post {
         nullable: true,
     })
     @JoinColumn({ name: "replied_post_id" })
+    @Index("idx_posts_replied_post_id")
     repliedPost?: Post;
 
     @OneToMany(() => Post, post => post.repliedPost)
@@ -31,12 +32,14 @@ export class Post {
         nullable: true,
     })
     @JoinColumn({ name: "quoted_post_id" })
+    @Index("idx_posts_quoted_post_id")
     quotedPost?: Post;
 
     @OneToMany(() => Post, post => post.quotedPost)
     quotes!: Post[];
 
     @CreateDateColumn()
+    @Index("idx_posts_created_at")
     createdAt!: Date;
 
     @UpdateDateColumn()

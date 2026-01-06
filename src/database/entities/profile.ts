@@ -3,12 +3,12 @@ import { DISPLAYNAME_MAX_LENGTH, USERNAME_MAX_LENGTH } from "@/app/dtos/profile.
 import { UserProfile } from "./user-profile";
 
 @Entity("profiles")
-@Index(["username"], { unique: true })
 export class Profile {
     @PrimaryGeneratedColumn("uuid")
     id!: string;
 
     @Column({ type: "varchar", length: USERNAME_MAX_LENGTH, unique: true })
+    @Index("uq_profiles_username", { unique: true })
     username!: string;
 
     @Column({ type: "varchar", length: DISPLAYNAME_MAX_LENGTH })

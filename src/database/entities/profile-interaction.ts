@@ -8,7 +8,9 @@ export enum ProfileInteractionType {
 }
 
 @Entity("profile_interactions")
-@Index(["sourceProfile", "targetProfile", "interactionType"], { unique: true })
+@Index("uq_profile_interactions_source_target_type",   ["sourceProfile", "targetProfile", "interactionType"], { unique: true })
+@Index("idx_profile_interactions_source_type_created", ["sourceProfile", "interactionType", "createdAt"])
+@Index("idx_profile_interactions_target_type_created", ["targetProfile", "interactionType", "createdAt"])
 export class ProfileInteraction {
     @PrimaryGeneratedColumn("uuid")
     id!: string;

@@ -9,7 +9,11 @@ export enum InteractionType {
 }
 
 @Entity("post_interactions")
-@Index(["profile", "post", "interactionType"], { unique: true })
+@Index("uq_post_interactions_profile_post_type",
+    ["profile", "post", "interactionType"],
+    { unique: true }
+)
+@Index("idx_post_interactions_post_type", ["post", "interactionType"])
 export class PostInteraction {
     @PrimaryGeneratedColumn("uuid")
     id!: string;

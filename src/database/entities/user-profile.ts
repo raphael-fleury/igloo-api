@@ -3,7 +3,7 @@ import { User } from "./user";
 import { Profile } from "./profile";
 
 @Entity("user_profiles")
-@Index(["user", "profile"], { unique: true })
+@Index("uq_user_profiles_user_profile", ["user", "profile"], { unique: true })
 export class UserProfile {
     @PrimaryGeneratedColumn("uuid")
     id!: string;
