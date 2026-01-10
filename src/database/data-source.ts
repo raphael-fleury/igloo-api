@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { env } from "../env";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
+import "./extensions/query-builder.extension";
 
 export const appDataSource = new DataSource({
     type: "postgres",

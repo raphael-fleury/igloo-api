@@ -4,6 +4,7 @@ import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/
 import { BlockedProfilesDto, profileDto } from "@/app/dtos/profile.dtos";
 import { CommandHandler } from "@/app/cqrs";
 import { SourceProfileDto } from "@/app/dtos/post-interaction.dto";
+import { getProfileInteractionsBySource } from "@/database/queries/profile-interaction.queries";
 
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 50;
@@ -20,15 +21,12 @@ export class GetBlockedProfilesHandler implements CommandHandler<SourceProfileDt
 
         const qb = this.profileInteractionRepository
             .createQueryBuilder("interaction")
-            .leftJoinAndSelect("interaction.targetProfile", "profile")
-            .where("interaction.sourceProfile.id = :sourceProfileId", { sourceProfileId })
-            .andWhere("interaction.interactionType = :type", { type: ProfileInteractionType.Block })
-            .orderBy("interaction.id", "DESC")
+            .apply(getProfileInteractionsBySource(
+                sourceProfileId,
+                ProfileInteractionType.Block,
+                cursor
+            ))
             .take(pageLimit + 1);
-
-        if (cursor) {
-            qb.andWhere("interaction.id < :cursor", { cursor });
-        }
 
         const blocks = await qb.getMany();
         const hasNextPage = blocks.length > pageLimit;
