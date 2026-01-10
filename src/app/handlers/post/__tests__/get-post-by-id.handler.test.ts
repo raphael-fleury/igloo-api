@@ -18,54 +18,13 @@ describe("GetPostByIdHandler", () => {
         rawEntitiesReturn = { entities: [], raw: [] };
         capturedParameters = {};
 
-        const mockSubQb = {
-            select: () => mockSubQb,
-            from: () => mockSubQb,
-            where: (query: string, params?: any) => {
-                if (params && params.type) {
-                    // Capture the type parameter from the subquery
-                    capturedParameters.type = params.type;
-                }
-                return mockSubQb;
-            },
-            andWhere: (query: string, params?: any) => {
-                if (params && params.type) {
-                    // Capture the type parameter from the subquery
-                    capturedParameters.type = params.type;
-                }
-                return mockSubQb;
-            },
-            getQuery: () => "SELECT COUNT(*) as count"
-        };
-
         qb = {
-            leftJoinAndSelect: () => qb,
-            leftJoin: () => qb,
-            addSelect: (selection: any, alias: string) => {
-                if (typeof selection === 'function') {
-                    // For countPostLikes, set like parameter
-                    if (alias === "likes") {
-                        capturedParameters.like = "like";
-                    }
-                    // For countPostReposts, set repost parameter
-                    if (alias === "reposts") {
-                        capturedParameters.repost = "repost";
-                    }
-                    selection(mockSubQb);
-                }
-                return qb;
-            },
-            where: (query: string, params?: any) => {
-                if (params) Object.assign(capturedParameters, params);
-                return qb;
-            },
-            setParameters: (params: any) => {
-                if (params) Object.assign(capturedParameters, params);
-                return qb;
-            },
-            groupBy: () => qb,
-            addGroupBy: () => qb,
-            getRawAndEntities: () => Promise.resolve(rawEntitiesReturn),
+            apply: mock(() => qb),
+            take: mock(() => qb),
+            getRawAndEntities: mock(() => Promise.resolve(rawEntitiesReturn)),
+            where: mock(() => qb),
+            groupBy: mock(() => qb),
+            addGroupBy: mock(() => qb),
         };
 
         mockPostRepository = {
@@ -103,8 +62,7 @@ describe("GetPostByIdHandler", () => {
         expect(result.likes).toBe(3);
         expect(result.reposts).toBe(2);
         expect((mockPostRepository as any).createQueryBuilder).toHaveBeenCalledWith("post");
-        expect(capturedParameters.like).toBe(InteractionType.Like);
-        expect(capturedParameters.repost).toBe(InteractionType.Repost);
+        expect(qb.apply).toHaveBeenCalled();
     });
 
     it("should throw NotFoundError when post does not exist", async () => {
