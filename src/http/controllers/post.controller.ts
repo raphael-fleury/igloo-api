@@ -23,7 +23,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
     .get('/', async ({ query }) => {
         return await bus.execute("findPosts", query);
     }, {
-        detail: { summary: "Find posts" },
+        detail: { summary: "Find posts 🌍" },
         query: postQueryDto,
         response: {
             200: postsPageDto
@@ -87,7 +87,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                 }
             })
 
-            .post('/like', async ({ user, profile, params, status }) => {
+            .post('/likes', async ({ user, profile, params, status }) => {
                 await bus.execute("likePost", { postId: params.id, user, profile });
                 return status("No Content");
             }, {
@@ -95,7 +95,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                 params: postIdParam
             })
 
-            .delete('/like', async ({ profile, params }) => {
+            .delete('/likes', async ({ profile, params }) => {
                 await bus.execute("unlikePost", { profileId: profile.id, postId: params.id });
                 return status("No Content");
             }, {
@@ -103,7 +103,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                 params: postIdParam
             })
 
-            .post('/repost', async ({ user, profile, params, status }) => {
+            .post('/reposts', async ({ user, profile, params, status }) => {
                 await bus.execute("repostPost", { postId: params.id, user, profile });
                 return status("No Content");
             }, {
@@ -111,7 +111,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                 params: postIdParam
             })
 
-            .delete('/repost', async ({ profile, params, status }) => {
+            .delete('/reposts', async ({ profile, params, status }) => {
                 await bus.execute("unrepostPost", { profileId: profile.id, postId: params.id });
                 return status("No Content");
             }, {
