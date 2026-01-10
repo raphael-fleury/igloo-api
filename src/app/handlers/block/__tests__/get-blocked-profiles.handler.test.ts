@@ -17,6 +17,7 @@ describe("GetBlockedProfilesHandler", () => {
             where: mock(() => mockQueryBuilder),
             andWhere: mock(() => mockQueryBuilder),
             orderBy: mock(() => mockQueryBuilder),
+            apply: mock((fn: any) => { fn(mockQueryBuilder); return mockQueryBuilder; }),
             take: mock(() => mockQueryBuilder),
             getMany: mock(() => Promise.resolve([])),
         };
