@@ -1,6 +1,7 @@
 import z from "zod";
 import Elysia, { status } from "elysia";
 import { createPostDto, postDetailedDto, postDto, postQueryDto, postsPageDto } from "@/app/dtos/post.dtos";
+import { likesDto } from "@/app/dtos/profile.dtos";
 import { pageQueryDto } from "@/app/dtos/common.dtos";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { requireProfileMiddleware } from "../middlewares/require-profile.middleware";
@@ -102,6 +103,21 @@ export const postController = ({ bus } = getDefaultProps()) =>
                 }, {
                     detail: { summary: "Unlike a post" },
                     params: postIdParam
+                })
+
+                .get('/likes', async ({ params, query }) => {
+                    return await bus.execute("getPostLikes", {
+                        postId: params.id,
+                        cursor: query.cursor,
+                        limit: query.limit
+                    });
+                }, {
+                    detail: { summary: "Get likes of a post" },
+                    params: postIdParam,
+                    query: pageQueryDto,
+                    response: {
+                        200: likesDto
+                    }
                 })
 
                 .post('/reposts', async ({ user, profile, params, status }) => {

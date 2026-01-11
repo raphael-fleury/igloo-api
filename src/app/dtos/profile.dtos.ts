@@ -48,6 +48,12 @@ export const mutedProfilesDto = pageDto.extend({
     }))
 });
 
+export const likesDto = pageDto.extend({
+    items: z.array(profileDto.extend({
+        likedAt: z.date()
+    }))
+});
+
 export const profilesPageDto = pageDto.extend({
     items: z.array(profileDto),
 });
@@ -59,4 +65,5 @@ export type DetailedProfileDto = z.infer<typeof detailedProfileDto>;
 export type BlockedProfilesDto = z.infer<typeof blockedProfilesDto>;
 export type FollowsDto = z.infer<typeof followsDto>;
 export type MutedProfilesDto = z.infer<typeof mutedProfilesDto>;
+export type LikesDto = z.infer<typeof likesDto>;
 export type ProfilesPageDto = z.infer<typeof profilesPageDto>;

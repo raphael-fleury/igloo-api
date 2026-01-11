@@ -7,6 +7,7 @@ import { GetFollowersHandler } from "../handlers/follow/get-followers.handler";
 import { GetFollowingHandler } from "../handlers/follow/get-following.handler";
 import { UnfollowProfileHandler } from "../handlers/follow/unfollow-profile.handler";
 import { LikePostHandler } from "../handlers/like/like-post.handler";
+import { GetPostLikesHandler } from "../handlers/like/get-post-likes.handler";
 import { UnlikePostHandler } from "../handlers/like/unlike-post.handler";
 import { GetMutedProfilesHandler } from "../handlers/mute/get-muted-profiles.handler";
 import { MuteProfileHandler } from "../handlers/mute/mute-profile.handler";
@@ -44,6 +45,7 @@ export const getCommandHandlers = () => ({
     getPostQuotes: GetPostQuotesHandler.default,
     createPost: CreatePostHandler.default,
     deletePost: DeletePostHandler.default,
+    getPostLikes: GetPostLikesHandler.default,
     likePost: LikePostHandler.default,
     unlikePost: UnlikePostHandler.default,
     repostPost: RepostPostHandler.default,
