@@ -1,6 +1,7 @@
 import z from "zod";
 import Elysia, { status } from "elysia";
 import { createPostDto, postDetailedDto, postDto, postQueryDto, postsPageDto } from "@/app/dtos/post.dtos";
+import { pageQueryDto } from "@/app/dtos/common.dtos";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { requireProfileMiddleware } from "../middlewares/require-profile.middleware";
 import { CommandBus } from "@/app/cqrs/command-bus";
@@ -15,108 +16,138 @@ const getDefaultProps = () => ({
 
 export const postController = ({ bus } = getDefaultProps()) =>
     new Elysia({ prefix: "/posts" })
-    .use(onErrorMiddleware)
-    .guard({
-        detail: { tags: ['Posts'] }
-    })
+        .use(onErrorMiddleware)
+        .guard({
+            detail: { tags: ['Posts'] }
+        })
 
-    .get('/', async ({ query }) => {
-        return await bus.execute("findPosts", query);
-    }, {
-        detail: { summary: "Find posts 🌍" },
-        query: postQueryDto,
-        response: {
-            200: postsPageDto
-        }
-    })
-
-    .get('/:id', async ({ params }) => {
-        return await bus.execute("getPostById", params.id);
-    }, {
-        detail: {
-            summary: "Get post by ID 🌍",
-            security: []
-        },
-        params: postIdParam,
-        response: {
-            200: postDetailedDto,
-            404: z.object({
-                message: z.string()
-            })
-        }
-    })
-
-    .group('', (app) => app
-        .use(requireProfileMiddleware)
-        .post('/', async ({ body, user, profile }) => {
-            const post = await bus.execute("createPost", {
-                data: body, user, profile
-            });
-            return status(201, post);
+        .get('/', async ({ query }) => {
+            return await bus.execute("findPosts", query);
         }, {
-            detail: { summary: "Create a new post" },
-            body: createPostDto,
+            detail: { summary: "Find posts 🌍" },
+            query: postQueryDto,
             response: {
-                201: postDto,
+                200: postsPageDto
+            }
+        })
+
+        .get('/:id', async ({ params }) => {
+            return await bus.execute("getPostById", params.id);
+        }, {
+            detail: {
+                summary: "Get post by ID 🌍",
+                security: []
+            },
+            params: postIdParam,
+            response: {
+                200: postDetailedDto,
                 404: z.object({
                     message: z.string()
                 })
             }
         })
 
-        .group('/:id', (app) => app
-            .delete('/', async ({ profile, params }) => {
-                return await bus.execute("deletePost", {
-                    id: params.id,
-                    profileId: profile.id
+        .group('', (app) => app
+            .use(requireProfileMiddleware)
+            .post('/', async ({ body, user, profile }) => {
+                const post = await bus.execute("createPost", {
+                    data: body, user, profile
                 });
+                return status(201, post);
             }, {
-                detail: { summary: "Delete post by ID" },
-                params: postIdParam,
+                detail: { summary: "Create a new post" },
+                body: createPostDto,
                 response: {
-                    200: z.object({
-                        message: z.string(),
-                        deletedAt: z.date()
-                    }),
+                    201: postDto,
                     404: z.object({
-                        message: z.string()
-                    }),
-                    403: z.object({
                         message: z.string()
                     })
                 }
             })
 
-            .post('/likes', async ({ user, profile, params, status }) => {
-                await bus.execute("likePost", { postId: params.id, user, profile });
-                return status("No Content");
-            }, {
-                detail: { summary: "Like a post" },
-                params: postIdParam
-            })
+            .group('/:id', (app) => app
+                .delete('/', async ({ profile, params }) => {
+                    return await bus.execute("deletePost", {
+                        id: params.id,
+                        profileId: profile.id
+                    });
+                }, {
+                    detail: { summary: "Delete post by ID" },
+                    params: postIdParam,
+                    response: {
+                        200: z.object({
+                            message: z.string(),
+                            deletedAt: z.date()
+                        }),
+                        404: z.object({
+                            message: z.string()
+                        }),
+                        403: z.object({
+                            message: z.string()
+                        })
+                    }
+                })
 
-            .delete('/likes', async ({ profile, params }) => {
-                await bus.execute("unlikePost", { profileId: profile.id, postId: params.id });
-                return status("No Content");
-            }, {
-                detail: { summary: "Unlike a post" },
-                params: postIdParam
-            })
+                .post('/likes', async ({ user, profile, params, status }) => {
+                    await bus.execute("likePost", { postId: params.id, user, profile });
+                    return status("No Content");
+                }, {
+                    detail: { summary: "Like a post" },
+                    params: postIdParam
+                })
 
-            .post('/reposts', async ({ user, profile, params, status }) => {
-                await bus.execute("repostPost", { postId: params.id, user, profile });
-                return status("No Content");
-            }, {
-                detail: { summary: "Repost a post" },
-                params: postIdParam
-            })
+                .delete('/likes', async ({ profile, params }) => {
+                    await bus.execute("unlikePost", { profileId: profile.id, postId: params.id });
+                    return status("No Content");
+                }, {
+                    detail: { summary: "Unlike a post" },
+                    params: postIdParam
+                })
 
-            .delete('/reposts', async ({ profile, params, status }) => {
-                await bus.execute("unrepostPost", { profileId: profile.id, postId: params.id });
-                return status("No Content");
-            }, {
-                detail: { summary: "Unrepost a post" },
-                params: postIdParam
-            })
-        )
-    );
+                .post('/reposts', async ({ user, profile, params, status }) => {
+                    await bus.execute("repostPost", { postId: params.id, user, profile });
+                    return status("No Content");
+                }, {
+                    detail: { summary: "Repost a post" },
+                    params: postIdParam
+                })
+
+                .delete('/reposts', async ({ profile, params, status }) => {
+                    await bus.execute("unrepostPost", { profileId: profile.id, postId: params.id });
+                    return status("No Content");
+                }, {
+                    detail: { summary: "Unrepost a post" },
+                    params: postIdParam
+                })
+
+                .get('/replies', async ({ params, query }) => {
+                    return await bus.execute("getPostReplies", {
+                        postId: params.id,
+                        cursor: query.cursor,
+                        limit: query.limit
+                    });
+                }, {
+                    detail: { summary: "Get replies of a post" },
+                    params: postIdParam,
+                    query: pageQueryDto,
+                    response: {
+                        200: postsPageDto
+                    }
+                })
+
+                .get('/quotes', async ({ params, query }) => {
+                    return await bus.execute("getPostQuotes", {
+                        postId: params.id,
+                        cursor: query.cursor,
+                        limit: query.limit
+                    });
+                }, {
+                    detail: { summary: "Get quotes of a post" },
+                    params: postIdParam,
+                    query: pageQueryDto,
+                    response: {
+                        200: postsPageDto
+                    }
+                })
+            )
+        );

@@ -5,7 +5,6 @@ import { zocker } from "zocker";
 import { idDto } from "@/app/dtos/common.dtos";
 import { NotFoundError } from "@/app/errors";
 import { Post } from "@/database/entities/post";
-import { InteractionType } from "@/database/entities/post-interaction";
 
 describe("GetPostByIdHandler", () => {
     let handler: GetPostByIdHandler;
@@ -16,7 +15,6 @@ describe("GetPostByIdHandler", () => {
 
     beforeEach(() => {
         rawEntitiesReturn = { entities: [], raw: [] };
-        capturedParameters = {};
 
         qb = {
             apply: mock(() => qb),

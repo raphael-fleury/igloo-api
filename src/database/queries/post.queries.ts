@@ -1,5 +1,6 @@
 import { QueryBuilder, SelectQueryBuilder } from "typeorm";
 import { PostQueryDto } from "@/app/dtos/post.dtos";
+import { PageQueryDto } from "@/app/dtos/common.dtos";
 import { Post } from "../entities/post";
 import { PostInteraction, InteractionType } from "../entities/post-interaction";
 
@@ -96,6 +97,59 @@ export function findPosts(query: PostQueryDto) {
 
         return queryBuilder;
     }
+}
+
+export function findPostReplies(postId: string, cursor?: string) {
+    return (qb: SelectQueryBuilder<Post>) => {
+        const queryBuilder = qb
+            .leftJoinAndSelect("post.profile", "profile")
+
+            // Quoted post + profile
+            .leftJoinAndSelect("post.quotedPost", "quotedPost")
+            .leftJoinAndSelect("quotedPost.profile", "quotedProfile")
+
+            // Replies & Quotes count
+            .addSelect(countPostReplies, "replies")
+            .addSelect(countPostQuotes, "quotes")
+            .addSelect(countPostLikes, "likes")
+            .addSelect(countPostReposts, "reposts")
+
+            .where("post.replied_post_id = :postId", { postId })
+
+            .orderBy("post.id", "DESC");
+
+        if (cursor) {
+            qb.andWhere("post.id < :cursor", { cursor });
+        }
+
+        return queryBuilder;
+    }
+}
+
+export function findPostQuotes(postId: string, query: PageQueryDto) {
+    return (qb: SelectQueryBuilder<Post>) => {
+        const queryBuilder = qb
+            .leftJoinAndSelect("post.profile", "profile")
+
+            // Replied post + profile
+            .leftJoinAndSelect("post.repliedPost", "repliedPost")
+            .leftJoinAndSelect("repliedPost.profile", "repliedProfile")
+
+            // Replies & Quotes count
+            .addSelect(countPostReplies, "replies")
+            .addSelect(countPostQuotes, "quotes")
+            .addSelect(countPostLikes, "likes")
+            .addSelect(countPostReposts, "reposts")
+
+            .where("post.quoted_post_id = :postId", { postId })
+            .orderBy("post.id", "DESC");
+
+        if (query.cursor) {
+            queryBuilder.andWhere("post.id < :cursor", { cursor: query.cursor });
+        }
+
+        return queryBuilder;
+    };
 }
 
 export function getPostById(id: string) {

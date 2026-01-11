@@ -15,6 +15,8 @@ import { CreatePostHandler } from "../handlers/post/create-post.handler";
 import { DeletePostHandler } from "../handlers/post/delete-post.handler";
 import { FindPostsHandler } from "../handlers/post/find-posts.handler";
 import { GetPostByIdHandler } from "../handlers/post/get-post-by-id.handler";
+import { GetPostRepliesHandler } from "../handlers/post/get-post-replies.handler";
+import { GetPostQuotesHandler } from "../handlers/post/get-post-quotes.handler";
 import { GetProfileByIdHandler } from "../handlers/profile/get-profile-by-id.handler";
 import { UpdateProfileHandler } from "../handlers/profile/update-profile.handler";
 import { RepostPostHandler } from "../handlers/repost/repost-post.handler";
@@ -38,6 +40,8 @@ export const getCommandHandlers = () => ({
     // Post
     findPosts: FindPostsHandler.default,
     getPostById: GetPostByIdHandler.default,
+    getPostReplies: GetPostRepliesHandler.default,
+    getPostQuotes: GetPostQuotesHandler.default,
     createPost: CreatePostHandler.default,
     deletePost: DeletePostHandler.default,
     likePost: LikePostHandler.default,
