@@ -54,6 +54,12 @@ export const likesDto = pageDto.extend({
     }))
 });
 
+export const repostsDto = pageDto.extend({
+    items: z.array(profileDto.extend({
+        repostedAt: z.date()
+    }))
+});
+
 export const profilesPageDto = pageDto.extend({
     items: z.array(profileDto),
 });
@@ -66,4 +72,5 @@ export type BlockedProfilesDto = z.infer<typeof blockedProfilesDto>;
 export type FollowsDto = z.infer<typeof followsDto>;
 export type MutedProfilesDto = z.infer<typeof mutedProfilesDto>;
 export type LikesDto = z.infer<typeof likesDto>;
+export type RepostsDto = z.infer<typeof repostsDto>;
 export type ProfilesPageDto = z.infer<typeof profilesPageDto>;

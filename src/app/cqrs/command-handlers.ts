@@ -20,6 +20,7 @@ import { GetPostRepliesHandler } from "../handlers/post/get-post-replies.handler
 import { GetPostQuotesHandler } from "../handlers/post/get-post-quotes.handler";
 import { GetProfileByIdHandler } from "../handlers/profile/get-profile-by-id.handler";
 import { UpdateProfileHandler } from "../handlers/profile/update-profile.handler";
+import { GetPostRepostsHandler } from "../handlers/repost/get-post-reposts.handler";
 import { RepostPostHandler } from "../handlers/repost/repost-post.handler";
 import { UnrepostPostHandler } from "../handlers/repost/unrepost-post.handler";
 import { CreateUserHandler } from "../handlers/user/create-user.handler";
@@ -43,11 +44,15 @@ export const getCommandHandlers = () => ({
     getPostById: GetPostByIdHandler.default,
     getPostReplies: GetPostRepliesHandler.default,
     getPostQuotes: GetPostQuotesHandler.default,
+    
     createPost: CreatePostHandler.default,
     deletePost: DeletePostHandler.default,
+
     getPostLikes: GetPostLikesHandler.default,
     likePost: LikePostHandler.default,
     unlikePost: UnlikePostHandler.default,
+
+    getPostReposts: GetPostRepostsHandler.default,
     repostPost: RepostPostHandler.default,
     unrepostPost: UnrepostPostHandler.default,
 

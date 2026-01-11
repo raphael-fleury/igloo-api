@@ -1,7 +1,7 @@
 import z from "zod";
 import Elysia, { status } from "elysia";
 import { createPostDto, postDetailedDto, postDto, postQueryDto, postsPageDto } from "@/app/dtos/post.dtos";
-import { likesDto } from "@/app/dtos/profile.dtos";
+import { likesDto, repostsDto } from "@/app/dtos/profile.dtos";
 import { pageQueryDto } from "@/app/dtos/common.dtos";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { requireProfileMiddleware } from "../middlewares/require-profile.middleware";
@@ -134,6 +134,21 @@ export const postController = ({ bus } = getDefaultProps()) =>
                 }, {
                     detail: { summary: "Unrepost a post" },
                     params: postIdParam
+                })
+
+                .get('/reposts', async ({ params, query }) => {
+                    return await bus.execute("getPostReposts", {
+                        postId: params.id,
+                        cursor: query.cursor,
+                        limit: query.limit
+                    });
+                }, {
+                    detail: { summary: "Get reposts of a post" },
+                    params: postIdParam,
+                    query: pageQueryDto,
+                    response: {
+                        200: repostsDto
+                    }
                 })
 
                 .get('/replies', async ({ params, query }) => {
