@@ -32,14 +32,14 @@ export class PostInteraction {
 
     @Column({
         type: "enum",
-        enum: InteractionType,
+        enum: InteractionType
     })
     interactionType!: InteractionType;
 
     @CreateDateColumn()
     createdAt!: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({ select: false })
     updatedAt!: Date;
 }
 

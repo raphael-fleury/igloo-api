@@ -42,6 +42,6 @@ export class Post {
     @Index("idx_posts_created_at")
     createdAt!: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({ select: false })
     updatedAt!: Date;
 }

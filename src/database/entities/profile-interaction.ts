@@ -32,7 +32,7 @@ export class ProfileInteraction {
     @CreateDateColumn()
     createdAt!: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({ select: false })
     updatedAt!: Date;
 }
 

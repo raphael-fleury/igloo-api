@@ -11,7 +11,6 @@ const basePostDto = z.object({
 const createdPostDto = basePostDto.extend({
     id: idDto,
     createdAt: z.date(),
-    updatedAt: z.date()
 });
 
 export const postDto = createdPostDto.extend({
