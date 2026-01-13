@@ -1,5 +1,5 @@
 import z from "zod";
-import { idDto } from "./common.dtos";
+import { dateDto, idDto } from "./common.dtos";
 import { createProfileDto } from "./profile.dtos";
 
 const baseUserDto = z.object({
@@ -10,8 +10,7 @@ const baseUserDto = z.object({
 export const userDto = baseUserDto.extend({
     id: idDto,
     isActive: z.boolean(),
-    createdAt: z.date(),
-    updatedAt: z.date()
+    createdAt: dateDto
 });
 
 export const createUserDto = baseUserDto.extend({

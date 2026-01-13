@@ -1,5 +1,5 @@
 import z from "zod";
-import { idDto, pageDto } from "./common.dtos";
+import { dateDto, idDto, pageDto } from "./common.dtos";
 
 export const USERNAME_MIN_LENGTH = 3;
 export const USERNAME_MAX_LENGTH = 15;
@@ -18,8 +18,8 @@ export const updateProfileDto = createProfileDto.partial();
 
 export const profileDto = createProfileDto.extend({
     id: idDto,
-    createdAt: z.date(),
-    updatedAt: z.date(),
+    createdAt: dateDto,
+    updatedAt: dateDto,
 });
 
 export const detailedProfileDto = profileDto.extend({
@@ -32,31 +32,31 @@ export const detailedProfileDto = profileDto.extend({
 
 export const blockedProfilesDto = pageDto.extend({
     items: z.array(profileDto.extend({
-        blockedAt: z.date()
+        blockedAt: dateDto
     }))
 });
 
 export const followsDto = pageDto.extend({
     items: z.array(profileDto.extend({
-        followedAt: z.date()
+        followedAt: dateDto
     }))
 });
 
 export const mutedProfilesDto = pageDto.extend({
     items: z.array(profileDto.extend({
-        mutedAt: z.date()
+        mutedAt: dateDto
     }))
 });
 
 export const likesDto = pageDto.extend({
     items: z.array(profileDto.extend({
-        likedAt: z.date()
+        likedAt: dateDto
     }))
 });
 
 export const repostsDto = pageDto.extend({
     items: z.array(profileDto.extend({
-        repostedAt: z.date()
+        repostedAt: dateDto
     }))
 });
 

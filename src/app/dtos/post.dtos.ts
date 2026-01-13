@@ -1,5 +1,5 @@
 import z from "zod";
-import { idDto, pageDto, pageQueryDto } from "./common.dtos";
+import { dateDto, idDto, pageDto, pageQueryDto } from "./common.dtos";
 import { profileDto } from "./profile.dtos";
 
 const MAX_POST_CONTENT_LENGTH = 300;
@@ -10,7 +10,7 @@ const basePostDto = z.object({
 
 const createdPostDto = basePostDto.extend({
     id: idDto,
-    createdAt: z.date(),
+    createdAt: dateDto,
 });
 
 export const postDto = createdPostDto.extend({
@@ -37,8 +37,8 @@ export const createPostDto = basePostDto.extend({
 export const postQueryDto = z.object({
     content: z.string().max(MAX_POST_CONTENT_LENGTH),
     from: z.string(),
-    since: z.coerce.date(),
-    until: z.coerce.date(),
+    since: dateDto,
+    until: dateDto,
     repliedPostId: idDto,
     quotedPostId: idDto,
     repliedProfileUsername: z.string(),

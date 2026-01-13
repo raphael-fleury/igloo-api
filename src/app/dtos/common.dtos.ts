@@ -1,6 +1,7 @@
 import z from "zod";
 
 export const idDto = z.uuid();
+export const dateDto = z.coerce.date();
 
 export const pageQueryDto = z.object({
     cursor: idDto.optional(),

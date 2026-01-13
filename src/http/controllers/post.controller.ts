@@ -2,7 +2,7 @@ import z from "zod";
 import Elysia, { status } from "elysia";
 import { createPostDto, postDetailedDto, postDto, postQueryDto, postsPageDto } from "@/app/dtos/post.dtos";
 import { likesDto, repostsDto } from "@/app/dtos/profile.dtos";
-import { pageQueryDto } from "@/app/dtos/common.dtos";
+import { dateDto, pageQueryDto } from "@/app/dtos/common.dtos";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { requireProfileMiddleware } from "../middlewares/require-profile.middleware";
 import { CommandBus } from "@/app/cqrs/command-bus";
@@ -78,7 +78,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     response: {
                         200: z.object({
                             message: z.string(),
-                            deletedAt: z.date()
+                            deletedAt: dateDto
                         }),
                         404: z.object({
                             message: z.string()
