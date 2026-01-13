@@ -7,6 +7,7 @@ import { profileController } from "@/http/controllers/profile.controller";
 import { postController } from "@/http/controllers/post.controller";
 import { currentUserController } from "./http/controllers/current-user.controller";
 import { currentProfileController } from "./http/controllers/current-profile.controller";
+import { feedController } from "./http/controllers/feed.controller";
 
 try {
     await appDataSource.initialize();
@@ -38,6 +39,7 @@ const app = new Elysia()
     .use(currentProfileController())
     .use(profileController())
     .use(postController())
+    .use(feedController())
     .listen(3000);
 
 console.log(
