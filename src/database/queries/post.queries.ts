@@ -212,3 +212,26 @@ export function findFollowingFeed(profileId: string, query: PageQueryDto) {
         return queryBuilder;
     }
 }
+
+export function findTrendingFeed(query: PageQueryDto) {
+    return (qb: SelectQueryBuilder<Post>) => {
+        const queryBuilder = qb
+            .leftJoinAndSelect("post.profile", "profile")
+            .leftJoinAndSelect("post.repliedPost", "repliedPost")
+            .leftJoinAndSelect("repliedPost.profile", "repliedProfile")
+            .leftJoinAndSelect("post.quotedPost", "quotedPost")
+            .leftJoinAndSelect("quotedPost.profile", "quotedProfile")
+            .addSelect(countPostReplies, "replies")
+            .addSelect(countPostQuotes, "quotes")
+            .addSelect(countPostLikes, "likes")
+            .addSelect(countPostReposts, "reposts")
+            .orderBy("likes + reposts + quotes + replies", "DESC")
+            .addOrderBy("post.id", "DESC");
+
+        if (query.cursor) {
+            queryBuilder.andWhere("post.id < :cursor", { cursor: query.cursor });
+        }
+
+        return queryBuilder;
+    }
+}

@@ -29,5 +29,16 @@ export const feedController = ({ bus } = getDefaultProps()) =>
             response: {
                 200: postsPageDto
             }
+        })
+        .get('/trending', async ({ query }) => {
+            return await bus.execute("getTrendingFeed", {
+                cursor: query.cursor,
+                limit: query.limit
+            });
+        }, {
+            detail: { summary: "Get trending feed" },
+            query: pageQueryDto,
+            response: {
+                200: postsPageDto
+            }
         });
-

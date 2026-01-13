@@ -19,6 +19,7 @@ import { GetPostByIdHandler } from "../handlers/post/get-post-by-id.handler";
 import { GetPostRepliesHandler } from "../handlers/post/get-post-replies.handler";
 import { GetPostQuotesHandler } from "../handlers/post/get-post-quotes.handler";
 import { GetFollowingFeedHandler } from "../handlers/feed/get-following-feed.handler";
+import { GetTrendingFeedHandler } from "../handlers/feed/get-trending-feed.handler";
 import { GetProfileByIdHandler } from "../handlers/profile/get-profile-by-id.handler";
 import { UpdateProfileHandler } from "../handlers/profile/update-profile.handler";
 import { GetPostRepostsHandler } from "../handlers/repost/get-post-reposts.handler";
@@ -42,6 +43,7 @@ export const getCommandHandlers = () => ({
 
     // Feed
     getFollowingFeed: GetFollowingFeedHandler.default,
+    getTrendingFeed: GetTrendingFeedHandler.default,
 
     // Post
     findPosts: FindPostsHandler.default,
