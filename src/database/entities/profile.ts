@@ -17,6 +17,9 @@ export class Profile {
     @Column({ type: "text", nullable: true, default: "" })
     bio?: string;
 
+    @Column({ type: "boolean", default: true })
+    isActive!: boolean;
+
     @CreateDateColumn()
     createdAt!: Date;
 
