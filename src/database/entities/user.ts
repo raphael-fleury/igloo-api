@@ -14,11 +14,17 @@ export class User {
     @Index("uq_users_email", { unique: true })
     email!: string;
 
+    @Column({ type: "boolean", default: false })
+    phoneVerified!: boolean;
+
+    @Column({ type: "boolean", default: false })
+    emailVerified!: boolean;
+
+    @Column({ type: "boolean", default: false })
+    ageVerified!: boolean;
+
     @Column({ type: "varchar", length: 255, select: false })
     passwordHash!: string;
-
-    @Column({ type: "boolean", default: true })
-    isActive!: boolean;
 
     @CreateDateColumn()
     createdAt!: Date;
