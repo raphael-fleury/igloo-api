@@ -62,6 +62,9 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     201: postDto,
                     404: z.object({
                         message: z.string()
+                    }),
+                    422: z.object({
+                        message: z.string()
                     })
                 }
             })
@@ -89,20 +92,26 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     }
                 })
 
-                .post('/likes', async ({ user, profile, params, status }) => {
+                .post('/likes', async ({ user, profile, params, set }) => {
                     await bus.execute("likePost", { postId: params.id, user, profile });
-                    return status("No Content");
+                    set.status = 204;
                 }, {
                     detail: { summary: "Like a post" },
-                    params: postIdParam
+                    params: postIdParam,
+                    response: {
+                        204: z.never()
+                    }
                 })
 
-                .delete('/likes', async ({ profile, params }) => {
+                .delete('/likes', async ({ profile, params, set }) => {
                     await bus.execute("unlikePost", { profileId: profile.id, postId: params.id });
-                    return status("No Content");
+                    set.status = 204;
                 }, {
                     detail: { summary: "Unlike a post" },
-                    params: postIdParam
+                    params: postIdParam,
+                    response: {
+                        204: z.never()
+                    }
                 })
 
                 .get('/likes', async ({ params, query }) => {
@@ -120,20 +129,26 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     }
                 })
 
-                .post('/reposts', async ({ user, profile, params, status }) => {
+                .post('/reposts', async ({ user, profile, params, set }) => {
                     await bus.execute("repostPost", { postId: params.id, user, profile });
-                    return status("No Content");
+                    set.status = 204;
                 }, {
                     detail: { summary: "Repost a post" },
-                    params: postIdParam
+                    params: postIdParam,
+                    response: {
+                        204: z.never()
+                    }
                 })
 
-                .delete('/reposts', async ({ profile, params, status }) => {
+                .delete('/reposts', async ({ profile, params, set }) => {
                     await bus.execute("unrepostPost", { profileId: profile.id, postId: params.id });
-                    return status("No Content");
+                    set.status = 204;
                 }, {
                     detail: { summary: "Unrepost a post" },
-                    params: postIdParam
+                    params: postIdParam,
+                    response: {
+                        204: z.never()
+                    }
                 })
 
                 .get('/reposts', async ({ params, query }) => {

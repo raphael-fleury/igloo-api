@@ -4,6 +4,7 @@ import { requireProfileMiddleware } from "../middlewares/require-profile.middlew
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { CommandBus } from "@/app/cqrs/command-bus";
 import { pageQueryDto } from "@/app/dtos/common.dtos";
+import { profileDto, followsDto } from "@/app/dtos/profile.dtos";
 
 const profileIdParam = z.object({
     id: z.uuid()
@@ -24,7 +25,13 @@ export const profileController = ({ bus } = getDefaultProps()) =>
         return await bus.execute("getProfileById", params.id);
     }, {
         detail: { summary: "Get profile by ID (public)" },
-        params: profileIdParam
+        params: profileIdParam,
+        response: {
+            200: profileDto,
+            404: z.object({
+                message: z.string()
+            })
+        }
     })
 
     .group('/:id', (app) => app
@@ -34,7 +41,10 @@ export const profileController = ({ bus } = getDefaultProps()) =>
         }, {
             detail: { summary: "Get followers of a profile" },
             params: profileIdParam,
-            query: pageQueryDto
+            query: pageQueryDto,
+            response: {
+                200: followsDto
+            }
         })
 
         .get('/following', async ({ params, query }) => {
@@ -42,66 +52,87 @@ export const profileController = ({ bus } = getDefaultProps()) =>
         }, {
             detail: { summary: "Get all profiles followed by this one" },
             params: profileIdParam,
-            query: pageQueryDto
+            query: pageQueryDto,
+            response: {
+                200: followsDto
+            }
         })
 
-        .post('/block', async ({ profile, params, status }) => {
+        .post('/block', async ({ profile, params, set }) => {
             await bus.execute("blockProfile", { sourceProfileId: profile.id, targetProfileId: params.id });
-            return status("No Content");
+            set.status = 204;
         }, {
             detail: { summary: "Block a profile" },
-            params: profileIdParam
+            params: profileIdParam,
+            response: {
+                204: z.never()
+            }
         })
 
-        .delete('/block', async ({ profile, params, status }) => {
+        .delete('/block', async ({ profile, params, set }) => {
             await bus.execute("unblockProfile", { sourceProfileId: profile.id, targetProfileId: params.id });
-            return status("No Content");
+            set.status = 204;
         }, {
             detail: { summary: "Unblock a profile" },
-            params: profileIdParam
+            params: profileIdParam,
+            response: {
+                204: z.never()
+            }
         })
 
-        .post('/mute', async ({ profile, params, status }) => {
+        .post('/mute', async ({ profile, params, set }) => {
             await bus.execute("muteProfile", {
                 sourceProfileId: profile.id,
                 targetProfileId: params.id
             });
-            return status("No Content");
+            set.status = 204;
         }, {
             detail: { summary: "Mute a profile" },
-            params: profileIdParam
+            params: profileIdParam,
+            response: {
+                204: z.never()
+            }
         })
 
-        .delete('/mute', async ({ profile, params, status }) => {
+        .delete('/mute', async ({ profile, params, set }) => {
             await bus.execute("unmuteProfile", {
                 sourceProfileId: profile.id,
                 targetProfileId: params.id
             });
-            return status("No Content");
+            set.status = 204;
         }, {
             detail: { summary: "Unmute a profile" },
-            params: profileIdParam
+            params: profileIdParam,
+            response: {
+                204: z.never()
+            }
         })
 
-        .post('/follow', async ({ profile, params, status }) => {
+        .post('/follow', async ({ profile, params, set }) => {
             await bus.execute("followProfile", {
                 sourceProfileId: profile.id,
                 targetProfileId: params.id
             });
-            return status("No Content");
+            set.status = 204;
         }, {
             detail: { summary: "Follow a profile" },
-            params: profileIdParam
+            params: profileIdParam,
+            response: {
+                204: z.never()
+            }
         })
 
-        .delete('/follow', async ({ profile, params, status }) => {
+        .delete('/follow', async ({ profile, params, set }) => {
             await bus.execute("unfollowProfile", {
                 sourceProfileId: profile.id,
                 targetProfileId: params.id
             });
-            return status("No Content");
+            set.status = 204;
         }, {
             detail: { summary: "Unfollow a profile" },
-            params: profileIdParam
+            params: profileIdParam,
+            response: {
+                204: z.never()
+            }
         })
     );
