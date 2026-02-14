@@ -4,6 +4,7 @@ import { NotFoundError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { Post } from "@/database/entities/post";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
+import { MentionService } from "@/app/services/mention.service";
 import { UserDto } from "@/app/dtos/user.dtos";
 import { ProfileDto } from "@/app/dtos/profile.dtos";
 import { CommandHandler } from "@/app/cqrs";
@@ -17,13 +18,15 @@ type CreatePostCommand = {
 export class CreatePostHandler implements CommandHandler<CreatePostCommand, PostDto> {
     constructor(
         private readonly postRepository: Repository<Post>,
-        private readonly interactionValidator: InteractionValidator
+        private readonly interactionValidator: InteractionValidator,
+        private readonly mentionService: MentionService
     ) { }
 
     static get default() {
         return new CreatePostHandler(
             appDataSource.getRepository(Post),
-            InteractionValidator.default
+            InteractionValidator.default,
+            MentionService.default
         );
     }
 
@@ -61,6 +64,9 @@ export class CreatePostHandler implements CommandHandler<CreatePostCommand, Post
         });
 
         const savedPost = await this.postRepository.save(post);
+
+        // Create mentions asynchronously without waiting for completion
+        this.mentionService.createMentionsForPost(savedPost, data.content);
 
         return postDto.parse({
             id: savedPost.id,

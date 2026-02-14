@@ -7,12 +7,14 @@ import { userDto } from "@/app/dtos/user.dtos";
 import { profileDto } from "@/app/dtos/profile.dtos";
 import { idDto } from "@/app/dtos/common.dtos";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
+import { MentionService } from "@/app/services/mention.service";
 import { Post } from "@/database/entities/post";
 
 describe("CreatePostHandler", () => {
     let handler: CreatePostHandler;
     let mockPostRepository: Repository<Post>;
     let mockInteractionValidator: InteractionValidator;
+    let mockMentionService: MentionService;
 
     beforeEach(() => {
         mockPostRepository = {
@@ -25,27 +27,36 @@ describe("CreatePostHandler", () => {
             assertProfilesDoesNotBlockEachOther: mock()
         } as any;
 
-        handler = new CreatePostHandler(mockPostRepository, mockInteractionValidator);
+        mockMentionService = {
+            createMentionsForPost: mock()
+        } as any;
+
+        handler = new CreatePostHandler(mockPostRepository, mockInteractionValidator, mockMentionService);
     });
 
     it("should create post successfully when user and profile exist", async () => {
         // Arrange
         const user = zocker(userDto).generate();
         const profile = zocker(profileDto).generate();
+        const savedPostId = zocker(idDto).generate();
 
         const createPostData = {
             content: "This is a test post"
         };
 
-        mockPostRepository.save = mock((data) => Promise.resolve({
-            id: zocker(idDto).generate(),
+        const savedPost = {
+            id: savedPostId,
             user,
             profile,
             content: "This is a test post",
             repliedPost: null,
             createdAt: new Date(),
             updatedAt: new Date()
-        } as any));
+        } as any;
+
+        mockPostRepository.create = mock(() => ({}));
+        mockPostRepository.save = mock(() => Promise.resolve(savedPost));
+        mockMentionService.createMentionsForPost = mock(() => Promise.resolve());
 
         // Act
         const result = await handler.handle({
@@ -64,6 +75,10 @@ describe("CreatePostHandler", () => {
             quotedPost: undefined
         });
         expect(mockPostRepository.save).toHaveBeenCalled();
+        expect(mockMentionService.createMentionsForPost).toHaveBeenCalledWith(
+            savedPost,
+            "This is a test post"
+        );
     });
 
     it("should throw NotFoundError when replied post does not exist", async () => {
@@ -223,8 +238,7 @@ describe("CreatePostHandler", () => {
             updatedAt: new Date()
         } as Post;
 
-        mockPostRepository.findOneBy = mock(() => Promise.resolve(quotedPost));
-        mockPostRepository.save = mock((data) => Promise.resolve({
+        const savedPost = {
             id: newPostId,
             user,
             profile,
@@ -232,7 +246,12 @@ describe("CreatePostHandler", () => {
             quotedPost: quotedPost,
             createdAt: new Date(),
             updatedAt: new Date()
-        } as any));
+        } as any;
+
+        mockPostRepository.findOneBy = mock(() => Promise.resolve(quotedPost));
+        mockPostRepository.create = mock(() => ({}));
+        mockPostRepository.save = mock(() => Promise.resolve(savedPost));
+        mockMentionService.createMentionsForPost = mock(() => Promise.resolve());
 
         const createPostData = {
             content: "This is a quote",
@@ -253,5 +272,45 @@ describe("CreatePostHandler", () => {
             quotedPost: quotedPost
         });
         expect(mockPostRepository.save).toHaveBeenCalled();
+        expect(mockMentionService.createMentionsForPost).toHaveBeenCalledWith(
+            savedPost,
+            "This is a quote"
+        );
+    });
+
+    it("should call mention service with post containing mentions", async () => {
+        // Arrange
+        const user = zocker(userDto).generate();
+        const profile = zocker(profileDto).generate();
+        const savedPostId = zocker(idDto).generate();
+
+        const contentWithMentions = "Hey @john and @jane, check this out!";
+
+        const savedPost = {
+            id: savedPostId,
+            user,
+            profile,
+            content: contentWithMentions,
+            repliedPost: null,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        } as any;
+
+        mockPostRepository.create = mock(() => ({}));
+        mockPostRepository.save = mock(() => Promise.resolve(savedPost));
+        mockMentionService.createMentionsForPost = mock(() => Promise.resolve());
+
+        // Act
+        await handler.handle({
+            data: { content: contentWithMentions },
+            user,
+            profile
+        });
+
+        // Assert
+        expect(mockMentionService.createMentionsForPost).toHaveBeenCalledWith(
+            savedPost,
+            contentWithMentions
+        );
     });
 });
