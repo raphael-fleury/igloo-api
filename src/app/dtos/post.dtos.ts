@@ -13,6 +13,12 @@ const createdPostDto = basePostDto.extend({
     createdAt: dateDto,
 });
 
+export const mentionDto = z.object({
+    id: idDto,
+    mentionedProfile: profileDto,
+    usernameAtMention: z.string()
+});
+
 export const postDto = createdPostDto.extend({
     profile: profileDto,
     repliedPostId: idDto.nullable().optional(),
@@ -23,6 +29,7 @@ export const postDetailedDto = createdPostDto.extend({
     profile: profileDto,
     repliedPost: postDto.nullable().optional(),
     quotedPost: postDto.nullable().optional(),
+    mentions: z.array(mentionDto).default([]),
     likes: z.int(),
     reposts: z.int(),
     replies: z.int(),
@@ -54,3 +61,4 @@ export type PostDetailedDto = z.infer<typeof postDetailedDto>;
 export type CreatePostDto = z.infer<typeof createPostDto>;
 export type PostQueryDto = z.infer<typeof postQueryDto>;
 export type PostsPageDto = z.infer<typeof postsPageDto>;
+export type MentionDto = z.infer<typeof mentionDto>;

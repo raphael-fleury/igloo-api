@@ -48,6 +48,10 @@ export function findPosts(query: PostQueryDto) {
             .leftJoinAndSelect("post.quotedPost", "quotedPost")
             .leftJoinAndSelect("quotedPost.profile", "quotedProfile")
 
+            // Mentions
+            .leftJoinAndSelect("post.mentions", "mentions")
+            .leftJoinAndSelect("mentions.mentionedProfile", "mentionedProfile")
+
             // Replies & Quotes count
             .addSelect(countPostReplies, "replies")
             .addSelect(countPostQuotes, "quotes")
@@ -109,6 +113,10 @@ export function findPostReplies(postId: string, cursor?: string) {
             .leftJoinAndSelect("post.quotedPost", "quotedPost")
             .leftJoinAndSelect("quotedPost.profile", "quotedProfile")
 
+            // Mentions
+            .leftJoinAndSelect("post.mentions", "mentions")
+            .leftJoinAndSelect("mentions.mentionedProfile", "mentionedProfile")
+
             // Replies & Quotes count
             .addSelect(countPostReplies, "replies")
             .addSelect(countPostQuotes, "quotes")
@@ -135,6 +143,10 @@ export function findPostQuotes(postId: string, query: PageQueryDto) {
             // Replied post + profile
             .leftJoinAndSelect("post.repliedPost", "repliedPost")
             .leftJoinAndSelect("repliedPost.profile", "repliedProfile")
+
+            // Mentions
+            .leftJoinAndSelect("post.mentions", "mentions")
+            .leftJoinAndSelect("mentions.mentionedProfile", "mentionedProfile")
 
             // Replies & Quotes count
             .addSelect(countPostReplies, "replies")
@@ -166,6 +178,10 @@ export function getPostById(id: string) {
             .leftJoinAndSelect("post.quotedPost", "quotedPost")
             .leftJoinAndSelect("quotedPost.profile", "quotedProfile")
 
+            // Mentions
+            .leftJoinAndSelect("post.mentions", "mentions")
+            .leftJoinAndSelect("mentions.mentionedProfile", "mentionedProfile")
+
             // Replies & Quotes count
             .addSelect(countPostReplies, "replies")
             .addSelect(countPostQuotes, "quotes")
@@ -179,7 +195,9 @@ export function getPostById(id: string) {
             .addGroupBy("repliedPost.id")
             .addGroupBy("repliedProfile.id")
             .addGroupBy("quotedPost.id")
-            .addGroupBy("quotedProfile.id");
+            .addGroupBy("quotedProfile.id")
+            .addGroupBy("mentions.id")
+            .addGroupBy("mentionedProfile.id");
     }
 }
 
@@ -191,6 +209,11 @@ export function findFollowingFeed(profileId: string, query: PageQueryDto) {
             .leftJoinAndSelect("repliedPost.profile", "repliedProfile")
             .leftJoinAndSelect("post.quotedPost", "quotedPost")
             .leftJoinAndSelect("quotedPost.profile", "quotedProfile")
+
+            // Mentions
+            .leftJoinAndSelect("post.mentions", "mentions")
+            .leftJoinAndSelect("mentions.mentionedProfile", "mentionedProfile")
+
             .addSelect(countPostReplies, "replies")
             .addSelect(countPostQuotes, "quotes")
             .addSelect(countPostLikes, "likes")
@@ -221,6 +244,11 @@ export function findTrendingFeed(query: PageQueryDto) {
             .leftJoinAndSelect("repliedPost.profile", "repliedProfile")
             .leftJoinAndSelect("post.quotedPost", "quotedPost")
             .leftJoinAndSelect("quotedPost.profile", "quotedProfile")
+
+            // Mentions
+            .leftJoinAndSelect("post.mentions", "mentions")
+            .leftJoinAndSelect("mentions.mentionedProfile", "mentionedProfile")
+
             .addSelect(countPostReplies, "replies")
             .addSelect(countPostQuotes, "quotes")
             .addSelect(countPostLikes, "likes")
