@@ -9,7 +9,6 @@ const baseUserDto = z.object({
 
 export const userDto = baseUserDto.extend({
     id: idDto,
-    isActive: z.boolean(),
     createdAt: dateDto
 });
 
