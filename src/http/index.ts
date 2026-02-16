@@ -7,6 +7,7 @@ import { postController } from "@/http/controllers/post.controller";
 import { currentUserController } from "@/http/controllers/current-user.controller";
 import { currentProfileController } from "@/http/controllers/current-profile.controller";
 import { feedController } from "@/http/controllers/feed.controller";
+import { notificationController } from "@/http/controllers/notification.controller";
 
 export const app = new Elysia()
     .use(openapi({
@@ -31,4 +32,5 @@ export const app = new Elysia()
     .use(currentProfileController())
     .use(profileController())
     .use(postController())
-    .use(feedController());
+    .use(feedController())
+    .use(notificationController());
