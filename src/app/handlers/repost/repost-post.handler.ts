@@ -5,10 +5,10 @@ import { InteractionType, PostInteraction } from "@/database/entities/post-inter
 import { Post } from "@/database/entities/post";
 import { NotificationType } from "@/database/entities/notification";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
+import { NotificationService } from "@/app/services/notification.service";
 import { UserDto } from "@/app/dtos/user.dtos";
 import { ProfileDto } from "@/app/dtos/profile.dtos";
 import { CommandHandler } from "@/app/cqrs";
-import { CreateNotificationHandler } from "@/app/handlers/notification/create-notification.handler";
 
 export type RepostPostCommand = {
     postId: string;
@@ -20,14 +20,16 @@ export class RepostPostHandler implements CommandHandler<RepostPostCommand, void
     constructor(
         private readonly postInteractionRepository: Repository<PostInteraction>,
         private readonly postRepository: Repository<Post>,
-        private readonly interactionValidator: InteractionValidator
+        private readonly interactionValidator: InteractionValidator,
+        private readonly notificationService: NotificationService
     ) { }
 
     static get default() {
         return new RepostPostHandler(
             appDataSource.getRepository(PostInteraction),
             appDataSource.getRepository(Post),
-            InteractionValidator.default
+            InteractionValidator.default,
+            NotificationService.default
         );
     }
 
@@ -67,7 +69,7 @@ export class RepostPostHandler implements CommandHandler<RepostPostCommand, void
 
         // Create notification (only if reposting someone else's post)
         if (profile.id !== post.profile.id) {
-            await CreateNotificationHandler.default.handle({
+            await this.notificationService.createNotification({
                 targetProfileId: post.profile.id,
                 actorProfileId: profile.id,
                 type: NotificationType.Repost,
@@ -76,4 +78,3 @@ export class RepostPostHandler implements CommandHandler<RepostPostCommand, void
         }
     }
 }
-

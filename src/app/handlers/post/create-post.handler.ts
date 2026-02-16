@@ -5,11 +5,11 @@ import { appDataSource } from "@/database/data-source";
 import { Post } from "@/database/entities/post";
 import { NotificationType } from "@/database/entities/notification";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
+import { NotificationService } from "@/app/services/notification.service";
 import { MentionService } from "@/app/services/mention.service";
 import { UserDto } from "@/app/dtos/user.dtos";
 import { ProfileDto } from "@/app/dtos/profile.dtos";
 import { CommandHandler } from "@/app/cqrs";
-import { CreateNotificationHandler } from "@/app/handlers/notification/create-notification.handler";
 
 type CreatePostCommand = {
     data: CreatePostDto;
@@ -21,6 +21,7 @@ export class CreatePostHandler implements CommandHandler<CreatePostCommand, Post
     constructor(
         private readonly postRepository: Repository<Post>,
         private readonly interactionValidator: InteractionValidator,
+        private readonly notificationService: NotificationService,
         private readonly mentionService: MentionService
     ) { }
 
@@ -28,6 +29,7 @@ export class CreatePostHandler implements CommandHandler<CreatePostCommand, Post
         return new CreatePostHandler(
             appDataSource.getRepository(Post),
             InteractionValidator.default,
+            NotificationService.default,
             MentionService.default
         );
     }
@@ -72,7 +74,7 @@ export class CreatePostHandler implements CommandHandler<CreatePostCommand, Post
 
         // Create notifications for reply and quote
         if (repliedPost && repliedPost.profile.id !== profile.id) {
-            await CreateNotificationHandler.default.handle({
+            await this.notificationService.createNotification({
                 targetProfileId: repliedPost.profile.id,
                 actorProfileId: profile.id,
                 type: NotificationType.Reply,
@@ -81,7 +83,7 @@ export class CreatePostHandler implements CommandHandler<CreatePostCommand, Post
         }
 
         if (quotedPost && quotedPost.profile.id !== profile.id) {
-            await CreateNotificationHandler.default.handle({
+            await this.notificationService.createNotification({
                 targetProfileId: quotedPost.profile.id,
                 actorProfileId: profile.id,
                 type: NotificationType.Quote,

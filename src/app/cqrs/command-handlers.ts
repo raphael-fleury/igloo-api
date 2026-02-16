@@ -21,7 +21,6 @@ import { GetPostQuotesHandler } from "../handlers/post/get-post-quotes.handler";
 import { GetFollowingFeedHandler } from "../handlers/feed/get-following-feed.handler";
 import { GetTrendingFeedHandler } from "../handlers/feed/get-trending-feed.handler";
 import { GetNotificationsHandler } from "../handlers/notification/get-notifications.handler";
-import { CreateNotificationHandler } from "../handlers/notification/create-notification.handler";
 import { MarkNotificationsAsReadHandler } from "../handlers/notification/mark-notifications-as-read.handler";
 import { GetProfileByIdHandler } from "../handlers/profile/get-profile-by-id.handler";
 import { UpdateProfileHandler } from "../handlers/profile/update-profile.handler";
@@ -50,7 +49,6 @@ export const getCommandHandlers = () => ({
 
     // Notifications
     getNotifications: GetNotificationsHandler.default,
-    createNotification: CreateNotificationHandler.default,
     markNotificationsAsRead: MarkNotificationsAsReadHandler.default,
 
     // Post
