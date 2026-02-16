@@ -11,6 +11,18 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
 
+  postgres-test:
+    image: postgres:18
+    container_name: igloo_postgres_test
+    environment:
+      POSTGRES_DB: igloo_test_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345678
+    ports:
+      - 5436:5432
+    volumes:
+      - postgres_test_data:/var/lib/postgresql
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: igloo_pgadmin
@@ -21,9 +33,11 @@ services:
       - "8080:80"
     depends_on:
       - postgres
+      - postgres-test
     volumes:
       - pgadmin_data:/var/lib/pgadmin
 
 volumes:
   postgres_data:
+  postgres_test_data:
   pgadmin_data:
