@@ -3,11 +3,13 @@ import { CreatePostDto, PostDto, postDto } from "@/app/dtos/post.dtos";
 import { NotFoundError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { Post } from "@/database/entities/post";
+import { NotificationType } from "@/database/entities/notification";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 import { MentionService } from "@/app/services/mention.service";
 import { UserDto } from "@/app/dtos/user.dtos";
 import { ProfileDto } from "@/app/dtos/profile.dtos";
 import { CommandHandler } from "@/app/cqrs";
+import { CreateNotificationHandler } from "@/app/handlers/notification/create-notification.handler";
 
 type CreatePostCommand = {
     data: CreatePostDto;
@@ -67,6 +69,25 @@ export class CreatePostHandler implements CommandHandler<CreatePostCommand, Post
 
         // Create mentions asynchronously without waiting for completion
         this.mentionService.createMentionsForPost(savedPost, data.content);
+
+        // Create notifications for reply and quote
+        if (repliedPost && repliedPost.profile.id !== profile.id) {
+            await CreateNotificationHandler.default.handle({
+                targetProfileId: repliedPost.profile.id,
+                actorProfileId: profile.id,
+                type: NotificationType.Reply,
+                postId: repliedPost.id
+            });
+        }
+
+        if (quotedPost && quotedPost.profile.id !== profile.id) {
+            await CreateNotificationHandler.default.handle({
+                targetProfileId: quotedPost.profile.id,
+                actorProfileId: profile.id,
+                type: NotificationType.Quote,
+                postId: quotedPost.id
+            });
+        }
 
         return postDto.parse({
             id: savedPost.id,

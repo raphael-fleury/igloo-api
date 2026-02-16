@@ -1,9 +1,11 @@
 import { Repository } from "typeorm";
 import { appDataSource } from "@/database/data-source";
 import { ProfileInteraction, ProfileInteractionType } from "@/database/entities/profile-interaction";
+import { NotificationType } from "@/database/entities/notification";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 import { ConflictError } from "@/app/errors";
 import { CommandHandler } from "@/app/cqrs";
+import { CreateNotificationHandler } from "@/app/handlers/notification/create-notification.handler";
 import { PostInteractionDto } from "@/app/dtos/post-interaction.dto";
 
 export class FollowProfileHandler implements CommandHandler<PostInteractionDto, void> {
@@ -47,5 +49,12 @@ export class FollowProfileHandler implements CommandHandler<PostInteractionDto, 
         });
 
         await this.profileInteractionRepository.save(follow);
+
+        // Create notification
+        await CreateNotificationHandler.default.handle({
+            targetProfileId: targetProfileId,
+            actorProfileId: sourceProfileId,
+            type: NotificationType.Follow
+        });
     }
 }

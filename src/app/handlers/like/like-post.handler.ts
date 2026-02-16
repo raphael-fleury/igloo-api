@@ -3,10 +3,12 @@ import { NotFoundError, ConflictError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { InteractionType, PostInteraction } from "@/database/entities/post-interaction";
 import { Post } from "@/database/entities/post";
+import { NotificationType } from "@/database/entities/notification";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
 import { UserDto } from "@/app/dtos/user.dtos";
 import { ProfileDto } from "@/app/dtos/profile.dtos";
 import { CommandHandler } from "@/app/cqrs";
+import { CreateNotificationHandler } from "@/app/handlers/notification/create-notification.handler";
 
 export type LikePostCommand = {
     postId: string;
@@ -62,6 +64,15 @@ export class LikePostHandler implements CommandHandler<LikePostCommand, void> {
         });
         
         await this.postInteractionRepository.save(like);
+
+        if (profile.id !== post.profile.id) {
+            await CreateNotificationHandler.default.handle({
+                targetProfileId: post.profile.id,
+                actorProfileId: profile.id,
+                type: NotificationType.Like,
+                postId: post.id
+            });
+        }
     }
 }
 
