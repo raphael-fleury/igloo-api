@@ -10,12 +10,14 @@ import { InteractionType, PostInteraction } from "@/database/entities/post-inter
 import { Post } from "@/database/entities/post";
 import { NotFoundError, BlockedError, ConflictError } from "@/app/errors";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
+import { NotificationService } from "@/app/services/notification.service";
 
 describe("RepostPostHandler", () => {
     let handler: RepostPostHandler;
     let mockPostInteractionRepository: Repository<PostInteraction>;
     let mockPostRepository: Repository<Post>;
     let mockInteractionValidator: InteractionValidator;
+    let mockNotificationService: NotificationService;
 
     beforeEach(() => {
         mockPostInteractionRepository = {
@@ -32,7 +34,11 @@ describe("RepostPostHandler", () => {
             assertProfilesDoesNotBlockEachOther: mock(() => Promise.resolve())
         } as any;
 
-        handler = new RepostPostHandler(mockPostInteractionRepository, mockPostRepository, mockInteractionValidator);
+        mockNotificationService = {
+            createNotification: mock(() => Promise.resolve({} as any))
+        } as any;
+
+        handler = new RepostPostHandler(mockPostInteractionRepository, mockPostRepository, mockInteractionValidator, mockNotificationService);
     });
 
     it("should repost post successfully when post exists and no blocks", async () => {
@@ -75,6 +81,12 @@ describe("RepostPostHandler", () => {
         expect(mockPostInteractionRepository.save).toHaveBeenCalled();
         expect(mockPostInteractionRepository.create).toHaveBeenCalledWith({
             user, profile, post: mockPost, interactionType: InteractionType.Repost
+        });
+        expect(mockNotificationService.createNotification).toHaveBeenCalledWith({
+            targetProfileId: postAuthorProfile.id,
+            actorProfileId: profile.id,
+            type: "repost",
+            postId: postId
         });
     });
 

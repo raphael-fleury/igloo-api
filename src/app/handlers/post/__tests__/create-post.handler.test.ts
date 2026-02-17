@@ -7,6 +7,7 @@ import { userDto } from "@/app/dtos/user.dtos";
 import { profileDto } from "@/app/dtos/profile.dtos";
 import { idDto } from "@/app/dtos/common.dtos";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
+import { NotificationService } from "@/app/services/notification.service";
 import { MentionService } from "@/app/services/mention.service";
 import { Post } from "@/database/entities/post";
 
@@ -14,6 +15,7 @@ describe("CreatePostHandler", () => {
     let handler: CreatePostHandler;
     let mockPostRepository: Repository<Post>;
     let mockInteractionValidator: InteractionValidator;
+    let mockNotificationService: NotificationService;
     let mockMentionService: MentionService;
 
     beforeEach(() => {
@@ -27,11 +29,15 @@ describe("CreatePostHandler", () => {
             assertProfilesDoesNotBlockEachOther: mock()
         } as any;
 
+        mockNotificationService = {
+            createNotification: mock()
+        } as any;
+
         mockMentionService = {
             createMentionsForPost: mock()
         } as any;
 
-        handler = new CreatePostHandler(mockPostRepository, mockInteractionValidator, mockMentionService);
+        handler = new CreatePostHandler(mockPostRepository, mockInteractionValidator, mockNotificationService, mockMentionService);
     });
 
     it("should create post successfully when user and profile exist", async () => {
@@ -50,6 +56,7 @@ describe("CreatePostHandler", () => {
             profile,
             content: "This is a test post",
             repliedPost: null,
+            quotedPost: null,
             createdAt: new Date(),
             updatedAt: new Date()
         } as any;
@@ -79,6 +86,7 @@ describe("CreatePostHandler", () => {
             savedPost,
             "This is a test post"
         );
+        expect(mockNotificationService.createNotification).not.toHaveBeenCalled();
     });
 
     it("should throw NotFoundError when replied post does not exist", async () => {
@@ -276,6 +284,74 @@ describe("CreatePostHandler", () => {
             savedPost,
             "This is a quote"
         );
+        expect(mockNotificationService.createNotification).toHaveBeenCalledWith({
+            targetProfileId: quotedPostAuthorProfile.id,
+            actorProfileId: profile.id,
+            type: "quote",
+            postId: quotedPostId
+        });
+    });
+
+    it("should create post with reply successfully when replied post exists and no blocks", async () => {
+        // Arrange
+        const user = zocker(userDto).generate();
+        const profile = zocker(profileDto).generate();
+        const repliedPostAuthorProfile = zocker(profileDto).generate();
+        const repliedPostId = zocker(idDto).generate();
+        const newPostId = zocker(idDto).generate();
+
+        const repliedPost = {
+            id: repliedPostId,
+            profile: repliedPostAuthorProfile,
+            content: "Original post",
+            createdAt: new Date(),
+            updatedAt: new Date()
+        } as Post;
+
+        const savedPost = {
+            id: newPostId,
+            user,
+            profile,
+            content: "This is a reply",
+            repliedPost: repliedPost,
+            quotedPost: null,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        } as any;
+
+        mockPostRepository.findOneBy = mock(() => Promise.resolve(repliedPost));
+        mockPostRepository.create = mock(() => ({}));
+        mockPostRepository.save = mock(() => Promise.resolve(savedPost));
+        mockMentionService.createMentionsForPost = mock(() => Promise.resolve());
+
+        const createPostData = {
+            content: "This is a reply",
+            repliedPostId: repliedPostId
+        };
+
+        // Act
+        const result = await handler.handle({ data: createPostData, user, profile });
+
+        // Assert
+        expect(result.content).toBe("This is a reply");
+        expect(mockPostRepository.create).toHaveBeenCalledWith({
+            user,
+            profile,
+            content: "This is a reply",
+            repliedPost: repliedPost,
+            quotedPost: undefined
+        });
+        expect(mockPostRepository.save).toHaveBeenCalled();
+        expect(mockMentionService.createMentionsForPost).toHaveBeenCalledWith(
+            savedPost,
+            "This is a reply"
+        );
+        expect(mockNotificationService.createNotification).toHaveBeenCalledWith({
+            targetProfileId: repliedPostAuthorProfile.id,
+            actorProfileId: profile.id,
+            type: "reply",
+            postId: repliedPostId
+        });
     });
 
     it("should call mention service with post containing mentions", async () => {
@@ -292,6 +368,7 @@ describe("CreatePostHandler", () => {
             profile,
             content: contentWithMentions,
             repliedPost: null,
+            quotedPost: null,
             createdAt: new Date(),
             updatedAt: new Date()
         } as any;
@@ -312,5 +389,6 @@ describe("CreatePostHandler", () => {
             savedPost,
             contentWithMentions
         );
+        expect(mockNotificationService.createNotification).not.toHaveBeenCalled();
     });
 });

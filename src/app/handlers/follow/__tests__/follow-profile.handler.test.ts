@@ -7,12 +7,14 @@ import { Profile } from "@/database/entities/profile";
 import { NotFoundError, SelfInteractionError, BlockedError, ConflictError } from "@/app/errors";
 import { profileDto } from "@/app/dtos/profile.dtos";
 import { InteractionValidator } from "@/app/validators/interaction.validator";
+import { NotificationService } from "@/app/services/notification.service";
 import { idDto } from "@/app/dtos/common.dtos";
 
 describe("FollowProfileHandler", () => {
     let handler: FollowProfileHandler;
     let mockProfileInteractionRepository: Repository<ProfileInteraction>;
     let mockInteractionValidator: InteractionValidator;
+    let mockNotificationService: NotificationService;
 
     beforeEach(() => {
         mockProfileInteractionRepository = {
@@ -27,7 +29,11 @@ describe("FollowProfileHandler", () => {
             assertProfileExists: mock(() => Promise.resolve({ id: "profile-id" } as Profile))
         } as any;
 
-        handler = new FollowProfileHandler(mockProfileInteractionRepository, mockInteractionValidator);
+        mockNotificationService = {
+            createNotification: mock(() => Promise.resolve({} as any))
+        } as any;
+
+        handler = new FollowProfileHandler(mockProfileInteractionRepository, mockInteractionValidator, mockNotificationService);
     });
 
     it("should follow profile successfully when both profiles exist and no blocks", async () => {
@@ -59,6 +65,11 @@ describe("FollowProfileHandler", () => {
 
         // Assert
         expect(mockProfileInteractionRepository.save).toHaveBeenCalled();
+        expect(mockNotificationService.createNotification).toHaveBeenCalledWith({
+            targetProfileId: targetProfileId,
+            actorProfileId: sourceProfileId,
+            type: "follow"
+        });
     });
 
     it("should throw SelfInteractionError when trying to follow the same profile", async () => {
