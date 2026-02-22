@@ -8,10 +8,18 @@ export const BIO_MAX_LENGTH = 160;
 
 const usernameRegex = new RegExp(String.raw`^\w{${USERNAME_MIN_LENGTH},${USERNAME_MAX_LENGTH}}$`);
 
-export const createProfileDto = z.object({
+const avatarFileDto = z.file()
+    .max(3 * 1024 * 1024)
+    .mime(["image/jpeg", "image/png", "image/gif"]);
+
+const baseProfileDto = z.object({
     username: z.string().regex(usernameRegex),
     displayName: z.string().max(DISPLAYNAME_MAX_LENGTH),
-    bio: z.string().max(BIO_MAX_LENGTH).default(""),
+    bio: z.string().max(BIO_MAX_LENGTH),
+});
+
+export const createProfileDto = baseProfileDto.extend({
+    avatar: avatarFileDto.optional()
 });
 
 export const updateProfileDto = createProfileDto.partial();
@@ -20,6 +28,7 @@ export const profileDto = createProfileDto.extend({
     id: idDto,
     createdAt: dateDto,
     updatedAt: dateDto,
+    avatarPath: z.string().nullable()
 });
 
 export const detailedProfileDto = profileDto.extend({

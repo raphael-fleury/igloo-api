@@ -4,6 +4,7 @@ import { AlreadyExistsError, NotFoundError } from "@/app/errors";
 import { appDataSource } from "@/database/data-source";
 import { Profile } from "@/database/entities/profile";
 import { CommandHandler } from "@/app/cqrs";
+import { StorageService } from "@/app/services/storage.service";
 
 type UpdateProfileCommand = {
     id: string;
@@ -11,10 +12,16 @@ type UpdateProfileCommand = {
 }
 
 export class UpdateProfileHandler implements CommandHandler<UpdateProfileCommand, ProfileDto> {
-    constructor(private readonly profileRepository: Repository<Profile>) { }
+    constructor(
+        private readonly profileRepository: Repository<Profile>,
+        private readonly storageService: StorageService
+    ) { }
 
     static get default() {
-        return new UpdateProfileHandler(appDataSource.getRepository(Profile));
+        return new UpdateProfileHandler(
+            appDataSource.getRepository(Profile),
+            new StorageService({ isPublic: true })
+        );
     }
 
     async handle({ id, data }: UpdateProfileCommand) {
@@ -34,7 +41,18 @@ export class UpdateProfileHandler implements CommandHandler<UpdateProfileCommand
             }
         }
 
-        Object.assign(profile, data);
+        let avatarPath = profile.avatarPath;
+        const { avatar, ...profileData } = data;
+
+        if (avatar) {
+            if (!avatarPath) {
+                avatarPath = this.storageService.generateFileUrl('avatars', avatar);
+            }
+            
+            await this.storageService.uploadFile(avatarPath, avatar);
+        }
+
+        Object.assign(profile, profileData, { avatarPath });
         const updatedProfile = await this.profileRepository.save(profile);
 
         return profileDto.parse(updatedProfile);

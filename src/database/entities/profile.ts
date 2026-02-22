@@ -20,6 +20,9 @@ export class Profile {
     @Column({ type: "boolean", default: true })
     isActive!: boolean;
 
+    @Column({ type: "text", nullable: true })
+    avatarPath?: string;
+
     @CreateDateColumn()
     createdAt!: Date;
 
