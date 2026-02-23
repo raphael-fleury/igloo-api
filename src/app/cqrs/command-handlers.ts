@@ -26,6 +26,8 @@ import { GetProfileByIdHandler } from "../handlers/profile/get-profile-by-id.han
 import { UpdateProfileHandler } from "../handlers/profile/update-profile.handler";
 import { UploadAvatarHandler } from "../handlers/profile/upload-avatar.handler";
 import { DeleteAvatarHandler } from "../handlers/profile/delete-avatar.handler";
+import { UploadHeaderHandler } from "../handlers/profile/upload-header.handler";
+import { DeleteHeaderHandler } from "../handlers/profile/delete-header.handler";
 import { GetPostRepostsHandler } from "../handlers/repost/get-post-reposts.handler";
 import { RepostPostHandler } from "../handlers/repost/repost-post.handler";
 import { UnrepostPostHandler } from "../handlers/repost/unrepost-post.handler";
@@ -82,6 +84,8 @@ export const getCommandHandlers = () => ({
     unfollowProfile: UnfollowProfileHandler.default,
     uploadAvatar: UploadAvatarHandler.default,
     deleteAvatar: DeleteAvatarHandler.default,
+    uploadHeader: UploadHeaderHandler.default,
+    deleteHeader: DeleteHeaderHandler.default,
 })
 
 export type Handlers = ReturnType<typeof getCommandHandlers>;

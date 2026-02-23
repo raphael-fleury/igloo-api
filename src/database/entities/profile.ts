@@ -23,6 +23,9 @@ export class Profile {
     @Column({ type: "text", nullable: true })
     avatarPath?: string;
 
+    @Column({ type: "text", nullable: true })
+    headerPath?: string;
+
     @CreateDateColumn()
     createdAt!: Date;
 

@@ -12,11 +12,23 @@ const avatarFileDto = z.file()
     .max(3 * 1024 * 1024)
     .mime(["image/jpeg", "image/png", "image/gif"]);
 
+const headerFileDto = z.file()
+    .max(5 * 1024 * 1024)
+    .mime(["image/jpeg", "image/png", "image/gif"]);
+
 export const uploadAvatarDto = z.object({
     avatar: avatarFileDto
 });
 
 export const deleteAvatarDto = z.object({
+    message: z.string()
+});
+
+export const uploadHeaderDto = z.object({
+    header: headerFileDto
+});
+
+export const deleteHeaderDto = z.object({
     message: z.string()
 });
 
@@ -32,7 +44,8 @@ export const profileDto = createProfileDto.extend({
     id: idDto,
     createdAt: dateDto,
     updatedAt: dateDto,
-    avatarPath: z.string().nullish()
+    avatarPath: z.string().nullish(),
+    headerPath: z.string().nullish()
 });
 
 export const detailedProfileDto = profileDto.extend({
@@ -89,3 +102,5 @@ export type RepostsDto = z.infer<typeof repostsDto>;
 export type ProfilesPageDto = z.infer<typeof profilesPageDto>;
 export type UploadAvatarDto = z.infer<typeof uploadAvatarDto>;
 export type DeleteAvatarDto = z.infer<typeof deleteAvatarDto>;
+export type UploadHeaderDto = z.infer<typeof uploadHeaderDto>;
+export type DeleteHeaderDto = z.infer<typeof deleteHeaderDto>;

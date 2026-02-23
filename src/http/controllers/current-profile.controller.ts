@@ -1,6 +1,6 @@
 import Elysia from "elysia";
 import z from "zod";
-import { updateProfileDto, profileDto, blockedProfilesDto, followsDto, mutedProfilesDto, uploadAvatarDto } from "@/app/dtos/profile.dtos";
+import { updateProfileDto, profileDto, blockedProfilesDto, followsDto, mutedProfilesDto, uploadAvatarDto, uploadHeaderDto } from "@/app/dtos/profile.dtos";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { requireProfileMiddleware } from "../middlewares/require-profile.middleware";
 import { CommandBus } from "@/app/cqrs/command-bus";
@@ -104,6 +104,35 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         set.status = 204;
     }, {
         detail: { summary: "Delete profile avatar" },
+        response: {
+            204: z.never().nullish(),
+            404: z.object({
+                message: z.string()
+            })
+        }
+    })
+
+    .post('/header', async ({ profile, body }) => {
+        return await bus.execute("uploadHeader", { id: profile.id, data: body });
+    }, {
+        detail: { summary: "Upload profile header" },
+        body: uploadHeaderDto,
+        response: {
+            200: profileDto,
+            404: z.object({
+                message: z.string()
+            }),
+            422: z.object({
+                message: z.string()
+            })
+        }
+    })
+
+    .delete('/header', async ({ profile, set }) => {
+        await bus.execute("deleteHeader", { id: profile.id });
+        set.status = 204;
+    }, {
+        detail: { summary: "Delete profile header" },
         response: {
             204: z.never().nullish(),
             404: z.object({
