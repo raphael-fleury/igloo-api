@@ -10,11 +10,11 @@ const usernameRegex = new RegExp(String.raw`^\w{${USERNAME_MIN_LENGTH},${USERNAM
 
 const avatarFileDto = z.file()
     .max(3 * 1024 * 1024)
-    .mime(["image/jpeg", "image/png", "image/gif"]);
+    .mime(["image/jpeg", "image/png", "image/webp"]);
 
 const headerFileDto = z.file()
     .max(5 * 1024 * 1024)
-    .mime(["image/jpeg", "image/png", "image/gif"]);
+    .mime(["image/jpeg", "image/png", "image/webp"]);
 
 export const uploadAvatarDto = z.object({
     avatar: avatarFileDto
