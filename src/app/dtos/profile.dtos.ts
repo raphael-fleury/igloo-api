@@ -12,14 +12,18 @@ const avatarFileDto = z.file()
     .max(3 * 1024 * 1024)
     .mime(["image/jpeg", "image/png", "image/gif"]);
 
-const baseProfileDto = z.object({
+export const uploadAvatarDto = z.object({
+    avatar: avatarFileDto
+});
+
+export const deleteAvatarDto = z.object({
+    message: z.string()
+});
+
+export const createProfileDto = z.object({
     username: z.string().regex(usernameRegex),
     displayName: z.string().max(DISPLAYNAME_MAX_LENGTH),
     bio: z.string().max(BIO_MAX_LENGTH),
-});
-
-export const createProfileDto = baseProfileDto.extend({
-    avatar: avatarFileDto.optional()
 });
 
 export const updateProfileDto = createProfileDto.partial();
@@ -28,7 +32,7 @@ export const profileDto = createProfileDto.extend({
     id: idDto,
     createdAt: dateDto,
     updatedAt: dateDto,
-    avatarPath: z.string().nullable()
+    avatarPath: z.string().nullish()
 });
 
 export const detailedProfileDto = profileDto.extend({
@@ -83,3 +87,5 @@ export type MutedProfilesDto = z.infer<typeof mutedProfilesDto>;
 export type LikesDto = z.infer<typeof likesDto>;
 export type RepostsDto = z.infer<typeof repostsDto>;
 export type ProfilesPageDto = z.infer<typeof profilesPageDto>;
+export type UploadAvatarDto = z.infer<typeof uploadAvatarDto>;
+export type DeleteAvatarDto = z.infer<typeof deleteAvatarDto>;

@@ -1,6 +1,6 @@
 import Elysia from "elysia";
 import z from "zod";
-import { updateProfileDto, profileDto, blockedProfilesDto, followsDto, mutedProfilesDto } from "@/app/dtos/profile.dtos";
+import { updateProfileDto, profileDto, blockedProfilesDto, followsDto, mutedProfilesDto, uploadAvatarDto } from "@/app/dtos/profile.dtos";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { requireProfileMiddleware } from "../middlewares/require-profile.middleware";
 import { CommandBus } from "@/app/cqrs/command-bus";
@@ -80,5 +80,34 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         query: pageQueryDto,
         response: {
             200: mutedProfilesDto
+        }
+    })
+
+    .post('/avatar', async ({ profile, body }) => {
+        return await bus.execute("uploadAvatar", { id: profile.id, data: body });
+    }, {
+        detail: { summary: "Upload profile avatar" },
+        body: uploadAvatarDto,
+        response: {
+            200: profileDto,
+            404: z.object({
+                message: z.string()
+            }),
+            422: z.object({
+                message: z.string()
+            })
+        }
+    })
+
+    .delete('/avatar', async ({ profile, set }) => {
+        await bus.execute("deleteAvatar", { id: profile.id });
+        set.status = 204;
+    }, {
+        detail: { summary: "Delete profile avatar" },
+        response: {
+            204: z.never().nullish(),
+            404: z.object({
+                message: z.string()
+            })
         }
     });

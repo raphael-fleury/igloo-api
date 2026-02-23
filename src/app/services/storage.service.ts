@@ -12,6 +12,10 @@ export class StorageService {
         await this.bucket.write(path, file);
     }
 
+    async deleteFile(path: string) {
+        await this.bucket.delete(path);
+    }
+
     generateFileUrl(folder: string, file: Blob) {
         const extension = file.type.split('/')[1];
         const filename = `${randomUUIDv7()}.${extension}`;
