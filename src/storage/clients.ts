@@ -1,9 +1,10 @@
+import { env } from "@/env";
+
 function getBucketClient(bucket: string) {
   return new Bun.S3Client({
-    accessKeyId: "admin",
-    secretAccessKey: "password",
-    region: "us-east-1",
-    endpoint: "http://localhost:9000",
+    accessKeyId: env.MINIO_ROOT_USER,
+    secretAccessKey: env.MINIO_ROOT_PASSWORD,
+    endpoint: env.MINIO_URL,
     bucket
   });
 }

@@ -7,6 +7,9 @@ const envSchema = z.object({
     POSTGRES_DB: z.string().nonempty().default('igloo_db'),
     POSTGRES_USER: z.string().nonempty().default('postgres'),
     POSTGRES_PASSWORD: z.string().nonempty().default('12345678'),
+    MINIO_URL: z.string().nonempty().default('http://localhost:9000'),
+    MINIO_ROOT_USER: z.string().nonempty().default('admin'),
+    MINIO_ROOT_PASSWORD: z.string().nonempty().default('password')
 });
 
 export const env = envSchema.parse(process.env);
