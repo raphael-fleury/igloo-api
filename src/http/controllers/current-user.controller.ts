@@ -20,7 +20,10 @@ export const currentUserController = ({ bus } = getDefaultProps()) =>
     .get('/', async ({ user }) => {
         return user;
     }, {
-        detail: { summary: "Get current user" },
+        detail: {
+            operationId: "getCurrentUser",
+            summary: "Get current user"
+        },
         response: {
             200: userDto
         }
@@ -29,7 +32,10 @@ export const currentUserController = ({ bus } = getDefaultProps()) =>
     .patch('/', async ({ user, body }) => {
         return await bus.execute("updateUser", { id: user.id, data: body });
     }, {
-        detail: { summary: "Update current user" },
+        detail: {
+            operationId: "updateCurrentUser",
+            summary: "Update current user"
+        },
         body: updateUserDto,
         response: {
             200: userDto,

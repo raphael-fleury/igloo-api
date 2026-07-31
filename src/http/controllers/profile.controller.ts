@@ -24,7 +24,10 @@ export const profileController = ({ bus } = getDefaultProps()) =>
     .get('/:id', async ({ params }) => {
         return await bus.execute("getProfileById", params.id);
     }, {
-        detail: { summary: "Get profile by ID (public)" },
+        detail: {
+            operationId: "getProfileById",
+            summary: "Get profile by ID (public)"
+        },
         params: profileIdParam,
         response: {
             200: profileDto,
@@ -39,7 +42,10 @@ export const profileController = ({ bus } = getDefaultProps()) =>
         .get('/followers', async ({ params, query }) => {
             return await bus.execute("getFollowers", { targetProfileId: params.id, ...query });
         }, {
-            detail: { summary: "Get followers of a profile" },
+            detail: {
+                operationId: "getProfileFollowers",
+                summary: "Get followers of a profile"
+            },
             params: profileIdParam,
             query: pageQueryDto,
             response: {
@@ -50,7 +56,10 @@ export const profileController = ({ bus } = getDefaultProps()) =>
         .get('/following', async ({ params, query }) => {
             return await bus.execute("getFollowing", { sourceProfileId: params.id, ...query });
         }, {
-            detail: { summary: "Get all profiles followed by this one" },
+            detail: {
+                operationId: "getProfileFollowing",
+                summary: "Get all profiles followed by this one"
+            },
             params: profileIdParam,
             query: pageQueryDto,
             response: {
@@ -62,7 +71,10 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             await bus.execute("blockProfile", { sourceProfileId: profile.id, targetProfileId: params.id });
             set.status = 204;
         }, {
-            detail: { summary: "Block a profile" },
+            detail: {
+                operationId: "blockProfile",
+                summary: "Block a profile"
+            },
             params: profileIdParam,
             response: {
                 204: z.never()
@@ -73,7 +85,10 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             await bus.execute("unblockProfile", { sourceProfileId: profile.id, targetProfileId: params.id });
             set.status = 204;
         }, {
-            detail: { summary: "Unblock a profile" },
+            detail: {
+                operationId: "unblockProfile",
+                summary: "Unblock a profile"
+            },
             params: profileIdParam,
             response: {
                 204: z.never()
@@ -87,7 +102,10 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             });
             set.status = 204;
         }, {
-            detail: { summary: "Mute a profile" },
+            detail: {
+                operationId: "muteProfile",
+                summary: "Mute a profile"
+            },
             params: profileIdParam,
             response: {
                 204: z.never()
@@ -101,7 +119,10 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             });
             set.status = 204;
         }, {
-            detail: { summary: "Unmute a profile" },
+            detail: {
+                operationId: "unmuteProfile",
+                summary: "Unmute a profile"
+            },
             params: profileIdParam,
             response: {
                 204: z.never()
@@ -115,7 +136,10 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             });
             set.status = 204;
         }, {
-            detail: { summary: "Follow a profile" },
+            detail: {
+                operationId: "followProfile",
+                summary: "Follow a profile"
+            },
             params: profileIdParam,
             response: {
                 204: z.never()
@@ -129,7 +153,10 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             });
             set.status = 204;
         }, {
-            detail: { summary: "Unfollow a profile" },
+            detail: {
+                operationId: "unfollowProfile",
+                summary: "Unfollow a profile"
+            },
             params: profileIdParam,
             response: {
                 204: z.never()

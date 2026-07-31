@@ -25,7 +25,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
         .get('/', async ({ query }) => {
             return await bus.execute("findPosts", query);
         }, {
-            detail: { summary: "Find posts 🌍" },
+            detail: {
+                operationId: "findPosts",
+                summary: "Find posts 🌍"
+            },
             query: postQueryDto,
             response: {
                 200: postsPageDto
@@ -36,6 +39,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
             return await bus.execute("getPostById", params.id);
         }, {
             detail: {
+                operationId: "getPostById",
                 summary: "Get post by ID 🌍",
                 security: []
             },
@@ -56,7 +60,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
                 });
                 return status(201, post);
             }, {
-                detail: { summary: "Create a new post" },
+                detail: {
+                    operationId: "createPost",
+                    summary: "Create a new post"
+                },
                 body: createPostDto,
                 response: {
                     201: postDto,
@@ -76,7 +83,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
                         profileId: profile.id
                     });
                 }, {
-                    detail: { summary: "Delete post by ID" },
+                    detail: {
+                        operationId: "deletePost",
+                        summary: "Delete post by ID"
+                    },
                     params: postIdParam,
                     response: {
                         200: z.object({
@@ -96,7 +106,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     await bus.execute("likePost", { postId: params.id, user, profile });
                     set.status = 204;
                 }, {
-                    detail: { summary: "Like a post" },
+                    detail: {
+                        operationId: "likePost",
+                        summary: "Like a post"
+                    },
                     params: postIdParam,
                     response: {
                         204: z.never()
@@ -107,7 +120,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     await bus.execute("unlikePost", { profileId: profile.id, postId: params.id });
                     set.status = 204;
                 }, {
-                    detail: { summary: "Unlike a post" },
+                    detail: {
+                        operationId: "unlikePost",
+                        summary: "Unlike a post"
+                    },
                     params: postIdParam,
                     response: {
                         204: z.never()
@@ -121,7 +137,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
                         limit: query.limit
                     });
                 }, {
-                    detail: { summary: "Get likes of a post" },
+                    detail: {
+                        operationId: "getPostLikes",
+                        summary: "Get likes of a post"
+                    },
                     params: postIdParam,
                     query: pageQueryDto,
                     response: {
@@ -133,7 +152,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     await bus.execute("repostPost", { postId: params.id, user, profile });
                     set.status = 204;
                 }, {
-                    detail: { summary: "Repost a post" },
+                    detail: {
+                        operationId: "repostPost",
+                        summary: "Repost a post"
+                    },
                     params: postIdParam,
                     response: {
                         204: z.never()
@@ -144,7 +166,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     await bus.execute("unrepostPost", { profileId: profile.id, postId: params.id });
                     set.status = 204;
                 }, {
-                    detail: { summary: "Unrepost a post" },
+                    detail: {
+                        operationId: "unrepostPost",
+                        summary: "Unrepost a post"
+                    },
                     params: postIdParam,
                     response: {
                         204: z.never()
@@ -158,7 +183,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
                         limit: query.limit
                     });
                 }, {
-                    detail: { summary: "Get reposts of a post" },
+                    detail: {
+                        operationId: "getPostReposts",
+                        summary: "Get reposts of a post"
+                    },
                     params: postIdParam,
                     query: pageQueryDto,
                     response: {
@@ -173,7 +201,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
                         limit: query.limit
                     });
                 }, {
-                    detail: { summary: "Get replies of a post" },
+                    detail: {
+                        operationId: "getPostReplies",
+                        summary: "Get replies of a post"
+                    },
                     params: postIdParam,
                     query: pageQueryDto,
                     response: {
@@ -188,7 +219,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
                         limit: query.limit
                     });
                 }, {
-                    detail: { summary: "Get quotes of a post" },
+                    detail: {
+                        operationId: "getPostQuotes",
+                        summary: "Get quotes of a post"
+                    },
                     params: postIdParam,
                     query: pageQueryDto,
                     response: {

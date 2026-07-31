@@ -21,7 +21,10 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
     .get('/', async ({ profile }) => {
         return profile;
     }, {
-        detail: { summary: "Get current profile" },
+        detail: {
+            operationId: "getCurrentProfile",
+            summary: "Get current profile"
+        },
         response: {
             200: profileDto
         }
@@ -30,7 +33,10 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
     .patch('/', async ({ profile, body }) => {
         return await bus.execute("updateProfile", { id: profile.id, data: body });
     }, {
-        detail: { summary: "Update current profile" },
+        detail: {
+            operationId: "updateCurrentProfile",
+            summary: "Update current profile"
+        },
         body: updateProfileDto,
         response: {
             200: profileDto,
@@ -46,7 +52,10 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
     .get('/blocks', async ({ profile, query }) => {
         return await bus.execute("getBlockedProfiles", { sourceProfileId: profile.id, ...query });
     }, {
-        detail: { summary: "Get all profiles blocked by current profile" },
+        detail: {
+            operationId: "getCurrentProfileBlockedProfiles",
+            summary: "Get all profiles blocked by current profile"
+        },
         query: pageQueryDto,
         response: {
             200: blockedProfilesDto
@@ -56,7 +65,10 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
     .get('/followers', async ({ profile, query }) => {
         return await bus.execute("getFollowers", { targetProfileId: profile.id, ...query });
     }, {
-        detail: { summary: "Get all followers of current profile" },
+        detail: {
+            operationId: "getCurrentProfileFollowers",
+            summary: "Get all followers of current profile"
+        },
         query: pageQueryDto,
         response: {
             200: followsDto
@@ -66,7 +78,10 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
     .get('/following', async ({ profile, query }) => {
         return await bus.execute("getFollowing", { sourceProfileId: profile.id, ...query });
     }, {
-        detail: { summary: "Get all profiles that current profile is following" },
+        detail: {
+            operationId: "getCurrentProfileFollowing",
+            summary: "Get all profiles that current profile is following"
+        },
         query: pageQueryDto,
         response: {
             200: followsDto
@@ -76,7 +91,10 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
     .get('/mutes', async ({ profile, query }) => {
         return await bus.execute("getMutedProfiles", { sourceProfileId: profile.id, ...query });
     }, {
-        detail: { summary: "Get all profiles muted by current profile" },
+        detail: {
+            operationId: "getCurrentProfileMutedProfiles",
+            summary: "Get all profiles muted by current profile"
+        },
         query: pageQueryDto,
         response: {
             200: mutedProfilesDto
@@ -86,7 +104,10 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
     .post('/avatar', async ({ profile, body }) => {
         return await bus.execute("uploadAvatar", { id: profile.id, data: body });
     }, {
-        detail: { summary: "Upload profile avatar" },
+        detail: {
+            operationId: "uploadCurrentProfileAvatar",
+            summary: "Upload profile avatar"
+        },
         body: uploadAvatarDto,
         response: {
             200: profileDto,
@@ -103,7 +124,10 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         await bus.execute("deleteAvatar", { id: profile.id });
         set.status = 204;
     }, {
-        detail: { summary: "Delete profile avatar" },
+        detail: {
+            operationId: "deleteCurrentProfileAvatar",
+            summary: "Delete profile avatar"
+        },
         response: {
             204: z.never().nullish(),
             404: z.object({
@@ -115,7 +139,10 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
     .post('/header', async ({ profile, body }) => {
         return await bus.execute("uploadHeader", { id: profile.id, data: body });
     }, {
-        detail: { summary: "Upload profile header" },
+        detail: {
+            operationId: "uploadCurrentProfileHeader",
+            summary: "Upload profile header"
+        },
         body: uploadHeaderDto,
         response: {
             200: profileDto,
@@ -132,7 +159,10 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         await bus.execute("deleteHeader", { id: profile.id });
         set.status = 204;
     }, {
-        detail: { summary: "Delete profile header" },
+        detail: {
+            operationId: "deleteCurrentProfileHeader",
+            summary: "Delete profile header"
+        },
         response: {
             204: z.never().nullish(),
             404: z.object({

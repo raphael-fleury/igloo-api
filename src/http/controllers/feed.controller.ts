@@ -24,7 +24,10 @@ export const feedController = ({ bus } = getDefaultProps()) =>
                 limit: query.limit
             });
         }, {
-            detail: { summary: "Get following feed" },
+            detail: {
+                operationId: "getFollowingFeed",
+                summary: "Get following feed"
+            },
             query: pageQueryDto,
             response: {
                 200: postsPageDto
@@ -36,7 +39,10 @@ export const feedController = ({ bus } = getDefaultProps()) =>
                 limit: query.limit
             });
         }, {
-            detail: { summary: "Get trending feed" },
+            detail: {
+                operationId: "getTrendingFeed",
+                summary: "Get trending feed"
+            },
             query: pageQueryDto,
             response: {
                 200: postsPageDto

@@ -30,7 +30,10 @@ export const notificationController = ({ bus } = getDefaultProps()) =>
                 limit: query.limit
             });
         }, {
-            detail: { summary: "Get user notifications" },
+            detail: {
+                operationId: "getNotifications",
+                summary: "Get user notifications"
+            },
             query: pageQueryDto,
             response: {
                 200: notificationsPageDto
@@ -44,7 +47,10 @@ export const notificationController = ({ bus } = getDefaultProps()) =>
 
             return { success: true };
         }, {
-            detail: { summary: "Mark notifications as read" },
+            detail: {
+                operationId: "markNotificationsAsRead",
+                summary: "Mark notifications as read"
+            },
             body: markNotificationsAsReadDto,
             response: {
                 200: z.object({ success: z.boolean() })

@@ -29,7 +29,10 @@ export const authController = ({ bus } = getDefaultProps()) =>
 
         return status(201, { token });
     }, {
-        detail: { summary: "Register a new user 🌍" },
+        detail: {
+            operationId: "register",
+            summary: "Register a new user 🌍"
+        },
         body: createUserDto,
         response: {
             201: z.object({
@@ -46,7 +49,10 @@ export const authController = ({ bus } = getDefaultProps()) =>
         const token = await jwt.sign({ userId, profileId });
         return { token };
     }, {
-        detail: { summary: "Login 🌍" },
+        detail: {
+            operationId: "login",
+            summary: "Login 🌍"
+        },
         body: loginDto,
         response: {
             200: z.object({
