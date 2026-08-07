@@ -1,4 +1,5 @@
 import Elysia from "elysia";
+import z from "zod";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { requireProfileMiddleware } from "../middlewares/require-profile.middleware";
 import { CommandBus } from "@/app/cqrs/command-bus";
@@ -30,7 +31,13 @@ export const feedController = ({ bus } = getDefaultProps()) =>
             },
             query: pageQueryDto,
             response: {
-                200: postsPageDto
+                200: postsPageDto,
+                401: z.object({
+                    message: z.string()
+                }),
+                403: z.object({
+                    message: z.string()
+                })
             }
         })
         .get('/trending', async ({ query }) => {
@@ -45,6 +52,12 @@ export const feedController = ({ bus } = getDefaultProps()) =>
             },
             query: pageQueryDto,
             response: {
-                200: postsPageDto
+                200: postsPageDto,
+                401: z.object({
+                    message: z.string()
+                }),
+                403: z.object({
+                    message: z.string()
+                })
             }
         });

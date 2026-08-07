@@ -67,6 +67,12 @@ export const postController = ({ bus } = getDefaultProps()) =>
                 body: createPostDto,
                 response: {
                     201: postDto,
+                    401: z.object({
+                        message: z.string()
+                    }),
+                    403: z.object({
+                        message: z.string()
+                    }),
                     404: z.object({
                         message: z.string()
                     }),
@@ -93,10 +99,13 @@ export const postController = ({ bus } = getDefaultProps()) =>
                             message: z.string(),
                             deletedAt: dateDto
                         }),
-                        404: z.object({
+                        401: z.object({
                             message: z.string()
                         }),
                         403: z.object({
+                            message: z.string()
+                        }),
+                        404: z.object({
                             message: z.string()
                         })
                     }
@@ -112,7 +121,13 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     },
                     params: postIdParam,
                     response: {
-                        204: z.never()
+                        204: z.never(),
+                        401: z.object({
+                            message: z.string()
+                        }),
+                        403: z.object({
+                            message: z.string()
+                        })
                     }
                 })
 
@@ -126,7 +141,13 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     },
                     params: postIdParam,
                     response: {
-                        204: z.never()
+                        204: z.never(),
+                        401: z.object({
+                            message: z.string()
+                        }),
+                        403: z.object({
+                            message: z.string()
+                        })
                     }
                 })
 
@@ -144,7 +165,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     params: postIdParam,
                     query: pageQueryDto,
                     response: {
-                        200: likesDto
+                        200: likesDto,
+                        404: z.object({
+                            message: z.string()
+                        })
                     }
                 })
 
@@ -158,7 +182,13 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     },
                     params: postIdParam,
                     response: {
-                        204: z.never()
+                        204: z.never(),
+                        401: z.object({
+                            message: z.string()
+                        }),
+                        403: z.object({
+                            message: z.string()
+                        })
                     }
                 })
 
@@ -172,7 +202,13 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     },
                     params: postIdParam,
                     response: {
-                        204: z.never()
+                        204: z.never(),
+                        401: z.object({
+                            message: z.string()
+                        }),
+                        403: z.object({
+                            message: z.string()
+                        })
                     }
                 })
 
@@ -190,7 +226,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     params: postIdParam,
                     query: pageQueryDto,
                     response: {
-                        200: repostsDto
+                        200: repostsDto,
+                        404: z.object({
+                            message: z.string()
+                        })
                     }
                 })
 
@@ -208,7 +247,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     params: postIdParam,
                     query: pageQueryDto,
                     response: {
-                        200: postsPageDto
+                        200: postsPageDto,
+                        404: z.object({
+                            message: z.string()
+                        })
                     }
                 })
 
@@ -226,7 +268,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     params: postIdParam,
                     query: pageQueryDto,
                     response: {
-                        200: postsPageDto
+                        200: postsPageDto,
+                        404: z.object({
+                            message: z.string()
+                        })
                     }
                 })
             )

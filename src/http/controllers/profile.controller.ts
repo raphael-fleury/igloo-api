@@ -49,7 +49,16 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             params: profileIdParam,
             query: pageQueryDto,
             response: {
-                200: followsDto
+                200: followsDto,
+                401: z.object({
+                    message: z.string()
+                }),
+                403: z.object({
+                    message: z.string()
+                }),
+                404: z.object({
+                    message: z.string()
+                })
             }
         })
 
@@ -63,7 +72,16 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             params: profileIdParam,
             query: pageQueryDto,
             response: {
-                200: followsDto
+                200: followsDto,
+                401: z.object({
+                    message: z.string()
+                }),
+                403: z.object({
+                    message: z.string()
+                }),
+                404: z.object({
+                    message: z.string()
+                })
             }
         })
 
@@ -77,7 +95,13 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             },
             params: profileIdParam,
             response: {
-                204: z.never()
+                204: z.never(),
+                401: z.object({
+                    message: z.string()
+                }),
+                403: z.object({
+                    message: z.string()
+                })
             }
         })
 
@@ -91,7 +115,13 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             },
             params: profileIdParam,
             response: {
-                204: z.never()
+                204: z.never(),
+                401: z.object({
+                    message: z.string()
+                }),
+                403: z.object({
+                    message: z.string()
+                })
             }
         })
 
@@ -108,7 +138,13 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             },
             params: profileIdParam,
             response: {
-                204: z.never()
+                204: z.never(),
+                401: z.object({
+                    message: z.string()
+                }),
+                403: z.object({
+                    message: z.string()
+                })
             }
         })
 
@@ -125,7 +161,13 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             },
             params: profileIdParam,
             response: {
-                204: z.never()
+                204: z.never(),
+                401: z.object({
+                    message: z.string()
+                }),
+                403: z.object({
+                    message: z.string()
+                })
             }
         })
 
@@ -142,7 +184,13 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             },
             params: profileIdParam,
             response: {
-                204: z.never()
+                204: z.never(),
+                401: z.object({
+                    message: z.string()
+                }),
+                403: z.object({
+                    message: z.string()
+                })
             }
         })
 
@@ -159,7 +207,13 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             },
             params: profileIdParam,
             response: {
-                204: z.never()
+                204: z.never(),
+                401: z.object({
+                    message: z.string()
+                }),
+                403: z.object({
+                    message: z.string()
+                })
             }
         })
     );

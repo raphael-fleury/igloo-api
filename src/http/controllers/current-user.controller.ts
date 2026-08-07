@@ -25,7 +25,10 @@ export const currentUserController = ({ bus } = getDefaultProps()) =>
             summary: "Get current user"
         },
         response: {
-            200: userDto
+            200: userDto,
+            401: z.object({
+                message: z.string()
+            })
         }
     })
 
@@ -39,6 +42,9 @@ export const currentUserController = ({ bus } = getDefaultProps()) =>
         body: updateUserDto,
         response: {
             200: userDto,
+            401: z.object({
+                message: z.string()
+            }),
             404: z.object({
                 message: z.string()
             }),

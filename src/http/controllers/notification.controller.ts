@@ -2,10 +2,9 @@ import Elysia from "elysia";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { requireProfileMiddleware } from "../middlewares/require-profile.middleware";
 import { CommandBus } from "@/app/cqrs/command-bus";
-import { pageQueryDto } from "@/app/dtos/common.dtos";
+import { idDto, pageQueryDto } from "@/app/dtos/common.dtos";
 import { notificationsPageDto } from "@/app/dtos/notification.dtos";
 import z from "zod";
-import { idDto } from "@/app/dtos/common.dtos";
 
 const getDefaultProps = () => ({
     bus: CommandBus.default,
@@ -36,7 +35,13 @@ export const notificationController = ({ bus } = getDefaultProps()) =>
             },
             query: pageQueryDto,
             response: {
-                200: notificationsPageDto
+                200: notificationsPageDto,
+                401: z.object({
+                    message: z.string()
+                }),
+                403: z.object({
+                    message: z.string()
+                })
             }
         })
         .post('/read', async ({ profile, body }) => {
@@ -53,6 +58,12 @@ export const notificationController = ({ bus } = getDefaultProps()) =>
             },
             body: markNotificationsAsReadDto,
             response: {
-                200: z.object({ success: z.boolean() })
+                200: z.object({ success: z.boolean() }),
+                401: z.object({
+                    message: z.string()
+                }),
+                403: z.object({
+                    message: z.string()
+                })
             }
         });

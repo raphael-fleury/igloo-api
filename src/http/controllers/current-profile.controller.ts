@@ -26,7 +26,13 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
             summary: "Get current profile"
         },
         response: {
-            200: profileDto
+            200: profileDto,
+            401: z.object({
+                message: z.string()
+            }),
+            403: z.object({
+                message: z.string()
+            })
         }
     })
 
@@ -40,6 +46,12 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         body: updateProfileDto,
         response: {
             200: profileDto,
+            401: z.object({
+                message: z.string()
+            }),
+            403: z.object({
+                message: z.string()
+            }),
             409: z.object({
                 message: z.string()
             }),
@@ -58,7 +70,13 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         },
         query: pageQueryDto,
         response: {
-            200: blockedProfilesDto
+            200: blockedProfilesDto,
+            401: z.object({
+                message: z.string()
+            }),
+            403: z.object({
+                message: z.string()
+            })
         }
     })
 
@@ -71,7 +89,13 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         },
         query: pageQueryDto,
         response: {
-            200: followsDto
+            200: followsDto,
+            401: z.object({
+                message: z.string()
+            }),
+            403: z.object({
+                message: z.string()
+            })
         }
     })
 
@@ -84,7 +108,13 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         },
         query: pageQueryDto,
         response: {
-            200: followsDto
+            200: followsDto,
+            401: z.object({
+                message: z.string()
+            }),
+            403: z.object({
+                message: z.string()
+            })
         }
     })
 
@@ -97,7 +127,13 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         },
         query: pageQueryDto,
         response: {
-            200: mutedProfilesDto
+            200: mutedProfilesDto,
+            401: z.object({
+                message: z.string()
+            }),
+            403: z.object({
+                message: z.string()
+            })
         }
     })
 
@@ -111,6 +147,12 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         body: uploadAvatarDto,
         response: {
             200: profileDto,
+            401: z.object({
+                message: z.string()
+            }),
+            403: z.object({
+                message: z.string()
+            }),
             404: z.object({
                 message: z.string()
             }),
@@ -130,6 +172,12 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         },
         response: {
             204: z.never().nullish(),
+            401: z.object({
+                message: z.string()
+            }),
+            403: z.object({
+                message: z.string()
+            }),
             404: z.object({
                 message: z.string()
             })
@@ -146,6 +194,12 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         body: uploadHeaderDto,
         response: {
             200: profileDto,
+            401: z.object({
+                message: z.string()
+            }),
+            403: z.object({
+                message: z.string()
+            }),
             404: z.object({
                 message: z.string()
             }),
@@ -165,6 +219,12 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         },
         response: {
             204: z.never().nullish(),
+            401: z.object({
+                message: z.string()
+            }),
+            403: z.object({
+                message: z.string()
+            }),
             404: z.object({
                 message: z.string()
             })
