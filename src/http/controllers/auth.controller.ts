@@ -21,9 +21,6 @@ export const authController = ({ bus } = getDefaultProps()) =>
     .model({
         TokenResponse: z.object({
             token: z.string()
-        }),
-        UnprocessableEntity: z.object({
-            message: z.string()
         })
     })
 

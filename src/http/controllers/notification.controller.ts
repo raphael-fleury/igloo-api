@@ -23,12 +23,6 @@ export const notificationController = ({ bus } = getDefaultProps()) =>
         })
         .model({
             NotificationsPage: notificationsPageDto,
-            UnauthorizedError: z.object({
-                message: z.string()
-            }),
-            ForbiddenError: z.object({
-                message: z.string()
-            }),
             SuccessResponse: z.object({ 
                 success: z.boolean() 
             })

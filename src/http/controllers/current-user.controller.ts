@@ -17,16 +17,7 @@ export const currentUserController = ({ bus } = getDefaultProps()) =>
         detail: { tags: ['Current User'] }
     })
     .model({
-        User: userDto,
-        UnauthorizedError: z.object({
-            message: z.string()
-        }),
-        NotFoundError: z.object({
-            message: z.string()
-        }),
-        UnprocessableEntity: z.object({
-            message: z.string()
-        })
+        User: userDto
     })
 
     .get('/', async ({ user }) => {

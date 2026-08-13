@@ -22,21 +22,6 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         BlockedProfilesPage: blockedProfilesDto,
         FollowsPage: followsDto,
         MutedProfilesPage: mutedProfilesDto,
-        UnauthorizedError: z.object({
-            message: z.string()
-        }),
-        ForbiddenError: z.object({
-            message: z.string()
-        }),
-        NotFoundError: z.object({
-            message: z.string()
-        }),
-        UnprocessableEntity: z.object({
-            message: z.string()
-        }),
-        ConflictError: z.object({
-            message: z.string()
-        }),
         NoContent: z.never().nullish()
     })
 

@@ -27,18 +27,6 @@ export const postController = ({ bus } = getDefaultProps()) =>
             Post: postDto,
             LikesPage: likesDto,
             RepostsPage: repostsDto,
-            UnauthorizedError: z.object({
-                message: z.string()
-            }),
-            ForbiddenError: z.object({
-                message: z.string()
-            }),
-            NotFoundError: z.object({
-                message: z.string()
-            }),
-            UnprocessableEntity: z.object({
-                message: z.string()
-            }),
             DeletedResponse: z.object({
                 message: z.string(),
                 deletedAt: dateDto

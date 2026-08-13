@@ -23,15 +23,6 @@ export const profileController = ({ bus } = getDefaultProps()) =>
     .model({
         Profile: profileDto,
         FollowsPage: followsDto,
-        UnauthorizedError: z.object({
-            message: z.string()
-        }),
-        ForbiddenError: z.object({
-            message: z.string()
-        }),
-        NotFoundError: z.object({
-            message: z.string()
-        }),
         NoContent: z.never()
     })
 

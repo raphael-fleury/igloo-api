@@ -1,7 +1,25 @@
+import z from "zod";
 import { Elysia } from "elysia";
 import { AlreadyExistsError, NotFoundError, SelfInteractionError, BlockedError, UnauthorizedError, ConflictError } from "@/app/errors";
 
 export const onErrorMiddleware = (app: Elysia) => app
+    .model({
+        UnauthorizedError: z.object({
+            message: z.string()
+        }),
+        ForbiddenError: z.object({
+            message: z.string()
+        }),
+        NotFoundError: z.object({
+            message: z.string()
+        }),
+        UnprocessableEntity: z.object({
+            message: z.string()
+        }),
+        ConflictError: z.object({
+            message: z.string()
+        }),
+    })
     .error({
         AlreadyExistsError,
         NotFoundError,

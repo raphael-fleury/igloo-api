@@ -18,13 +18,7 @@ export const feedController = ({ bus } = getDefaultProps()) =>
             detail: { tags: ['Feeds'] }
         })
         .model({
-            PostsPage: postsPageDto,
-            UnauthorizedError: z.object({
-                message: z.string()
-            }),
-            ForbiddenError: z.object({
-                message: z.string()
-            })
+            PostsPage: postsPageDto
         })
 
         .get('/following', async ({ profile, query }) => {
