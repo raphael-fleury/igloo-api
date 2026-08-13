@@ -22,6 +22,11 @@ export const postController = ({ bus } = getDefaultProps()) =>
             detail: { tags: ['Posts'] }
         })
         .model({
+            PostsPage: postsPageDto,
+            PostDetailed: postDetailedDto,
+            Post: postDto,
+            LikesPage: likesDto,
+            RepostsPage: repostsDto,
             UnauthorizedError: z.object({
                 message: z.string()
             }),
@@ -50,7 +55,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
             },
             query: postQueryDto,
             response: {
-                200: postsPageDto
+                200: 'PostsPage'
             }
         })
 
@@ -64,7 +69,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
             },
             params: postIdParam,
             response: {
-                200: postDetailedDto,
+                200: 'PostDetailed',
                 404: 'NotFoundError'
             }
         })
@@ -83,7 +88,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                 },
                 body: createPostDto,
                 response: {
-                    201: postDto,
+                    201: 'Post',
                     401: 'UnauthorizedError',
                     403: 'ForbiddenError',
                     404: 'NotFoundError',
@@ -157,7 +162,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     params: postIdParam,
                     query: pageQueryDto,
                     response: {
-                        200: likesDto,
+                        200: 'LikesPage',
                         404: 'NotFoundError'
                     }
                 })
@@ -208,7 +213,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     params: postIdParam,
                     query: pageQueryDto,
                     response: {
-                        200: repostsDto,
+                        200: 'RepostsPage',
                         404: 'NotFoundError'
                     }
                 })
@@ -227,7 +232,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     params: postIdParam,
                     query: pageQueryDto,
                     response: {
-                        200: postsPageDto,
+                        200: 'PostsPage',
                         404: 'NotFoundError'
                     }
                 })
@@ -246,7 +251,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     params: postIdParam,
                     query: pageQueryDto,
                     response: {
-                        200: postsPageDto,
+                        200: 'PostsPage',
                         404: 'NotFoundError'
                     }
                 })

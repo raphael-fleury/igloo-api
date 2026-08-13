@@ -18,6 +18,7 @@ export const feedController = ({ bus } = getDefaultProps()) =>
             detail: { tags: ['Feeds'] }
         })
         .model({
+            PostsPage: postsPageDto,
             UnauthorizedError: z.object({
                 message: z.string()
             }),
@@ -39,7 +40,7 @@ export const feedController = ({ bus } = getDefaultProps()) =>
             },
             query: pageQueryDto,
             response: {
-                200: postsPageDto,
+                200: 'PostsPage',
                 401: 'UnauthorizedError',
                 403: 'ForbiddenError'
             }
@@ -56,7 +57,7 @@ export const feedController = ({ bus } = getDefaultProps()) =>
             },
             query: pageQueryDto,
             response: {
-                200: postsPageDto,
+                200: 'PostsPage',
                 401: 'UnauthorizedError',
                 403: 'ForbiddenError'
             }

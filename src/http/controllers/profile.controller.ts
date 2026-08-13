@@ -21,6 +21,8 @@ export const profileController = ({ bus } = getDefaultProps()) =>
         detail: { tags: ['Profiles'] }
     })
     .model({
+        Profile: profileDto,
+        FollowsPage: followsDto,
         UnauthorizedError: z.object({
             message: z.string()
         }),
@@ -42,7 +44,7 @@ export const profileController = ({ bus } = getDefaultProps()) =>
         },
         params: profileIdParam,
         response: {
-            200: profileDto,
+            200: 'Profile',
             404: 'NotFoundError'
         }
     })
@@ -59,7 +61,7 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             params: profileIdParam,
             query: pageQueryDto,
             response: {
-                200: followsDto,
+                200: 'FollowsPage',
                 401: 'UnauthorizedError',
                 403: 'ForbiddenError',
                 404: 'NotFoundError'
@@ -76,7 +78,7 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             params: profileIdParam,
             query: pageQueryDto,
             response: {
-                200: followsDto,
+                200: 'FollowsPage',
                 401: 'UnauthorizedError',
                 403: 'ForbiddenError',
                 404: 'NotFoundError'

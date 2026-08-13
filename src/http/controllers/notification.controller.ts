@@ -22,6 +22,7 @@ export const notificationController = ({ bus } = getDefaultProps()) =>
             detail: { tags: ['Notifications'] }
         })
         .model({
+            NotificationsPage: notificationsPageDto,
             UnauthorizedError: z.object({
                 message: z.string()
             }),
@@ -46,7 +47,7 @@ export const notificationController = ({ bus } = getDefaultProps()) =>
             },
             query: pageQueryDto,
             response: {
-                200: notificationsPageDto,
+                200: 'NotificationsPage',
                 401: 'UnauthorizedError',
                 403: 'ForbiddenError'
             }

@@ -17,6 +17,7 @@ export const currentUserController = ({ bus } = getDefaultProps()) =>
         detail: { tags: ['Current User'] }
     })
     .model({
+        User: userDto,
         UnauthorizedError: z.object({
             message: z.string()
         }),
@@ -36,7 +37,7 @@ export const currentUserController = ({ bus } = getDefaultProps()) =>
             summary: "Get current user"
         },
         response: {
-            200: userDto,
+            200: 'User',
             401: 'UnauthorizedError'
         }
     })
@@ -50,7 +51,7 @@ export const currentUserController = ({ bus } = getDefaultProps()) =>
         },
         body: updateUserDto,
         response: {
-            200: userDto,
+            200: 'User',
             401: 'UnauthorizedError',
             404: 'NotFoundError',
             422: 'UnprocessableEntity'

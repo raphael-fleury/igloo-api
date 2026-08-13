@@ -18,6 +18,10 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         detail: { tags: ['Current Profile'] }
     })
     .model({
+        Profile: profileDto,
+        BlockedProfilesPage: blockedProfilesDto,
+        FollowsPage: followsDto,
+        MutedProfilesPage: mutedProfilesDto,
         UnauthorizedError: z.object({
             message: z.string()
         }),
@@ -44,7 +48,7 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
             summary: "Get current profile"
         },
         response: {
-            200: profileDto,
+            200: 'Profile',
             401: 'UnauthorizedError',
             403: 'ForbiddenError'
         }
@@ -59,7 +63,7 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         },
         body: updateProfileDto,
         response: {
-            200: profileDto,
+            200: 'Profile',
             401: 'UnauthorizedError',
             403: 'ForbiddenError',
             409: 'ConflictError',
@@ -76,7 +80,7 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         },
         query: pageQueryDto,
         response: {
-            200: blockedProfilesDto,
+            200: 'BlockedProfilesPage',
             401: 'UnauthorizedError',
             403: 'ForbiddenError'
         }
@@ -91,7 +95,7 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         },
         query: pageQueryDto,
         response: {
-            200: followsDto,
+            200: 'FollowsPage',
             401: 'UnauthorizedError',
             403: 'ForbiddenError'
         }
@@ -106,7 +110,7 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         },
         query: pageQueryDto,
         response: {
-            200: followsDto,
+            200: 'FollowsPage',
             401: 'UnauthorizedError',
             403: 'ForbiddenError'
         }
@@ -121,7 +125,7 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         },
         query: pageQueryDto,
         response: {
-            200: mutedProfilesDto,
+            200: 'MutedProfilesPage',
             401: 'UnauthorizedError',
             403: 'ForbiddenError'
         }
@@ -136,7 +140,7 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         },
         body: uploadAvatarDto,
         response: {
-            200: profileDto,
+            200: 'Profile',
             401: 'UnauthorizedError',
             403: 'ForbiddenError',
             404: 'NotFoundError',
@@ -169,7 +173,7 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         },
         body: uploadHeaderDto,
         response: {
-            200: profileDto,
+            200: 'Profile',
             401: 'UnauthorizedError',
             403: 'ForbiddenError',
             404: 'NotFoundError',
