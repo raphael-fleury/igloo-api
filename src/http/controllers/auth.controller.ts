@@ -19,6 +19,8 @@ export const authController = ({ bus } = getDefaultProps()) =>
         security: []
     })
     .model({
+        LoginPayload: loginDto,
+        CreateUserPayload: createUserDto,
         TokenResponse: z.object({
             token: z.string()
         })
@@ -38,7 +40,7 @@ export const authController = ({ bus } = getDefaultProps()) =>
             operationId: "register",
             summary: "Register a new user 🌍"
         },
-        body: createUserDto,
+        body: 'CreateUserPayload',
         response: {
             201: 'TokenResponse',
             422: 'UnprocessableEntity'
@@ -54,7 +56,7 @@ export const authController = ({ bus } = getDefaultProps()) =>
             operationId: "login",
             summary: "Login 🌍"
         },
-        body: loginDto,
+        body: 'LoginPayload',
         response: {
             200: 'TokenResponse',
             422: 'UnprocessableEntity'

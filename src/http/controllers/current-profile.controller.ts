@@ -18,6 +18,9 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         detail: { tags: ['Current Profile'] }
     })
     .model({
+        UpdateProfilePayload: updateProfileDto,
+        UploadAvatarPayload: uploadAvatarDto,
+        UploadHeaderPayload: uploadHeaderDto,
         Profile: profileDto,
         BlockedProfilesPage: blockedProfilesDto,
         FollowsPage: followsDto,
@@ -46,7 +49,7 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
             operationId: "updateCurrentProfile",
             summary: "Update current profile"
         },
-        body: updateProfileDto,
+        body: 'UpdateProfilePayload',
         response: {
             200: 'Profile',
             401: 'UnauthorizedError',
@@ -123,7 +126,7 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
             operationId: "uploadCurrentProfileAvatar",
             summary: "Upload profile avatar"
         },
-        body: uploadAvatarDto,
+        body: 'UploadAvatarPayload',
         response: {
             200: 'Profile',
             401: 'UnauthorizedError',
@@ -156,7 +159,7 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
             operationId: "uploadCurrentProfileHeader",
             summary: "Upload profile header"
         },
-        body: uploadHeaderDto,
+        body: 'UploadHeaderPayload',
         response: {
             200: 'Profile',
             401: 'UnauthorizedError',

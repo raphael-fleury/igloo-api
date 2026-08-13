@@ -17,7 +17,8 @@ export const currentUserController = ({ bus } = getDefaultProps()) =>
         detail: { tags: ['Current User'] }
     })
     .model({
-        User: userDto
+        User: userDto,
+        UpdateUserPayload: updateUserDto
     })
 
     .get('/', async ({ user }) => {
@@ -40,7 +41,7 @@ export const currentUserController = ({ bus } = getDefaultProps()) =>
             operationId: "updateCurrentUser",
             summary: "Update current user"
         },
-        body: updateUserDto,
+        body: 'UpdateUserPayload',
         response: {
             200: 'User',
             401: 'UnauthorizedError',

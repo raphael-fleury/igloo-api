@@ -2,14 +2,10 @@ import z from "zod";
 import Elysia, { status } from "elysia";
 import { createPostDto, postDetailedDto, postDto, postQueryDto, postsPageDto } from "@/app/dtos/post.dtos";
 import { likesDto, repostsDto } from "@/app/dtos/profile.dtos";
-import { dateDto, pageQueryDto } from "@/app/dtos/common.dtos";
+import { dateDto, idQueryDto, pageQueryDto } from "@/app/dtos/common.dtos";
 import { onErrorMiddleware } from "../middlewares/on-error.middleware";
 import { requireProfileMiddleware } from "../middlewares/require-profile.middleware";
 import { CommandBus } from "@/app/cqrs/command-bus";
-
-const postIdParam = z.object({
-    id: z.uuid()
-});
 
 const getDefaultProps = () => ({
     bus: CommandBus.default,
@@ -23,6 +19,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
         })
         .model({
             PostsPage: postsPageDto,
+            CreatePostPayload: createPostDto,
             PostDetailed: postDetailedDto,
             Post: postDto,
             LikesPage: likesDto,
@@ -55,7 +52,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                 summary: "Get post by ID 🌍",
                 security: []
             },
-            params: postIdParam,
+            params: idQueryDto,
             response: {
                 200: 'PostDetailed',
                 404: 'NotFoundError'
@@ -74,7 +71,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     operationId: "createPost",
                     summary: "Create a new post"
                 },
-                body: createPostDto,
+                body: 'CreatePostPayload',
                 response: {
                     201: 'Post',
                     401: 'UnauthorizedError',
@@ -95,7 +92,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                         operationId: "deletePost",
                         summary: "Delete post by ID"
                     },
-                    params: postIdParam,
+                    params: idQueryDto,
                     response: {
                         200: 'DeletedResponse',
                         401: 'UnauthorizedError',
@@ -112,7 +109,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                         operationId: "likePost",
                         summary: "Like a post"
                     },
-                    params: postIdParam,
+                    params: idQueryDto,
                     response: {
                         204: 'NoContent',
                         401: 'UnauthorizedError',
@@ -128,7 +125,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                         operationId: "unlikePost",
                         summary: "Unlike a post"
                     },
-                    params: postIdParam,
+                    params: idQueryDto,
                     response: {
                         204: 'NoContent',
                         401: 'UnauthorizedError',
@@ -147,7 +144,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                         operationId: "getPostLikes",
                         summary: "Get likes of a post"
                     },
-                    params: postIdParam,
+                    params: idQueryDto,
                     query: pageQueryDto,
                     response: {
                         200: 'LikesPage',
@@ -163,7 +160,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                         operationId: "repostPost",
                         summary: "Repost a post"
                     },
-                    params: postIdParam,
+                    params: idQueryDto,
                     response: {
                         204: 'NoContent',
                         401: 'UnauthorizedError',
@@ -179,7 +176,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                         operationId: "unrepostPost",
                         summary: "Unrepost a post"
                     },
-                    params: postIdParam,
+                    params: idQueryDto,
                     response: {
                         204: 'NoContent',
                         401: 'UnauthorizedError',
@@ -198,7 +195,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                         operationId: "getPostReposts",
                         summary: "Get reposts of a post"
                     },
-                    params: postIdParam,
+                    params: idQueryDto,
                     query: pageQueryDto,
                     response: {
                         200: 'RepostsPage',
@@ -217,7 +214,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                         operationId: "getPostReplies",
                         summary: "Get replies of a post"
                     },
-                    params: postIdParam,
+                    params: idQueryDto,
                     query: pageQueryDto,
                     response: {
                         200: 'PostsPage',
@@ -236,7 +233,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                         operationId: "getPostQuotes",
                         summary: "Get quotes of a post"
                     },
-                    params: postIdParam,
+                    params: idQueryDto,
                     query: pageQueryDto,
                     response: {
                         200: 'PostsPage',

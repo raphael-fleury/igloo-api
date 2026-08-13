@@ -10,9 +10,6 @@ const getDefaultProps = () => ({
     bus: CommandBus.default,
 })
 
-const markNotificationsAsReadDto = z.object({
-    notificationIds: z.array(idDto).optional()
-});
 
 export const notificationController = ({ bus } = getDefaultProps()) =>
     new Elysia({ prefix: "/notifications" })
@@ -23,9 +20,12 @@ export const notificationController = ({ bus } = getDefaultProps()) =>
         })
         .model({
             NotificationsPage: notificationsPageDto,
-            SuccessResponse: z.object({ 
-                success: z.boolean() 
-            })
+            NotificationsReadPayload: z.object({
+                notificationIds: z.array(idDto).optional()
+            }),
+            SuccessResponse: z.object({
+                success: z.boolean()
+            }),
         })
 
         .get('/', async ({ profile, query }) => {
@@ -58,7 +58,7 @@ export const notificationController = ({ bus } = getDefaultProps()) =>
                 operationId: "markNotificationsAsRead",
                 summary: "Mark notifications as read"
             },
-            body: markNotificationsAsReadDto,
+            body: 'NotificationsReadPayload',
             response: {
                 200: 'SuccessResponse',
                 401: 'UnauthorizedError',
