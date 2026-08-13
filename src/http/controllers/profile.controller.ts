@@ -20,6 +20,18 @@ export const profileController = ({ bus } = getDefaultProps()) =>
     .guard({
         detail: { tags: ['Profiles'] }
     })
+    .model({
+        UnauthorizedError: z.object({
+            message: z.string()
+        }),
+        ForbiddenError: z.object({
+            message: z.string()
+        }),
+        NotFoundError: z.object({
+            message: z.string()
+        }),
+        NoContent: z.never()
+    })
 
     .get('/:id', async ({ params }) => {
         return await bus.execute("getProfileById", params.id);
@@ -31,9 +43,7 @@ export const profileController = ({ bus } = getDefaultProps()) =>
         params: profileIdParam,
         response: {
             200: profileDto,
-            404: z.object({
-                message: z.string()
-            })
+            404: 'NotFoundError'
         }
     })
 
@@ -50,15 +60,9 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             query: pageQueryDto,
             response: {
                 200: followsDto,
-                401: z.object({
-                    message: z.string()
-                }),
-                403: z.object({
-                    message: z.string()
-                }),
-                404: z.object({
-                    message: z.string()
-                })
+                401: 'UnauthorizedError',
+                403: 'ForbiddenError',
+                404: 'NotFoundError'
             }
         })
 
@@ -73,15 +77,9 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             query: pageQueryDto,
             response: {
                 200: followsDto,
-                401: z.object({
-                    message: z.string()
-                }),
-                403: z.object({
-                    message: z.string()
-                }),
-                404: z.object({
-                    message: z.string()
-                })
+                401: 'UnauthorizedError',
+                403: 'ForbiddenError',
+                404: 'NotFoundError'
             }
         })
 
@@ -95,13 +93,9 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             },
             params: profileIdParam,
             response: {
-                204: z.never(),
-                401: z.object({
-                    message: z.string()
-                }),
-                403: z.object({
-                    message: z.string()
-                })
+                204: 'NoContent',
+                401: 'UnauthorizedError',
+                403: 'ForbiddenError'
             }
         })
 
@@ -115,13 +109,9 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             },
             params: profileIdParam,
             response: {
-                204: z.never(),
-                401: z.object({
-                    message: z.string()
-                }),
-                403: z.object({
-                    message: z.string()
-                })
+                204: 'NoContent',
+                401: 'UnauthorizedError',
+                403: 'ForbiddenError'
             }
         })
 
@@ -138,13 +128,9 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             },
             params: profileIdParam,
             response: {
-                204: z.never(),
-                401: z.object({
-                    message: z.string()
-                }),
-                403: z.object({
-                    message: z.string()
-                })
+                204: 'NoContent',
+                401: 'UnauthorizedError',
+                403: 'ForbiddenError'
             }
         })
 
@@ -161,13 +147,9 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             },
             params: profileIdParam,
             response: {
-                204: z.never(),
-                401: z.object({
-                    message: z.string()
-                }),
-                403: z.object({
-                    message: z.string()
-                })
+                204: 'NoContent',
+                401: 'UnauthorizedError',
+                403: 'ForbiddenError'
             }
         })
 
@@ -184,13 +166,9 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             },
             params: profileIdParam,
             response: {
-                204: z.never(),
-                401: z.object({
-                    message: z.string()
-                }),
-                403: z.object({
-                    message: z.string()
-                })
+                204: 'NoContent',
+                401: 'UnauthorizedError',
+                403: 'ForbiddenError'
             }
         })
 
@@ -207,13 +185,9 @@ export const profileController = ({ bus } = getDefaultProps()) =>
             },
             params: profileIdParam,
             response: {
-                204: z.never(),
-                401: z.object({
-                    message: z.string()
-                }),
-                403: z.object({
-                    message: z.string()
-                })
+                204: 'NoContent',
+                401: 'UnauthorizedError',
+                403: 'ForbiddenError'
             }
         })
     );

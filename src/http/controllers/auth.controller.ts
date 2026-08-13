@@ -18,6 +18,14 @@ export const authController = ({ bus } = getDefaultProps()) =>
         detail: { tags: ['Auth'] },
         security: []
     })
+    .model({
+        TokenResponse: z.object({
+            token: z.string()
+        }),
+        UnprocessableEntity: z.object({
+            message: z.string()
+        })
+    })
 
     .post('/register', async ({ body, jwt }) => {
         const userWithProfile = await bus.execute("createUser", body);
@@ -35,12 +43,8 @@ export const authController = ({ bus } = getDefaultProps()) =>
         },
         body: createUserDto,
         response: {
-            201: z.object({
-                token: z.string()
-            }),
-            422: z.object({
-                message: z.string()
-            })
+            201: 'TokenResponse',
+            422: 'UnprocessableEntity'
         }
     })
 
@@ -55,12 +59,8 @@ export const authController = ({ bus } = getDefaultProps()) =>
         },
         body: loginDto,
         response: {
-            200: z.object({
-                token: z.string()
-            }),
-            422: z.object({
-                message: z.string()
-            })
+            200: 'TokenResponse',
+            422: 'UnprocessableEntity'
         }
     })
 

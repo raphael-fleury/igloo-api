@@ -17,6 +17,14 @@ export const feedController = ({ bus } = getDefaultProps()) =>
         .guard({
             detail: { tags: ['Feeds'] }
         })
+        .model({
+            UnauthorizedError: z.object({
+                message: z.string()
+            }),
+            ForbiddenError: z.object({
+                message: z.string()
+            })
+        })
 
         .get('/following', async ({ profile, query }) => {
             return await bus.execute("getFollowingFeed", {
@@ -32,12 +40,8 @@ export const feedController = ({ bus } = getDefaultProps()) =>
             query: pageQueryDto,
             response: {
                 200: postsPageDto,
-                401: z.object({
-                    message: z.string()
-                }),
-                403: z.object({
-                    message: z.string()
-                })
+                401: 'UnauthorizedError',
+                403: 'ForbiddenError'
             }
         })
         .get('/trending', async ({ query }) => {
@@ -53,11 +57,7 @@ export const feedController = ({ bus } = getDefaultProps()) =>
             query: pageQueryDto,
             response: {
                 200: postsPageDto,
-                401: z.object({
-                    message: z.string()
-                }),
-                403: z.object({
-                    message: z.string()
-                })
+                401: 'UnauthorizedError',
+                403: 'ForbiddenError'
             }
         });

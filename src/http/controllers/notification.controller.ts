@@ -21,6 +21,17 @@ export const notificationController = ({ bus } = getDefaultProps()) =>
         .guard({
             detail: { tags: ['Notifications'] }
         })
+        .model({
+            UnauthorizedError: z.object({
+                message: z.string()
+            }),
+            ForbiddenError: z.object({
+                message: z.string()
+            }),
+            SuccessResponse: z.object({ 
+                success: z.boolean() 
+            })
+        })
 
         .get('/', async ({ profile, query }) => {
             return await bus.execute("getNotifications", {
@@ -36,12 +47,8 @@ export const notificationController = ({ bus } = getDefaultProps()) =>
             query: pageQueryDto,
             response: {
                 200: notificationsPageDto,
-                401: z.object({
-                    message: z.string()
-                }),
-                403: z.object({
-                    message: z.string()
-                })
+                401: 'UnauthorizedError',
+                403: 'ForbiddenError'
             }
         })
         .post('/read', async ({ profile, body }) => {
@@ -58,12 +65,8 @@ export const notificationController = ({ bus } = getDefaultProps()) =>
             },
             body: markNotificationsAsReadDto,
             response: {
-                200: z.object({ success: z.boolean() }),
-                401: z.object({
-                    message: z.string()
-                }),
-                403: z.object({
-                    message: z.string()
-                })
+                200: 'SuccessResponse',
+                401: 'UnauthorizedError',
+                403: 'ForbiddenError'
             }
         });

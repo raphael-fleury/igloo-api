@@ -17,6 +17,24 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
     .guard({
         detail: { tags: ['Current Profile'] }
     })
+    .model({
+        UnauthorizedError: z.object({
+            message: z.string()
+        }),
+        ForbiddenError: z.object({
+            message: z.string()
+        }),
+        NotFoundError: z.object({
+            message: z.string()
+        }),
+        UnprocessableEntity: z.object({
+            message: z.string()
+        }),
+        ConflictError: z.object({
+            message: z.string()
+        }),
+        NoContent: z.never().nullish()
+    })
 
     .get('/', async ({ profile }) => {
         return profile;
@@ -27,12 +45,8 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         },
         response: {
             200: profileDto,
-            401: z.object({
-                message: z.string()
-            }),
-            403: z.object({
-                message: z.string()
-            })
+            401: 'UnauthorizedError',
+            403: 'ForbiddenError'
         }
     })
 
@@ -46,18 +60,10 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         body: updateProfileDto,
         response: {
             200: profileDto,
-            401: z.object({
-                message: z.string()
-            }),
-            403: z.object({
-                message: z.string()
-            }),
-            409: z.object({
-                message: z.string()
-            }),
-            422: z.object({
-                message: z.string()
-            })
+            401: 'UnauthorizedError',
+            403: 'ForbiddenError',
+            409: 'ConflictError',
+            422: 'UnprocessableEntity'
         }
     })
 
@@ -71,12 +77,8 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         query: pageQueryDto,
         response: {
             200: blockedProfilesDto,
-            401: z.object({
-                message: z.string()
-            }),
-            403: z.object({
-                message: z.string()
-            })
+            401: 'UnauthorizedError',
+            403: 'ForbiddenError'
         }
     })
 
@@ -90,12 +92,8 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         query: pageQueryDto,
         response: {
             200: followsDto,
-            401: z.object({
-                message: z.string()
-            }),
-            403: z.object({
-                message: z.string()
-            })
+            401: 'UnauthorizedError',
+            403: 'ForbiddenError'
         }
     })
 
@@ -109,12 +107,8 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         query: pageQueryDto,
         response: {
             200: followsDto,
-            401: z.object({
-                message: z.string()
-            }),
-            403: z.object({
-                message: z.string()
-            })
+            401: 'UnauthorizedError',
+            403: 'ForbiddenError'
         }
     })
 
@@ -128,12 +122,8 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         query: pageQueryDto,
         response: {
             200: mutedProfilesDto,
-            401: z.object({
-                message: z.string()
-            }),
-            403: z.object({
-                message: z.string()
-            })
+            401: 'UnauthorizedError',
+            403: 'ForbiddenError'
         }
     })
 
@@ -147,18 +137,10 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         body: uploadAvatarDto,
         response: {
             200: profileDto,
-            401: z.object({
-                message: z.string()
-            }),
-            403: z.object({
-                message: z.string()
-            }),
-            404: z.object({
-                message: z.string()
-            }),
-            422: z.object({
-                message: z.string()
-            })
+            401: 'UnauthorizedError',
+            403: 'ForbiddenError',
+            404: 'NotFoundError',
+            422: 'UnprocessableEntity'
         }
     })
 
@@ -171,16 +153,10 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
             summary: "Delete profile avatar"
         },
         response: {
-            204: z.never().nullish(),
-            401: z.object({
-                message: z.string()
-            }),
-            403: z.object({
-                message: z.string()
-            }),
-            404: z.object({
-                message: z.string()
-            })
+            204: 'NoContent',
+            401: 'UnauthorizedError',
+            403: 'ForbiddenError',
+            404: 'NotFoundError'
         }
     })
 
@@ -194,18 +170,10 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
         body: uploadHeaderDto,
         response: {
             200: profileDto,
-            401: z.object({
-                message: z.string()
-            }),
-            403: z.object({
-                message: z.string()
-            }),
-            404: z.object({
-                message: z.string()
-            }),
-            422: z.object({
-                message: z.string()
-            })
+            401: 'UnauthorizedError',
+            403: 'ForbiddenError',
+            404: 'NotFoundError',
+            422: 'UnprocessableEntity'
         }
     })
 
@@ -218,15 +186,9 @@ export const currentProfileController = ({ bus } = getDefaultProps()) =>
             summary: "Delete profile header"
         },
         response: {
-            204: z.never().nullish(),
-            401: z.object({
-                message: z.string()
-            }),
-            403: z.object({
-                message: z.string()
-            }),
-            404: z.object({
-                message: z.string()
-            })
+            204: 'NoContent',
+            401: 'UnauthorizedError',
+            403: 'ForbiddenError',
+            404: 'NotFoundError'
         }
     });

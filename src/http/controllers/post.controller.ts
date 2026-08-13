@@ -21,6 +21,25 @@ export const postController = ({ bus } = getDefaultProps()) =>
         .guard({
             detail: { tags: ['Posts'] }
         })
+        .model({
+            UnauthorizedError: z.object({
+                message: z.string()
+            }),
+            ForbiddenError: z.object({
+                message: z.string()
+            }),
+            NotFoundError: z.object({
+                message: z.string()
+            }),
+            UnprocessableEntity: z.object({
+                message: z.string()
+            }),
+            DeletedResponse: z.object({
+                message: z.string(),
+                deletedAt: dateDto
+            }),
+            NoContent: z.never()
+        })
 
         .get('/', async ({ query }) => {
             return await bus.execute("findPosts", query);
@@ -46,9 +65,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
             params: postIdParam,
             response: {
                 200: postDetailedDto,
-                404: z.object({
-                    message: z.string()
-                })
+                404: 'NotFoundError'
             }
         })
 
@@ -67,18 +84,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
                 body: createPostDto,
                 response: {
                     201: postDto,
-                    401: z.object({
-                        message: z.string()
-                    }),
-                    403: z.object({
-                        message: z.string()
-                    }),
-                    404: z.object({
-                        message: z.string()
-                    }),
-                    422: z.object({
-                        message: z.string()
-                    })
+                    401: 'UnauthorizedError',
+                    403: 'ForbiddenError',
+                    404: 'NotFoundError',
+                    422: 'UnprocessableEntity'
                 }
             })
 
@@ -95,19 +104,10 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     },
                     params: postIdParam,
                     response: {
-                        200: z.object({
-                            message: z.string(),
-                            deletedAt: dateDto
-                        }),
-                        401: z.object({
-                            message: z.string()
-                        }),
-                        403: z.object({
-                            message: z.string()
-                        }),
-                        404: z.object({
-                            message: z.string()
-                        })
+                        200: 'DeletedResponse',
+                        401: 'UnauthorizedError',
+                        403: 'ForbiddenError',
+                        404: 'NotFoundError'
                     }
                 })
 
@@ -121,13 +121,9 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     },
                     params: postIdParam,
                     response: {
-                        204: z.never(),
-                        401: z.object({
-                            message: z.string()
-                        }),
-                        403: z.object({
-                            message: z.string()
-                        })
+                        204: 'NoContent',
+                        401: 'UnauthorizedError',
+                        403: 'ForbiddenError'
                     }
                 })
 
@@ -141,13 +137,9 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     },
                     params: postIdParam,
                     response: {
-                        204: z.never(),
-                        401: z.object({
-                            message: z.string()
-                        }),
-                        403: z.object({
-                            message: z.string()
-                        })
+                        204: 'NoContent',
+                        401: 'UnauthorizedError',
+                        403: 'ForbiddenError'
                     }
                 })
 
@@ -166,9 +158,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     query: pageQueryDto,
                     response: {
                         200: likesDto,
-                        404: z.object({
-                            message: z.string()
-                        })
+                        404: 'NotFoundError'
                     }
                 })
 
@@ -182,13 +172,9 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     },
                     params: postIdParam,
                     response: {
-                        204: z.never(),
-                        401: z.object({
-                            message: z.string()
-                        }),
-                        403: z.object({
-                            message: z.string()
-                        })
+                        204: 'NoContent',
+                        401: 'UnauthorizedError',
+                        403: 'ForbiddenError'
                     }
                 })
 
@@ -202,13 +188,9 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     },
                     params: postIdParam,
                     response: {
-                        204: z.never(),
-                        401: z.object({
-                            message: z.string()
-                        }),
-                        403: z.object({
-                            message: z.string()
-                        })
+                        204: 'NoContent',
+                        401: 'UnauthorizedError',
+                        403: 'ForbiddenError'
                     }
                 })
 
@@ -227,9 +209,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     query: pageQueryDto,
                     response: {
                         200: repostsDto,
-                        404: z.object({
-                            message: z.string()
-                        })
+                        404: 'NotFoundError'
                     }
                 })
 
@@ -248,9 +228,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     query: pageQueryDto,
                     response: {
                         200: postsPageDto,
-                        404: z.object({
-                            message: z.string()
-                        })
+                        404: 'NotFoundError'
                     }
                 })
 
@@ -269,9 +247,7 @@ export const postController = ({ bus } = getDefaultProps()) =>
                     query: pageQueryDto,
                     response: {
                         200: postsPageDto,
-                        404: z.object({
-                            message: z.string()
-                        })
+                        404: 'NotFoundError'
                     }
                 })
             )

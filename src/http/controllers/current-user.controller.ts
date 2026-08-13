@@ -16,6 +16,17 @@ export const currentUserController = ({ bus } = getDefaultProps()) =>
     .guard({
         detail: { tags: ['Current User'] }
     })
+    .model({
+        UnauthorizedError: z.object({
+            message: z.string()
+        }),
+        NotFoundError: z.object({
+            message: z.string()
+        }),
+        UnprocessableEntity: z.object({
+            message: z.string()
+        })
+    })
 
     .get('/', async ({ user }) => {
         return user;
@@ -26,9 +37,7 @@ export const currentUserController = ({ bus } = getDefaultProps()) =>
         },
         response: {
             200: userDto,
-            401: z.object({
-                message: z.string()
-            })
+            401: 'UnauthorizedError'
         }
     })
 
@@ -42,14 +51,8 @@ export const currentUserController = ({ bus } = getDefaultProps()) =>
         body: updateUserDto,
         response: {
             200: userDto,
-            401: z.object({
-                message: z.string()
-            }),
-            404: z.object({
-                message: z.string()
-            }),
-            422: z.object({
-                message: z.string()
-            })
+            401: 'UnauthorizedError',
+            404: 'NotFoundError',
+            422: 'UnprocessableEntity'
         }
     })
